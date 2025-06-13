@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+
+# Run dotnet format to check for formatting issues
+dotnet format ouranos-foundry.sln --verify-no-changes --verbosity diagnostic --severity error
+
+# Check if dotnet format found any issues
+if [ $? -ne 0 ]; then
+  echo "Code is not formatted correctly. Please run 'dotnet format ouranos-foundry.sln --severity error' to format the code." >&2
+  exit 1
+fi
+
+# Allow the commit to proceed if no issues were found
+exit 0
