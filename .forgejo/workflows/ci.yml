@@ -18,7 +18,7 @@ jobs:
         with:
           dotnet-version: "8.0.x"
       - run: dotnet restore --verbosity quiet
-      - run: dotnet format --verify-no-changes
+      - run: dotnet format ouranos-foundry.sln --verify-no-changes
 
   build:
     needs: lint
