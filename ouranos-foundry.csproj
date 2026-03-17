@@ -1,0 +1,29 @@
+<Project Sdk="Godot.NET.Sdk/4.6.1">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <RootNamespace>Ouranos.Foundry</RootNamespace>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <Content Include=".gitattributes" />
+    <Content Include=".gitignore" />
+    <Content Include="Automation\pre-commit" />
+    <Content Include="Automation\pre-push" />
+    <Content Include="project.godot" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <EditorConfigFiles Remove=".editorconfig" />
+  </ItemGroup>
+
+  <Target Name="CopyGitHooks" AfterTargets="AfterBuild">
+    <ItemGroup>
+      <_CustomFiles Include="./Automation/pre-commit" />
+      <_CustomFiles Include="./Automation/pre-push" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_CustomFiles)" DestinationFolder="./.git/hooks" />
+  </Target>
+
+</Project>

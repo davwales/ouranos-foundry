@@ -1,0 +1,26 @@
+#!/usr/bin/env sh
+
+# Run dotnet build to ensure the project builds successfully
+dotnet build ouranos-foundry.sln --verbosity minimal
+
+# Check the exit status of the build command
+if [ $? -ne 0 ]; then
+  echo "Build failed. Aborting push." >&2
+  exit 1
+fi
+
+# Git LFS pre-push hook logic
+command -v git-lfs >/dev/null 2>&1
+if [ $? -ne 0 ]; then
+    echo >&2 "git-lfs not found."
+    exit 1
+fi
+
+git lfs pre-push "$@"
+if [ $? -ne 0 ]; then
+    echo >&2 "Git LFS pre-push hook failed."
+    exit 1
+fi
+
+# If build succeeds, allow the push to proceed
+exit 0
