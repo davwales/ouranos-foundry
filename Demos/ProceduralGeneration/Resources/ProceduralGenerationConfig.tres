@@ -1,0 +1,46 @@
+[gd_resource type="Resource" script_class="ProceduralGenerationConfig" format=3 uid="uid://bgwprno5vbuxk"]
+
+[ext_resource type="Script" uid="uid://dw4yietv0teu7" path="res://Features/ProceduralGeneration/Resources/ProceduralGenerationConfig.cs" id="1_script"]
+[ext_resource type="Script" uid="uid://biomedef001" path="res://Features/ProceduralGeneration/Resources/BiomeDefinition.cs" id="1_xwbse"]
+[ext_resource type="Resource" path="res://Demos/ProceduralGeneration/Resources/ChunkConfig.tres" id="2_chunkconfig"]
+[ext_resource type="Resource" uid="uid://bvvekkg8mgevq" path="res://Demos/ProceduralGeneration/Resources/GenerationConfig.tres" id="3_genconfig"]
+[ext_resource type="Resource" path="res://Demos/ProceduralGeneration/Resources/NamingConfig.tres" id="4_naming"]
+[ext_resource type="Resource" path="res://Demos/ProceduralGeneration/Resources/TerrainConfig.tres" id="5_terrain"]
+[ext_resource type="Resource" path="res://Demos/ProceduralGeneration/Resources/Biomes/plains.tres" id="6_plains"]
+[ext_resource type="Resource" path="res://Demos/ProceduralGeneration/Resources/Biomes/forest.tres" id="7_forest"]
+[ext_resource type="Resource" path="res://Demos/ProceduralGeneration/Resources/Biomes/desert.tres" id="8_desert"]
+[ext_resource type="Resource" path="res://Demos/ProceduralGeneration/Resources/Biomes/swamp.tres" id="9_swamp"]
+[ext_resource type="Script" uid="uid://de8abwwknlemi" path="res://Features/ProceduralGeneration/Resources/CitySizeDefinition.cs" id="10_duu8f"]
+[ext_resource type="Resource" path="res://Demos/ProceduralGeneration/Resources/Biomes/mountains.tres" id="10_mountains"]
+[ext_resource type="Resource" path="res://Demos/ProceduralGeneration/Resources/Biomes/tundra.tres" id="11_tundra"]
+[ext_resource type="Resource" path="res://Demos/ProceduralGeneration/Resources/Biomes/coastal.tres" id="12_coastal"]
+[ext_resource type="Resource" path="res://Demos/ProceduralGeneration/Resources/CitySizes/hamlet.tres" id="13_hamlet"]
+[ext_resource type="Resource" path="res://Demos/ProceduralGeneration/Resources/CitySizes/village.tres" id="14_village"]
+[ext_resource type="Resource" path="res://Demos/ProceduralGeneration/Resources/CitySizes/town.tres" id="15_town"]
+[ext_resource type="Resource" path="res://Demos/ProceduralGeneration/Resources/CitySizes/city.tres" id="16_city"]
+[ext_resource type="Resource" path="res://Demos/ProceduralGeneration/Resources/CitySizes/metropolis.tres" id="17_metropolis"]
+[ext_resource type="Resource" path="res://Demos/ProceduralGeneration/Resources/PoiTypes/tavern.tres" id="18_tavern"]
+[ext_resource type="Script" uid="uid://d3a77jmloteqq" path="res://Features/ProceduralGeneration/Resources/PoiTypeDefinition.cs" id="18_ymmsp"]
+[ext_resource type="Resource" path="res://Demos/ProceduralGeneration/Resources/PoiTypes/shop.tres" id="19_shop"]
+[ext_resource type="Resource" path="res://Demos/ProceduralGeneration/Resources/PoiTypes/blacksmith.tres" id="20_blacksmith"]
+[ext_resource type="Resource" path="res://Demos/ProceduralGeneration/Resources/PoiTypes/temple.tres" id="21_temple"]
+[ext_resource type="Resource" path="res://Demos/ProceduralGeneration/Resources/PoiTypes/quest_giver.tres" id="22_questgiver"]
+[ext_resource type="Resource" path="res://Demos/ProceduralGeneration/Resources/PoiTypes/guild_hall.tres" id="23_guildhall"]
+[ext_resource type="Resource" path="res://Demos/ProceduralGeneration/Resources/PoiTypes/residence.tres" id="24_residence"]
+[ext_resource type="Resource" path="res://Demos/ProceduralGeneration/Resources/PoiTypes/landmark.tres" id="25_landmark"]
+[ext_resource type="Resource" path="res://Demos/ProceduralGeneration/Resources/RoadTypes/trail.tres" id="26_trail"]
+[ext_resource type="Resource" path="res://Demos/ProceduralGeneration/Resources/RoadTypes/dirt.tres" id="27_dirt"]
+[ext_resource type="Script" uid="uid://wxop2qsyh321" path="res://Features/ProceduralGeneration/Resources/RoadTypeDefinition.cs" id="27_xgqk6"]
+[ext_resource type="Resource" path="res://Demos/ProceduralGeneration/Resources/RoadTypes/paved.tres" id="28_paved"]
+[ext_resource type="Resource" path="res://Demos/ProceduralGeneration/Resources/RoadTypes/highway.tres" id="29_highway"]
+
+[resource]
+script = ExtResource("1_script")
+ChunkConfig = ExtResource("2_chunkconfig")
+BiomeDefinitions = Array[ExtResource("1_xwbse")]([ExtResource("6_plains"), ExtResource("7_forest"), ExtResource("8_desert"), ExtResource("9_swamp"), ExtResource("10_mountains"), ExtResource("11_tundra"), ExtResource("12_coastal")])
+CitySizeDefinitions = Array[ExtResource("10_duu8f")]([ExtResource("13_hamlet"), ExtResource("14_village"), ExtResource("15_town"), ExtResource("16_city"), ExtResource("17_metropolis")])
+PoiTypeDefinitions = Array[ExtResource("18_ymmsp")]([ExtResource("18_tavern"), ExtResource("19_shop"), ExtResource("20_blacksmith"), ExtResource("21_temple"), ExtResource("22_questgiver"), ExtResource("23_guildhall"), ExtResource("24_residence"), ExtResource("25_landmark")])
+RoadTypeDefinitions = Array[ExtResource("27_xgqk6")]([ExtResource("26_trail"), ExtResource("27_dirt"), ExtResource("28_paved"), ExtResource("29_highway")])
+TerrainConfig = ExtResource("5_terrain")
+NamingConfig = ExtResource("4_naming")
+GenerationConfig = ExtResource("3_genconfig")

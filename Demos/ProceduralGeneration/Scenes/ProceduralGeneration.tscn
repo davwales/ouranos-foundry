@@ -1,0 +1,111 @@
+[gd_scene format=3 uid="uid://b4xmx06jmhbxx"]
+
+[ext_resource type="Script" uid="uid://b8v7sh6mmbp6l" path="res://Features/ProceduralGeneration/Nodes/WorldGenerator.cs" id="1_jo3p1"]
+[ext_resource type="Script" uid="uid://dkoqcxnch05yv" path="res://Features/ProceduralGeneration/Resources/WorldState.cs" id="2_7g5bu"]
+[ext_resource type="Script" uid="uid://cgkxq2gfqxxa0" path="res://Features/ProceduralGeneration/Nodes/ChunkManager.cs" id="2_7scug"]
+[ext_resource type="Resource" uid="uid://bgwprno5vbuxk" path="res://Demos/ProceduralGeneration/Resources/ProceduralGenerationConfig.tres" id="2_config"]
+[ext_resource type="Script" uid="uid://cwmwh2inkbcac" path="res://Features/ProceduralGeneration/Nodes/BlueprintPipeline.cs" id="2_nmoxy"]
+[ext_resource type="Script" uid="uid://d33g3d4fls82l" path="res://Features/ProceduralGeneration/Nodes/GenerationPipeline.cs" id="3_7scug"]
+[ext_resource type="Script" uid="uid://g02r12qwyqsb" path="res://Features/ProceduralGeneration/Nodes/Blueprints/RegionBlueprintPass.cs" id="4_e71lk"]
+[ext_resource type="Script" uid="uid://bhox68oomyyab" path="res://Features/ProceduralGeneration/Nodes/Blueprints/CityBlueprintPass.cs" id="5_7g5bu"]
+[ext_resource type="Script" uid="uid://coryyy0svksww" path="res://Features/ProceduralGeneration/Nodes/Blueprints/RoadBlueprintPass.cs" id="6_ivusq"]
+[ext_resource type="Script" uid="uid://2rak1vrjnvg" path="res://Features/ProceduralGeneration/Nodes/Generation/TerrainGenerationPass.cs" id="7_gen1"]
+[ext_resource type="Script" uid="uid://3jqiqa8q10x" path="res://Features/ProceduralGeneration/Nodes/Generation/CityGenerationPass.cs" id="8_gen2"]
+[ext_resource type="Script" uid="uid://8ii5akq71n8" path="res://Features/ProceduralGeneration/Nodes/Generation/RoadGenerationPass.cs" id="9_gen3"]
+[ext_resource type="Script" uid="uid://bfno6cam80o" path="res://Features/ProceduralGeneration/Nodes/Generation/PoiPlacementPass.cs" id="10_gen4"]
+[ext_resource type="Script" uid="uid://cbdoqk8b3natw" path="res://Features/ProceduralGeneration/Resources/ChunkData.cs" id="13_cd"]
+[ext_resource type="Script" uid="uid://buweofm7g4xlh" path="res://Features/ProceduralGeneration/Nodes/Debug/StainedGlassRegionDrawer.cs" id="14_sgrd"]
+[ext_resource type="Script" uid="uid://citydrawer" path="res://Features/ProceduralGeneration/Nodes/Debug/CityDrawer.cs" id="15_cd"]
+[ext_resource type="Script" uid="uid://roaddrawer" path="res://Features/ProceduralGeneration/Nodes/Debug/RoadDrawer.cs" id="16_rd"]
+[ext_resource type="Script" uid="uid://d4f8j2lam1n7p" path="res://Features/ProceduralGeneration/Nodes/Debug/BlueprintDebugOverlay.cs" id="16_vg7bs"]
+[ext_resource type="Script" uid="uid://haphx3t6svg8" path="res://Features/ProceduralGeneration/Nodes/Debug/ChunkGridDrawer.cs" id="17_cgd"]
+[ext_resource type="Script" uid="uid://d06feiwn4udd6" path="res://Features/ProceduralGeneration/Nodes/Debug/CenterMarkerDrawer.cs" id="18_cmd"]
+[ext_resource type="Script" uid="uid://bjyqmg5xcohn2" path="res://Features/ProceduralGeneration/Nodes/Debug/VoronoiEdgeDrawer.cs" id="19_ved"]
+
+[sub_resource type="Resource" id="Resource_ivusq"]
+script = ExtResource("2_7g5bu")
+metadata/_custom_type_script = "uid://dkoqcxnch05yv"
+
+[sub_resource type="Resource" id="Resource_chunk_data"]
+script = ExtResource("13_cd")
+metadata/_custom_type_script = "uid://cbdoqk8b3natw"
+
+[node name="ProceduralGeneration" type="Node2D" unique_id=196941994]
+
+[node name="WorldGenerator" type="Node" parent="." unique_id=1175649299 node_paths=PackedStringArray("ChunkManager", "BlueprintPipeline", "GenerationPipeline")]
+script = ExtResource("1_jo3p1")
+Config = ExtResource("2_config")
+WorldState = SubResource("Resource_ivusq")
+InitialChunkData = SubResource("Resource_chunk_data")
+ChunkManager = NodePath("ChunkManager")
+BlueprintPipeline = NodePath("BlueprintPipeline")
+GenerationPipeline = NodePath("GenerationPipeline")
+metadata/_custom_type_script = "uid://b8v7sh6mmbp6l"
+
+[node name="ChunkManager" type="Node" parent="WorldGenerator" unique_id=265713237]
+script = ExtResource("2_7scug")
+metadata/_custom_type_script = "uid://cgkxq2gfqxxa0"
+
+[node name="BlueprintPipeline" type="Node" parent="WorldGenerator" unique_id=737191507]
+script = ExtResource("2_nmoxy")
+metadata/_custom_type_script = "uid://cwmwh2inkbcac"
+
+[node name="RegionBlueprintPass" type="Node" parent="WorldGenerator/BlueprintPipeline" unique_id=1996154023]
+script = ExtResource("4_e71lk")
+ProcGenConfig = ExtResource("2_config")
+metadata/_custom_type_script = "uid://g02r12qwyqsb"
+
+[node name="CityBlueprintPass" type="Node" parent="WorldGenerator/BlueprintPipeline" unique_id=112221638]
+script = ExtResource("5_7g5bu")
+ProcGenConfig = ExtResource("2_config")
+metadata/_custom_type_script = "uid://bhox68oomyyab"
+
+[node name="RoadBlueprintPass" type="Node" parent="WorldGenerator/BlueprintPipeline" unique_id=718463856]
+script = ExtResource("6_ivusq")
+ProcGenConfig = ExtResource("2_config")
+metadata/_custom_type_script = "uid://coryyy0svksww"
+
+[node name="GenerationPipeline" type="Node" parent="WorldGenerator" unique_id=796323936]
+script = ExtResource("3_7scug")
+metadata/_custom_type_script = "uid://d33g3d4fls82l"
+
+[node name="TerrainGenerationPass" type="Node" parent="WorldGenerator/GenerationPipeline" unique_id=660284835]
+script = ExtResource("7_gen1")
+ProcGenConfig = ExtResource("2_config")
+
+[node name="CityGenerationPass" type="Node" parent="WorldGenerator/GenerationPipeline" unique_id=1129597614]
+script = ExtResource("8_gen2")
+ProcGenConfig = ExtResource("2_config")
+
+[node name="RoadGenerationPass" type="Node" parent="WorldGenerator/GenerationPipeline" unique_id=1399979006]
+script = ExtResource("9_gen3")
+ProcGenConfig = ExtResource("2_config")
+
+[node name="PoiPlacementPass" type="Node" parent="WorldGenerator/GenerationPipeline" unique_id=706887272]
+script = ExtResource("10_gen4")
+ProcGenConfig = ExtResource("2_config")
+
+[node name="BlueprintDebugOverlay" type="Node2D" parent="." unique_id=554098366 node_paths=PackedStringArray("Generator")]
+script = ExtResource("16_vg7bs")
+Generator = NodePath("../WorldGenerator")
+ProcGenConfig = ExtResource("2_config")
+metadata/_custom_type_script = "uid://d4f8j2lam1n7p"
+
+[node name="StainedGlassRegionDrawer" type="Node" parent="BlueprintDebugOverlay" unique_id=1422071596]
+script = ExtResource("14_sgrd")
+
+[node name="CityDrawer" type="Node" parent="BlueprintDebugOverlay" unique_id=2142912586]
+script = ExtResource("15_cd")
+
+[node name="RoadDrawer" type="Node" parent="BlueprintDebugOverlay" unique_id=472947393]
+script = ExtResource("16_rd")
+
+[node name="ChunkGridDrawer" type="Node" parent="BlueprintDebugOverlay" unique_id=1084395084]
+script = ExtResource("17_cgd")
+
+[node name="CenterMarkerDrawer" type="Node" parent="BlueprintDebugOverlay" unique_id=1562182874]
+script = ExtResource("18_cmd")
+
+[node name="VoronoiEdgeDrawer" type="Node" parent="BlueprintDebugOverlay" unique_id=572872471]
+script = ExtResource("19_ved")
+Visible = false

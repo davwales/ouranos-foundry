@@ -357,3 +357,22 @@ healthchecksdb
 
 # Backup folder for Package Reference Convert tool in Visual Studio 2017
 MigrationBackup/
+# AI tool files
+AGENTS.md
+.aider*
+.claude/
+.cursor/
+.cursorrules
+.cursorignore
+.cursorindexingignore
+.copilot/
+.codeium/
+.windsurfrc
+.windsurfrules
+.continue/
+.augment/
+.cline/
+.amazonq/
+.tabnine/
+.cody/
+.opencode/

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Features/ProceduralGeneration/Resources/PoiTypeDefinition.cs" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+Id = "guild_hall"
+DisplayName = "Guild Hall"
+TerrainIdOffset = 5
+NameOptions = PackedStringArray("Adventurer's Guild", "Merchant Consortium", "Scholar's Circle", "Warrior's Lodge")

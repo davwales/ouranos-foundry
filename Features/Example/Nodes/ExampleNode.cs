@@ -1,8 +1,9 @@
 using Godot;
 
-namespace Ouranos.Foundry.Nodes;
+namespace Ouranos.Foundry.Features.Example.Nodes;
 
 [GlobalClass]
+[Icon("res://Assets/icons/foundry_node.svg")]
 public partial class ExampleNode : Node
 {
     public override void _Ready()

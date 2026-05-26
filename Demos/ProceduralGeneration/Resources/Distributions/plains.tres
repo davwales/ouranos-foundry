@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="CitySizeDistribution" format=3 uid="uid://cc4ify3xi1dmm"]
+
+[ext_resource type="Script" uid="uid://cu8s0eqypqy1e" path="res://Features/ProceduralGeneration/Resources/CitySizeDistribution.cs" id="1_script"]
+[ext_resource type="Script" uid="uid://bclyswop58mu7" path="res://Features/ProceduralGeneration/Resources/WeightedSizeEntry.cs" id="2_wse"]
+
+[sub_resource type="Resource" id="Resource_wse_village"]
+script = ExtResource("2_wse")
+SizeId = "village"
+Weight = 0.4
+
+[sub_resource type="Resource" id="Resource_wse_town"]
+script = ExtResource("2_wse")
+SizeId = "town"
+Weight = 0.3
+
+[sub_resource type="Resource" id="Resource_wse_city"]
+script = ExtResource("2_wse")
+SizeId = "city"
+Weight = 0.3
+
+[resource]
+script = ExtResource("1_script")
+Entries = Array[ExtResource("2_wse")]([SubResource("Resource_wse_village"), SubResource("Resource_wse_town"), SubResource("Resource_wse_city")])

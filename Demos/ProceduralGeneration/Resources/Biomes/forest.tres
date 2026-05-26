@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Features/ProceduralGeneration/Resources/BiomeDefinition.cs" id="1_script"]
+[ext_resource type="Resource" path="res://Demos/ProceduralGeneration/Resources/Distributions/forest.tres" id="2_dist"]
+
+[resource]
+script = ExtResource("1_script")
+Id = "forest"
+DisplayName = "Forest"
+TerrainId = 1
+TerrainVariantCount = 3
+CityCountModifier = 0
+CitySizeDistribution = ExtResource("2_dist")
+DebugColor = Color(0.1, 0.5, 0.1, 1)

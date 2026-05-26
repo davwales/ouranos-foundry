@@ -5,9 +5,11 @@ using Ouranos.Foundry.Features.Example.Resources;
 namespace Ouranos.Foundry.Features.Example.Nodes;
 
 [GlobalClass]
+[Icon("res://Assets/icons/foundry_node.svg")]
 public partial class ExampleGreeter : Node
 {
-    [Export] public Array<ExampleResource> Examples { get; private set; } = [];
+    [Export]
+    public Array<ExampleResource> Examples { get; private set; } = [];
 
     public override void _Ready()
     {
