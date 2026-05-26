@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://cmv8on4vjjmvq"]
+
+[ext_resource type="Script" uid="uid://chxcvhw23ns16" path="res://Features/Example/Nodes/ExampleNode.cs" id="1_sydoi"]
+[ext_resource type="Script" uid="uid://ck4lkij1c76vi" path="res://Features/Example/Nodes/ExampleGreeter.cs" id="2_0owtf"]
+[ext_resource type="Script" uid="uid://y2umj0vfvd7a" path="res://Features/Example/Resources/ExampleResource.cs" id="3_04uwt"]
+
+[sub_resource type="Resource" id="Resource_bfq0i"]
+script = ExtResource("3_04uwt")
+FirstName = "David"
+LastName = "Wales"
+metadata/_custom_type_script = "uid://y2umj0vfvd7a"
+
+[sub_resource type="Resource" id="Resource_eedje"]
+script = ExtResource("3_04uwt")
+FirstName = "John"
+LastName = "Smith"
+metadata/_custom_type_script = "uid://y2umj0vfvd7a"
+
+[node name="ExampleScene" type="Node2D" unique_id=257929618]
+
+[node name="ExampleNode" type="Node" parent="." unique_id=283432963]
+script = ExtResource("1_sydoi")
+metadata/_custom_type_script = "uid://chxcvhw23ns16"
+
+[node name="ExampleGreeter" type="Node" parent="." unique_id=2145668866]
+script = ExtResource("2_0owtf")
+Examples = Array[ExtResource("3_04uwt")]([SubResource("Resource_bfq0i"), SubResource("Resource_eedje")])
+metadata/_custom_type_script = "uid://ck4lkij1c76vi"

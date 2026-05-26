@@ -15,7 +15,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="ouranos-foundry"
-run/main_scene="uid://cmv8on4vjjmvq"
+run/main_scene="uid://b4xmx06jmhbxx"
 config/features=PackedStringArray("4.6", "C#", "Forward Plus")
 config/icon="res://icon.svg"
 

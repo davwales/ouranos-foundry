@@ -1,0 +1,11 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Features/ProceduralGeneration/Resources/RoadTypeDefinition.cs" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+Id = "dirt"
+DisplayName = "Dirt"
+TerrainId = 20
+DebugLineWidth = 1.0
+DebugColor = Color(0.6, 0.4, 0.2, 0.7)

@@ -1,0 +1,6 @@
+[gd_resource type="Resource" script_class="GenerationConfig" format=3 uid="uid://bvvekkg8mgevq"]
+
+[ext_resource type="Script" uid="uid://bhxtpdpff5e" path="res://Features/ProceduralGeneration/Resources/GenerationConfig.cs" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")

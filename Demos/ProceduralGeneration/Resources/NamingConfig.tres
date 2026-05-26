@@ -1,0 +1,10 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Features/ProceduralGeneration/Resources/NamingConfig.cs" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+RegionPrefixes = PackedStringArray("North", "South", "East", "West", "Upper", "Lower", "Greater", "Lesser")
+RegionSuffixes = PackedStringArray("Hills", "Plains", "Reach", "March", "Hollow", "Vale", "Heath", "Dales")
+CityPrefixes = PackedStringArray("Iron", "Storm", "Raven", "Silver", "Mist", "Thorn", "Ash", "Gold")
+CitySuffixes = PackedStringArray("haven", "hold", "gate", "ford", "watch", "bridge", "dale", "keep")
