@@ -1,13 +1,23 @@
 #!/usr/bin/env sh
 
-# Run dotnet format to check for formatting issues
-dotnet format ouranos-foundry.sln --verify-no-changes --verbosity diagnostic --severity error
+dotnet tool restore --verbosity quiet
 
-# Check if dotnet format found any issues
+dotnet csharpier check .
 if [ $? -ne 0 ]; then
-  echo "Code is not formatted correctly. Please run 'dotnet format ouranos-foundry.sln --severity error' to format the code." >&2
+  echo "Code is not formatted correctly. Please run 'dotnet csharpier format .' to format the code." >&2
   exit 1
 fi
 
-# Allow the commit to proceed if no issues were found
+dotnet format style ouranos-foundry.sln --verify-no-changes --verbosity diagnostic --no-restore
+if [ $? -ne 0 ]; then
+  echo "Style issues found. Please run 'dotnet format style ouranos-foundry.sln' to fix them." >&2
+  exit 1
+fi
+
+dotnet format analyzers ouranos-foundry.sln --verify-no-changes --verbosity diagnostic --no-restore
+if [ $? -ne 0 ]; then
+  echo "Analyzer issues found. Please run 'dotnet format analyzers ouranos-foundry.sln' to fix them." >&2
+  exit 1
+fi
+
 exit 0
