@@ -19,7 +19,7 @@ jobs:
           dotnet-version: "10.0.x"
       - run: dotnet restore --verbosity quiet
       - run: dotnet tool restore --verbosity quiet
-      - run: dotnet csharpier format . --check
+      - run: dotnet csharpier check .
       - run: dotnet format style --no-restore ouranos-foundry.sln --verify-no-changes
       - run: dotnet format analyzers --no-restore ouranos-foundry.sln --verify-no-changes
 
