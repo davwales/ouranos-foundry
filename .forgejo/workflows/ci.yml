@@ -18,7 +18,10 @@ jobs:
         with:
           dotnet-version: "10.0.x"
       - run: dotnet restore --verbosity quiet
-      - run: dotnet format ouranos-foundry.sln --verify-no-changes
+      - run: dotnet tool restore --verbosity quiet
+      - run: dotnet csharpier format . --check
+      - run: dotnet format style --no-restore ouranos-foundry.sln --verify-no-changes
+      - run: dotnet format analyzers --no-restore ouranos-foundry.sln --verify-no-changes
 
   build:
     needs: lint

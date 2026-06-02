@@ -1,5 +1,3 @@
-using System;
-
 namespace Ouranos.Foundry.Features.ProceduralGeneration.Nodes;
 
 /// <summary>

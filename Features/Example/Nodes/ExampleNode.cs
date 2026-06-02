@@ -1,5 +1,3 @@
-using Godot;
-
 namespace Ouranos.Foundry.Features.Example.Nodes;
 
 [GlobalClass]

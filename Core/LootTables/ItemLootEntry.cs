@@ -26,11 +26,7 @@ public partial class ItemLootEntry : LootTableEntry
         var maxQty = Math.Max(0, MaxQuantity);
         var quantity = minQty >= maxQty ? minQty : rng.Next(minQty, maxQty + 1);
 
-        var result = new LootResult
-        {
-            Item = Item,
-            Quantity = quantity,
-        };
+        var result = new LootResult { Item = Item, Quantity = quantity };
 
         return [result];
     }

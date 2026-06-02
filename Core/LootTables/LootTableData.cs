@@ -118,7 +118,8 @@ public partial class LootTableData : Resource
 
     private List<LootTableEntry> GetEligibleEntries(
         bool allowDuplicates,
-        HashSet<string> consumedEntryIds)
+        HashSet<string> consumedEntryIds
+    )
     {
         if (allowDuplicates)
         {
