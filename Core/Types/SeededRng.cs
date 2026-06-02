@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Ouranos.Foundry.Core.Types;
 
 /// <summary>

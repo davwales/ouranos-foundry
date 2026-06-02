@@ -1,0 +1,64 @@
+[gd_resource type="Resource" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://Core/LootTables/LootTableData.cs" id="1_table"]
+[ext_resource type="Script" path="res://Core/LootTables/ItemLootEntry.cs" id="2_item_entry"]
+[ext_resource type="Script" path="res://Core/LootTables/LootTableEntry.cs" id="3_base_entry"]
+[ext_resource type="Resource" path="res://Demos/LootTables/Resources/Items/common_item.tres" id="4_common"]
+[ext_resource type="Resource" path="res://Demos/LootTables/Resources/Items/uncommon_item.tres" id="5_uncommon"]
+[ext_resource type="Resource" path="res://Demos/LootTables/Resources/Items/rare_item.tres" id="6_rare"]
+[ext_resource type="Resource" path="res://Demos/LootTables/Resources/Items/super_rare_item.tres" id="7_super_rare"]
+[ext_resource type="Resource" path="res://Demos/LootTables/Resources/Items/ultra_rare_item.tres" id="8_ultra_rare"]
+
+[sub_resource type="Resource" id="sub_common"]
+script = ExtResource("2_item_entry")
+Id = "common"
+DisplayName = "Common Item"
+Weight = 50.0
+Item = ExtResource("4_common")
+MinQuantity = 1
+MaxQuantity = 1
+
+[sub_resource type="Resource" id="sub_uncommon"]
+script = ExtResource("2_item_entry")
+Id = "uncommon"
+DisplayName = "Uncommon Item"
+Weight = 30.0
+Item = ExtResource("5_uncommon")
+MinQuantity = 1
+MaxQuantity = 1
+
+[sub_resource type="Resource" id="sub_rare"]
+script = ExtResource("2_item_entry")
+Id = "rare"
+DisplayName = "Rare Item"
+Weight = 15.0
+Item = ExtResource("6_rare")
+MinQuantity = 1
+MaxQuantity = 1
+
+[sub_resource type="Resource" id="sub_super_rare"]
+script = ExtResource("2_item_entry")
+Id = "super_rare"
+DisplayName = "Super Rare Item"
+Weight = 4.0
+Item = ExtResource("7_super_rare")
+MinQuantity = 1
+MaxQuantity = 1
+
+[sub_resource type="Resource" id="sub_ultra_rare"]
+script = ExtResource("2_item_entry")
+Id = "ultra_rare"
+DisplayName = "Ultra Rare Item"
+Weight = 1.0
+Item = ExtResource("8_ultra_rare")
+MinQuantity = 1
+MaxQuantity = 1
+
+[resource]
+script = ExtResource("1_table")
+Id = "gacha_pull"
+DisplayName = "Gacha Pull"
+MinRolls = 3
+MaxRolls = 3
+AllowDuplicates = false
+Entries = Array[ExtResource("3_base_entry")]([SubResource("sub_common"), SubResource("sub_uncommon"), SubResource("sub_rare"), SubResource("sub_super_rare"), SubResource("sub_ultra_rare")])

@@ -1,4 +1,3 @@
-using Godot;
 using Ouranos.Foundry.Features.ProceduralGeneration.Resources;
 
 namespace Ouranos.Foundry.Features.ProceduralGeneration.Nodes;

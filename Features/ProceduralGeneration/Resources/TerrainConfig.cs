@@ -1,5 +1,3 @@
-using Godot;
-
 namespace Ouranos.Foundry.Features.ProceduralGeneration.Resources;
 
 /// <summary>

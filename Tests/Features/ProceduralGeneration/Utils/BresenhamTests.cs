@@ -64,7 +64,10 @@ public class BresenhamTests
             );
             var distance = cross / length;
 
-            Assert.True(distance <= 0.6, $"Point {point} is too far from the line (distance: {distance})");
+            Assert.True(
+                distance <= 0.6,
+                $"Point {point} is too far from the line (distance: {distance})"
+            );
         }
     }
 }

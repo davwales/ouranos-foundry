@@ -1,4 +1,3 @@
-using Godot;
 using Godot.Collections;
 using Ouranos.Foundry.Features.Example.Resources;
 

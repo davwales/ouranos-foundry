@@ -1,0 +1,41 @@
+[gd_resource type="Resource" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://Core/LootTables/LootTableData.cs" id="1_table"]
+[ext_resource type="Script" path="res://Core/LootTables/ItemLootEntry.cs" id="2_item_entry"]
+[ext_resource type="Script" path="res://Core/LootTables/SubTableLootEntry.cs" id="3_subtable_entry"]
+[ext_resource type="Script" path="res://Core/LootTables/EmptyLootEntry.cs" id="4_empty_entry"]
+[ext_resource type="Script" path="res://Core/LootTables/LootTableEntry.cs" id="5_base_entry"]
+[ext_resource type="Resource" path="res://Demos/LootTables/Resources/Items/epic_sword.tres" id="6_epic"]
+[ext_resource type="Resource" path="res://Demos/LootTables/Resources/Tables/common_chest.tres" id="7_common"]
+
+[sub_resource type="Resource" id="sub_common_ref"]
+script = ExtResource("3_subtable_entry")
+Id = "common_chest_ref"
+DisplayName = "Common Chest"
+Weight = 70.0
+SubTable = ExtResource("7_common")
+
+[sub_resource type="Resource" id="sub_epic"]
+script = ExtResource("2_item_entry")
+Id = "epic_sword"
+DisplayName = "Epic Sword"
+Weight = 25.0
+Item = ExtResource("6_epic")
+MinQuantity = 1
+MaxQuantity = 1
+
+[sub_resource type="Resource" id="sub_nothing"]
+script = ExtResource("4_empty_entry")
+Id = "nothing_boss"
+DisplayName = "Nothing"
+Weight = 5.0
+
+[resource]
+script = ExtResource("1_table")
+Id = "boss_drop"
+DisplayName = "Boss Drop"
+Description = "A Tier 3 boss drop table with a 70% chance for common loot, 25% for an epic sword, and 5% for nothing."
+MinRolls = 1
+MaxRolls = 1
+AllowDuplicates = true
+Entries = Array[ExtResource("5_base_entry")]([SubResource("sub_common_ref"), SubResource("sub_epic"), SubResource("sub_nothing")])

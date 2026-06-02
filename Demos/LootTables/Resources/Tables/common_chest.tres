@@ -1,0 +1,51 @@
+[gd_resource type="Resource" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://Core/LootTables/LootTableData.cs" id="1_table"]
+[ext_resource type="Script" path="res://Core/LootTables/ItemLootEntry.cs" id="2_item_entry"]
+[ext_resource type="Script" path="res://Core/LootTables/EmptyLootEntry.cs" id="3_empty_entry"]
+[ext_resource type="Script" path="res://Core/LootTables/LootTableEntry.cs" id="4_base_entry"]
+[ext_resource type="Resource" path="res://Demos/LootTables/Resources/Items/gold.tres" id="5_gold"]
+[ext_resource type="Resource" path="res://Demos/LootTables/Resources/Items/health_potion.tres" id="6_potion"]
+[ext_resource type="Resource" path="res://Demos/LootTables/Resources/Items/iron_sword.tres" id="7_sword"]
+
+[sub_resource type="Resource" id="sub_gold"]
+script = ExtResource("2_item_entry")
+Id = "gold"
+DisplayName = "Gold"
+Weight = 50.0
+Item = ExtResource("5_gold")
+MinQuantity = 5
+MaxQuantity = 15
+
+[sub_resource type="Resource" id="sub_potion"]
+script = ExtResource("2_item_entry")
+Id = "health_potion"
+DisplayName = "Health Potion"
+Weight = 30.0
+Item = ExtResource("6_potion")
+MinQuantity = 1
+MaxQuantity = 3
+
+[sub_resource type="Resource" id="sub_sword"]
+script = ExtResource("2_item_entry")
+Id = "iron_sword"
+DisplayName = "Iron Sword"
+Weight = 15.0
+Item = ExtResource("7_sword")
+MinQuantity = 1
+MaxQuantity = 1
+
+[sub_resource type="Resource" id="sub_nothing"]
+script = ExtResource("3_empty_entry")
+Id = "nothing"
+DisplayName = "Nothing"
+Weight = 5.0
+
+[resource]
+script = ExtResource("1_table")
+Id = "common_chest"
+DisplayName = "Common Chest"
+MinRolls = 2
+MaxRolls = 2
+AllowDuplicates = true
+Entries = Array[ExtResource("4_base_entry")]([SubResource("sub_gold"), SubResource("sub_potion"), SubResource("sub_sword"), SubResource("sub_nothing")])

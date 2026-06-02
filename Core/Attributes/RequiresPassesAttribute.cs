@@ -1,5 +1,3 @@
-using System;
-
 namespace Ouranos.Foundry.Core.Attributes;
 
 /// <summary>
