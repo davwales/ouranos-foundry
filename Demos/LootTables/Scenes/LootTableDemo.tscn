@@ -1,0 +1,89 @@
+[gd_scene format=3 uid="uid://dlt8a3f9m2x0q"]
+
+[ext_resource type="Script" path="res://Demos/LootTables/Scripts/LootTableDemo.cs" id="1_demo_script"]
+[ext_resource type="Script" path="res://Core/LootTables/LootTableRoller.cs" id="2_roller"]
+[ext_resource type="Resource" path="res://Demos/LootTables/Resources/Tables/common_chest.tres" id="3_common_chest"]
+[ext_resource type="Resource" path="res://Demos/LootTables/Resources/Tables/boss_drop.tres" id="4_boss_drop"]
+[ext_resource type="Resource" path="res://Demos/LootTables/Resources/Tables/gacha_pull.tres" id="5_gacha"]
+
+[node name="LootTableDemo" type="Control" node_paths=PackedStringArray("_roller", "_resultsLabel", "_probabilityLabel", "_commonChestButton", "_bossDropButton", "_gachaButton")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_demo_script")
+CommonChestTable = ExtResource("3_common_chest")
+BossDropTable = ExtResource("4_boss_drop")
+GachaTable = ExtResource("5_gacha")
+_roller = NodePath("LootTableRoller")
+_resultsLabel = NodePath("VBoxContainer/ResultsRichTextLabel")
+_probabilityLabel = NodePath("VBoxContainer/ProbabilityRichTextLabel")
+_commonChestButton = NodePath("VBoxContainer/ButtonRow/CommonChestButton")
+_bossDropButton = NodePath("VBoxContainer/ButtonRow/BossDropButton")
+_gachaButton = NodePath("VBoxContainer/ButtonRow/GachaButton")
+
+[node name="LootTableRoller" type="Node" parent="."]
+script = ExtResource("2_roller")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 12
+
+[node name="TitleLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 3
+theme_override_font_sizes/font_size = 24
+text = "🎲 Loot Table Framework Demo"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="VBoxContainer"]
+layout_mode = 3
+
+[node name="ButtonRow" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 3
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="CommonChestButton" type="Button" parent="VBoxContainer/ButtonRow"]
+layout_mode = 3
+text = "Roll Common Chest"
+
+[node name="BossDropButton" type="Button" parent="VBoxContainer/ButtonRow"]
+layout_mode = 3
+text = "Roll Boss Drop"
+
+[node name="GachaButton" type="Button" parent="VBoxContainer/ButtonRow"]
+layout_mode = 3
+text = "Roll Gacha Pull"
+
+[node name="ResultsLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 3
+theme_override_font_sizes/font_size = 16
+text = "Results:"
+
+[node name="ResultsRichTextLabel" type="RichTextLabel" parent="VBoxContainer"]
+layout_mode = 3
+size_flags_vertical = 3
+bbcode_enabled = true
+scroll_active = true
+
+[node name="ProbabilityLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 3
+theme_override_font_sizes/font_size = 16
+text = "Probabilities:"
+
+[node name="ProbabilityRichTextLabel" type="RichTextLabel" parent="VBoxContainer"]
+layout_mode = 3
+size_flags_vertical = 3
+bbcode_enabled = true
+scroll_active = true

@@ -16,7 +16,7 @@ slices that consuming projects can use independently.
 Features/<Name>/        # Each feature is a self-contained vertical slice
   Nodes/                # Godot node scripts ([GlobalClass], inspector-wired)
   Resources/            # Resource subclasses (data/config assets, wired in editor)
-  Types/                # Plain C# types (records, enums, structs — no Godot base class)
+  Types/                # Plain C# types (records, enums, structs - no Godot base class)
   Utils/                # Static helper classes specific to this feature
 Core/                   # Shared code used across multiple features
   Types/                # Shared types (SeededRng, LogLevel)

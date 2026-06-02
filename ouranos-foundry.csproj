@@ -22,6 +22,10 @@
     <EditorConfigFiles Remove=".editorconfig" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="ouranos-foundry.Tests" />
+  </ItemGroup>
+
   <Target Name="CopyGitHooks" AfterTargets="AfterBuild">
     <ItemGroup>
       <_CustomFiles Include="./Automation/pre-commit" />
