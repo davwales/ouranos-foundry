@@ -1,4 +1,4 @@
-namespace Ouranos.Foundry.Core.LootTables;
+namespace Ouranos.Foundry.Features.LootTables;
 
 [GlobalClass]
 public partial class ProbabilityEntry : Resource

@@ -1,10 +1,10 @@
 [gd_resource type="Resource" load_steps=7 format=3]
 
-[ext_resource type="Script" path="res://Core/LootTables/LootTableData.cs" id="1_table"]
-[ext_resource type="Script" path="res://Core/LootTables/ItemLootEntry.cs" id="2_item_entry"]
-[ext_resource type="Script" path="res://Core/LootTables/SubTableLootEntry.cs" id="3_subtable_entry"]
-[ext_resource type="Script" path="res://Core/LootTables/EmptyLootEntry.cs" id="4_empty_entry"]
-[ext_resource type="Script" path="res://Core/LootTables/LootTableEntry.cs" id="5_base_entry"]
+[ext_resource type="Script" path="res://Features/LootTables/Resources/LootTableData.cs" id="1_table"]
+[ext_resource type="Script" path="res://Features/LootTables/Resources/ItemLootEntry.cs" id="2_item_entry"]
+[ext_resource type="Script" path="res://Features/LootTables/Resources/SubTableLootEntry.cs" id="3_subtable_entry"]
+[ext_resource type="Script" path="res://Features/LootTables/Resources/EmptyLootEntry.cs" id="4_empty_entry"]
+[ext_resource type="Script" path="res://Features/LootTables/Resources/LootTableEntry.cs" id="5_base_entry"]
 [ext_resource type="Resource" path="res://Demos/LootTables/Resources/Items/epic_sword.tres" id="6_epic"]
 [ext_resource type="Resource" path="res://Demos/LootTables/Resources/Tables/common_chest.tres" id="7_common"]
 

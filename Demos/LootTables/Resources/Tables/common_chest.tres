@@ -1,9 +1,9 @@
 [gd_resource type="Resource" load_steps=7 format=3]
 
-[ext_resource type="Script" path="res://Core/LootTables/LootTableData.cs" id="1_table"]
-[ext_resource type="Script" path="res://Core/LootTables/ItemLootEntry.cs" id="2_item_entry"]
-[ext_resource type="Script" path="res://Core/LootTables/EmptyLootEntry.cs" id="3_empty_entry"]
-[ext_resource type="Script" path="res://Core/LootTables/LootTableEntry.cs" id="4_base_entry"]
+[ext_resource type="Script" path="res://Features/LootTables/Resources/LootTableData.cs" id="1_table"]
+[ext_resource type="Script" path="res://Features/LootTables/Resources/ItemLootEntry.cs" id="2_item_entry"]
+[ext_resource type="Script" path="res://Features/LootTables/Resources/EmptyLootEntry.cs" id="3_empty_entry"]
+[ext_resource type="Script" path="res://Features/LootTables/Resources/LootTableEntry.cs" id="4_base_entry"]
 [ext_resource type="Resource" path="res://Demos/LootTables/Resources/Items/gold.tres" id="5_gold"]
 [ext_resource type="Resource" path="res://Demos/LootTables/Resources/Items/health_potion.tres" id="6_potion"]
 [ext_resource type="Resource" path="res://Demos/LootTables/Resources/Items/iron_sword.tres" id="7_sword"]

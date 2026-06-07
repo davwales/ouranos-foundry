@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using Ouranos.Foundry.Core.LootTables;
+using Ouranos.Foundry.Features.LootTables;
 using Ouranos.Foundry.Core.Types;
 using Shouldly;
 using Xunit;
 
-namespace Ouranos.Foundry.Tests.Core.LootTables;
+namespace Ouranos.Foundry.Tests.Features.LootTables;
 
 public class WeightedSelectionTests
 {

@@ -1,5 +1,5 @@
 using System.Text;
-using Ouranos.Foundry.Core.LootTables;
+using Ouranos.Foundry.Features.LootTables;
 using Ouranos.Foundry.Core.Types;
 
 namespace Ouranos.Foundry.Demos.LootTables;

@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 # Run dotnet build to ensure the project builds successfully
-dotnet build ouranos-foundry.sln --verbosity minimal
+dotnet build OuranosFoundry.sln --verbosity minimal
 
 # Check the exit status of the build command
 if [ $? -ne 0 ]; then

@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="ouranos-foundry.Tests" />
+    <InternalsVisibleTo Include="OuranosFoundry.Tests" />
   </ItemGroup>
 
   <Target Name="CopyGitHooks" AfterTargets="AfterBuild">

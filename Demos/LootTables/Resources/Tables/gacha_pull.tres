@@ -1,8 +1,8 @@
 [gd_resource type="Resource" load_steps=9 format=3]
 
-[ext_resource type="Script" path="res://Core/LootTables/LootTableData.cs" id="1_table"]
-[ext_resource type="Script" path="res://Core/LootTables/ItemLootEntry.cs" id="2_item_entry"]
-[ext_resource type="Script" path="res://Core/LootTables/LootTableEntry.cs" id="3_base_entry"]
+[ext_resource type="Script" path="res://Features/LootTables/Resources/LootTableData.cs" id="1_table"]
+[ext_resource type="Script" path="res://Features/LootTables/Resources/ItemLootEntry.cs" id="2_item_entry"]
+[ext_resource type="Script" path="res://Features/LootTables/Resources/LootTableEntry.cs" id="3_base_entry"]
 [ext_resource type="Resource" path="res://Demos/LootTables/Resources/Items/common_item.tres" id="4_common"]
 [ext_resource type="Resource" path="res://Demos/LootTables/Resources/Items/uncommon_item.tres" id="5_uncommon"]
 [ext_resource type="Resource" path="res://Demos/LootTables/Resources/Items/rare_item.tres" id="6_rare"]
