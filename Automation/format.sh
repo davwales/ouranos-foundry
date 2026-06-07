@@ -9,10 +9,10 @@ echo "=== Formatting C# whitespace (CSharpier) ==="
 dotnet csharpier format .
 
 echo "=== Formatting C# style (dotnet format style) ==="
-dotnet format style --no-restore ouranos-foundry.sln
+dotnet format style --no-restore OuranosFoundry.sln
 
 echo "=== Formatting C# analyzers (dotnet format analyzers) ==="
-dotnet format analyzers --no-restore ouranos-foundry.sln
+dotnet format analyzers --no-restore OuranosFoundry.sln
 
 echo ""
 echo "=== Formatting complete ==="

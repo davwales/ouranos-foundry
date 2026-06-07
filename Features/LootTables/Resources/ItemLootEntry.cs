@@ -1,6 +1,6 @@
 using Ouranos.Foundry.Core.Types;
 
-namespace Ouranos.Foundry.Core.LootTables;
+namespace Ouranos.Foundry.Features.LootTables;
 
 [GlobalClass]
 public partial class ItemLootEntry : LootTableEntry

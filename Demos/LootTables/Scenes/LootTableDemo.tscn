@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dlt8a3f9m2x0q"]
 
 [ext_resource type="Script" path="res://Demos/LootTables/Scripts/LootTableDemo.cs" id="1_demo_script"]
-[ext_resource type="Script" path="res://Core/LootTables/LootTableRoller.cs" id="2_roller"]
+[ext_resource type="Script" path="res://Features/LootTables/Nodes/LootTableRoller.cs" id="2_roller"]
 [ext_resource type="Resource" path="res://Demos/LootTables/Resources/Tables/common_chest.tres" id="3_common_chest"]
 [ext_resource type="Resource" path="res://Demos/LootTables/Resources/Tables/boss_drop.tres" id="4_boss_drop"]
 [ext_resource type="Resource" path="res://Demos/LootTables/Resources/Tables/gacha_pull.tres" id="5_gacha"]

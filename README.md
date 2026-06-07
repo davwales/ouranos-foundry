@@ -38,11 +38,11 @@ Tests/<Name>/           # Per-feature test projects
 
 ```sh
 # Build
-dotnet build ouranos-foundry.sln
+dotnet build OuranosFoundry.sln
 
 # Format
 dotnet tool restore --verbosity quiet
 dotnet csharpier check .
-dotnet format style ouranos-foundry.sln
-dotnet format analyzers ouranos-foundry.sln
+dotnet format style OuranosFoundry.sln
+dotnet format analyzers OuranosFoundry.sln
 ```

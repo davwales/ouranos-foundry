@@ -14,6 +14,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ouranos-foundry.csproj" />
+    <ProjectReference Include="..\OuranosFoundry.csproj" />
   </ItemGroup>
 </Project>

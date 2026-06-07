@@ -1,6 +1,6 @@
 using Ouranos.Foundry.Core.Types;
 
-namespace Ouranos.Foundry.Core.LootTables;
+namespace Ouranos.Foundry.Features.LootTables;
 
 /// <summary>
 /// The sub-table is rolled with its own derived RNG stream for determinism.
