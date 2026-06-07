@@ -1,6 +1,6 @@
 using System.Text;
-using Ouranos.Foundry.Features.LootTables;
 using Ouranos.Foundry.Core.Types;
+using Ouranos.Foundry.Features.LootTables;
 
 namespace Ouranos.Foundry.Demos.LootTables;
 

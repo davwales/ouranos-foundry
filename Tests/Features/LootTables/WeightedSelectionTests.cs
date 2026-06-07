@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using Ouranos.Foundry.Features.LootTables;
 using Ouranos.Foundry.Core.Types;
+using Ouranos.Foundry.Features.LootTables;
 using Shouldly;
 using Xunit;
 
