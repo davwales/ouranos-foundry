@@ -1,51 +1,51 @@
-using System.Linq;
-using Godot;
+using GdUnit4;
 using Ouranos.Foundry.Core.Utils;
-using Xunit;
+using Shouldly;
 
 namespace Ouranos.Foundry.Tests.Core.Utils;
 
+[TestSuite]
 public class BresenhamTests
 {
-    [Fact]
+    [TestCase]
     public void GetPoints_SinglePoint_ReturnsOnlyThatPoint()
     {
         var points = Bresenham.GetPoints(new Vector2I(5, 5), new Vector2I(5, 5)).ToList();
 
-        Assert.Single(points);
-        Assert.Equal(new Vector2I(5, 5), points[0]);
+        points.ShouldHaveSingleItem();
+        points[0].ShouldBe(new Vector2I(5, 5));
     }
 
-    [Fact]
+    [TestCase]
     public void GetPoints_HorizontalLine_ReturnsAllIntermediatePoints()
     {
         var points = Bresenham.GetPoints(new Vector2I(0, 0), new Vector2I(3, 0)).ToList();
 
-        Assert.Equal(4, points.Count);
-        Assert.Equal(new Vector2I(0, 0), points[0]);
-        Assert.Equal(new Vector2I(3, 0), points[^1]);
+        points.Count.ShouldBe(4);
+        points[0].ShouldBe(new Vector2I(0, 0));
+        points[^1].ShouldBe(new Vector2I(3, 0));
     }
 
-    [Fact]
+    [TestCase]
     public void GetPoints_VerticalLine_ReturnsAllIntermediatePoints()
     {
         var points = Bresenham.GetPoints(new Vector2I(0, 0), new Vector2I(0, 3)).ToList();
 
-        Assert.Equal(4, points.Count);
-        Assert.Equal(new Vector2I(0, 0), points[0]);
-        Assert.Equal(new Vector2I(0, 3), points[^1]);
+        points.Count.ShouldBe(4);
+        points[0].ShouldBe(new Vector2I(0, 0));
+        points[^1].ShouldBe(new Vector2I(0, 3));
     }
 
-    [Fact]
+    [TestCase]
     public void GetPoints_DiagonalLine_IncludesBothEndpoints()
     {
         var points = Bresenham.GetPoints(new Vector2I(0, 0), new Vector2I(5, 5)).ToList();
 
-        Assert.Equal(new Vector2I(0, 0), points[0]);
-        Assert.Equal(new Vector2I(5, 5), points[^1]);
+        points[0].ShouldBe(new Vector2I(0, 0));
+        points[^1].ShouldBe(new Vector2I(5, 5));
     }
 
-    [Fact]
+    [TestCase]
     public void GetPoints_AllPointsAreOnTheLine()
     {
         // Every point should be within 0.5 units of the ideal line
@@ -64,8 +64,7 @@ public class BresenhamTests
             );
             var distance = cross / length;
 
-            Assert.True(
-                distance <= 0.6,
+            (distance <= 0.6).ShouldBeTrue(
                 $"Point {point} is too far from the line (distance: {distance})"
             );
         }

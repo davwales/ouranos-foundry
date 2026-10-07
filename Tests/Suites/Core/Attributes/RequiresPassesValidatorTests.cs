@@ -1,10 +1,10 @@
-using System;
+using GdUnit4;
 using Ouranos.Foundry.Core.Attributes;
 using Shouldly;
-using Xunit;
 
 namespace Ouranos.Foundry.Tests.Core.Attributes;
 
+[TestSuite]
 public class RequiresPassesValidatorTests
 {
     private sealed class PassA;
@@ -12,7 +12,7 @@ public class RequiresPassesValidatorTests
     [RequiresPasses(typeof(PassA))]
     private sealed class PassB;
 
-    [Fact]
+    [TestCase]
     public void FindViolations_WhenDependencyRunsFirst_ReturnsEmpty()
     {
         // Arrange
@@ -25,7 +25,7 @@ public class RequiresPassesValidatorTests
         violations.ShouldBeEmpty();
     }
 
-    [Fact]
+    [TestCase]
     public void FindViolations_WhenDependencyRunsLater_ReturnsViolation()
     {
         // Arrange
@@ -39,7 +39,7 @@ public class RequiresPassesValidatorTests
         violations[0].ShouldContain("PassB requires PassA");
     }
 
-    [Fact]
+    [TestCase]
     public void FindViolations_WhenDependencyMissing_ReturnsViolation()
     {
         // Arrange

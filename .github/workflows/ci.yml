@@ -43,3 +43,27 @@ jobs:
           restore-keys: nuget-${{ runner.os }}-
       - run: dotnet restore --verbosity quiet
       - run: dotnet build OuranosFoundry.sln --no-restore
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+      - uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.6.3
+          use-dotnet: true
+      - name: Test (GdUnit4)
+        working-directory: Tests
+        run: |
+          export GODOT_BIN="$GODOT"
+          dotnet build
+          # Import the test project once so .godot/ exists before tests launch the engine.
+          "$GODOT_BIN" --path . --headless --build-solutions --quit-after 200
+          xvfb-run --auto-servernum dotnet test --no-build --settings .runsettings

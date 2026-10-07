@@ -1,0 +1,9 @@
+# Symlinks created by OuranosFoundry.Tests.csproj
+/Core
+/Features
+/Assets
+/TestResults/
+/gdunit4_testadapter*/
+/*.csproj.old
+# Godot generates these for test scripts; nothing references them.
+/Suites/**/*.uid

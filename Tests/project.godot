@@ -1,0 +1,14 @@
+; Engine configuration file for the test project.
+; Core/, Features/ and Assets/ are symlinks created by the .csproj build.
+; Its presence also makes the main project's editor skip the Tests/ folder.
+
+config_version=5
+
+[application]
+
+config/name="OuranosFoundry.Tests"
+config/features=PackedStringArray("4.6", "C#", "Forward Plus")
+
+[dotnet]
+
+project/assembly_name="OuranosFoundry.Tests"

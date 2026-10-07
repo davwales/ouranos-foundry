@@ -1,20 +1,19 @@
-using System;
-using System.Collections.Generic;
+using GdUnit4;
 using Ouranos.Foundry.Core.Utils;
 using Shouldly;
-using Xunit;
 
 namespace Ouranos.Foundry.Tests.Core.Utils;
 
+[TestSuite]
 public class StableIdTests
 {
-    [Fact]
+    [TestCase]
     public void Create_SameInputs_ReturnsSameId()
     {
         StableId.Create(42, "region", 3).ShouldBe(StableId.Create(42, "region", 3));
     }
 
-    [Fact]
+    [TestCase]
     public void Create_KnownInputs_ReturnsPinnedValue()
     {
         // Pins the derivation so a change that would invalidate saved IDs fails loudly.
@@ -23,10 +22,9 @@ public class StableIdTests
             .ShouldBe(new Guid("5e380d2c-29cb-b7c2-2034-a01f8d8c0399"));
     }
 
-    [Theory]
-    [InlineData(42UL, "region", 0UL, 43UL, "region", 0UL)]
-    [InlineData(42UL, "region", 0UL, 42UL, "city", 0UL)]
-    [InlineData(42UL, "region", 0UL, 42UL, "region", 1UL)]
+    [TestCase(42UL, "region", 0UL, 43UL, "region", 0UL)]
+    [TestCase(42UL, "region", 0UL, 42UL, "city", 0UL)]
+    [TestCase(42UL, "region", 0UL, 42UL, "region", 1UL)]
     public void Create_DifferentInputs_ReturnsDifferentIds(
         ulong seedA,
         string kindA,
@@ -39,7 +37,7 @@ public class StableIdTests
         StableId.Create(seedA, kindA, indexA).ShouldNotBe(StableId.Create(seedB, kindB, indexB));
     }
 
-    [Fact]
+    [TestCase]
     public void Create_ManyIndices_ProducesNoCollisions()
     {
         var ids = new HashSet<Guid>();
@@ -53,7 +51,7 @@ public class StableIdTests
         }
     }
 
-    [Fact]
+    [TestCase]
     public void Create_FromParent_IsDeterministicAndDistinctFromParent()
     {
         var parent = StableId.Create(7, "city", 0);
@@ -66,7 +64,7 @@ public class StableIdTests
         child.ShouldNotBe(StableId.Create(StableId.Create(7, "city", 1), "poi", 0));
     }
 
-    [Fact]
+    [TestCase]
     public void Create_FromPair_DependsOnOrder()
     {
         var a = StableId.Create(1, "city", 0);

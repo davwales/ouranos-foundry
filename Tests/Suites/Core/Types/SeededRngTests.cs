@@ -1,11 +1,13 @@
+using GdUnit4;
 using Ouranos.Foundry.Core.Types;
-using Xunit;
+using Shouldly;
 
 namespace Ouranos.Foundry.Tests.Core.Types;
 
+[TestSuite]
 public class SeededRngTests
 {
-    [Fact]
+    [TestCase]
     public void SameSeedAndSalt_ProducesSameSequence()
     {
         var a = new SeededRng(42, 100);
@@ -13,11 +15,11 @@ public class SeededRngTests
 
         for (var i = 0; i < 100; i++)
         {
-            Assert.Equal(a.Next(), b.Next());
+            b.Next().ShouldBe(a.Next());
         }
     }
 
-    [Fact]
+    [TestCase]
     public void DifferentSeeds_ProduceDifferentSequences()
     {
         var a = new SeededRng(42);
@@ -33,10 +35,10 @@ public class SeededRngTests
         }
 
         // With different seeds, we should see very few collisions
-        Assert.True(matchCount < 10, $"Expected <10 matches, got {matchCount}");
+        (matchCount < 10).ShouldBeTrue($"Expected <10 matches, got {matchCount}");
     }
 
-    [Fact]
+    [TestCase]
     public void DifferentSalts_ProduceDifferentSequences()
     {
         var a = new SeededRng(42, 100);
@@ -51,10 +53,10 @@ public class SeededRngTests
             }
         }
 
-        Assert.True(matchCount < 10, $"Expected <10 matches, got {matchCount}");
+        (matchCount < 10).ShouldBeTrue($"Expected <10 matches, got {matchCount}");
     }
 
-    [Fact]
+    [TestCase]
     public void Next_WithMaxValue_ReturnsValuesInRange()
     {
         var rng = new SeededRng(42);
@@ -62,11 +64,11 @@ public class SeededRngTests
         for (var i = 0; i < 1000; i++)
         {
             var value = rng.Next(10);
-            Assert.InRange(value, 0, 9);
+            value.ShouldBeInRange(0, 9);
         }
     }
 
-    [Fact]
+    [TestCase]
     public void Next_WithMinMax_ReturnsValuesInRange()
     {
         var rng = new SeededRng(42);
@@ -74,11 +76,11 @@ public class SeededRngTests
         for (var i = 0; i < 1000; i++)
         {
             var value = rng.Next(5, 15);
-            Assert.InRange(value, 5, 14);
+            value.ShouldBeInRange(5, 14);
         }
     }
 
-    [Fact]
+    [TestCase]
     public void NextDouble_ReturnsValuesBetweenZeroAndOne()
     {
         var rng = new SeededRng(42);
@@ -86,11 +88,11 @@ public class SeededRngTests
         for (var i = 0; i < 1000; i++)
         {
             var value = rng.NextDouble();
-            Assert.InRange(value, 0.0, 1.0);
+            value.ShouldBeInRange(0.0, 1.0);
         }
     }
 
-    [Fact]
+    [TestCase]
     public void Derive_ProducesIndependentStreams()
     {
         var parent = new SeededRng(42);
@@ -107,10 +109,10 @@ public class SeededRngTests
             }
         }
 
-        Assert.True(matchCount < 10, $"Expected <10 matches, got {matchCount}");
+        (matchCount < 10).ShouldBeTrue($"Expected <10 matches, got {matchCount}");
     }
 
-    [Fact]
+    [TestCase]
     public void Derive_IsDeterministic()
     {
         var parent1 = new SeededRng(42);
@@ -121,11 +123,11 @@ public class SeededRngTests
 
         for (var i = 0; i < 100; i++)
         {
-            Assert.Equal(child1.Next(), child2.Next());
+            child2.Next().ShouldBe(child1.Next());
         }
     }
 
-    [Fact]
+    [TestCase]
     public void NextElement_FromArray_ReturnsElementsFromArray()
     {
         var rng = new SeededRng(42);
@@ -134,7 +136,7 @@ public class SeededRngTests
         for (var i = 0; i < 100; i++)
         {
             var element = rng.NextElement(array);
-            Assert.Contains(element, array);
+            array.ShouldContain(element);
         }
     }
 }

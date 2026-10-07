@@ -1,2 +1,5 @@
 .dotnet/
 .godot/
+Tests/Core/
+Tests/Features/
+Tests/Assets/
