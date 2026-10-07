@@ -29,15 +29,19 @@ public static class StableId
     /// Creates an ID for the <paramref name="index"/>-th child of
     /// <paramref name="kind"/> owned by <paramref name="parent"/>.
     /// </summary>
-    public static Guid Create(Guid parent, string kind, ulong index) =>
-        Create(Fold(parent), kind, index);
+    public static Guid Create(Guid parent, string kind, ulong index)
+    {
+        return Create(Fold(parent), kind, index);
+    }
 
     /// <summary>
     /// Creates an ID for an entity of <paramref name="kind"/> that links
     /// <paramref name="first"/> to <paramref name="second"/>. Order matters.
     /// </summary>
-    public static Guid Create(Guid first, string kind, Guid second) =>
-        Create(Fold(first), kind, Fold(second));
+    public static Guid Create(Guid first, string kind, Guid second)
+    {
+        return Create(Fold(first), kind, Fold(second));
+    }
 
     private static Guid FromState(ulong state)
     {

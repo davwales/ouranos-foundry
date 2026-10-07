@@ -7,10 +7,10 @@ namespace Ouranos.Foundry.Features.ProceduralGeneration.Resources;
 public partial class WorldState : WorldBlueprint
 {
     [Export]
-    public int Size { get; private set; } = 1000;
+    public int Size { get; set; } = 1000;
 
     [Export]
-    public int ChunkSize { get; private set; } = 16;
+    public int ChunkSize { get; set; } = 16;
 
     public List<Region> Regions { get; private set; } = [];
 

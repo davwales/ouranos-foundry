@@ -10,8 +10,9 @@ namespace Ouranos.Foundry.Tests.Features.ProceduralGeneration;
 
 public class BlueprintDeterminismTests
 {
-    private static ProceduralGenerationConfig MakeConfig() =>
-        new()
+    private static ProceduralGenerationConfig MakeConfig()
+    {
+        return new()
         {
             NamingConfig = new NamingConfig(),
             GenerationConfig = new GenerationConfig(),
@@ -20,6 +21,7 @@ public class BlueprintDeterminismTests
             PoiTypeDefinitions = [PoiTypeDefinition.Default],
             RoadTypeDefinitions = [RoadTypeDefinition.Default],
         };
+    }
 
     private static WorldState GenerateBlueprint(ulong seed)
     {

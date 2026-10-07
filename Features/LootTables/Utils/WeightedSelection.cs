@@ -5,7 +5,7 @@ namespace Ouranos.Foundry.Features.LootTables;
 internal static class WeightedSelection
 {
     /// <summary>
-    /// Returns null if no eligible entries or all weights <= 0.
+    /// Returns null if no eligible entries or all weights &lt;= 0.
     /// </summary>
     public static LootTableEntry? Select(
         IReadOnlyList<LootTableEntry> entries,

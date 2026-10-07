@@ -129,7 +129,10 @@ public sealed class SeededRng(ulong seed, ulong salt = 0)
     /// <summary>
     /// Hashes a single value with the SplitMix64 mixer. Stateless and deterministic.
     /// </summary>
-    internal static ulong Mix(ulong value) => SplitMix64Next(ref value);
+    internal static ulong Mix(ulong value)
+    {
+        return SplitMix64Next(ref value);
+    }
 
     private static ulong SplitMix64Next(ref ulong state)
     {

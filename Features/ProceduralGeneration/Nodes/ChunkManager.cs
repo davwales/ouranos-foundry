@@ -19,7 +19,7 @@ public partial class ChunkManager : Node
     public Node2D? Player { get; private set; }
 
     [Export]
-    private int _chunkSize = 16;
+    public int ChunkSize { get; private set; } = 16;
 
     [Export]
     public int ViewDistanceChunks { get; private set; } = 3;
@@ -34,7 +34,7 @@ public partial class ChunkManager : Node
             return;
         }
 
-        var playerChunk = (Vector2I)(Player.GlobalPosition / _chunkSize);
+        var playerChunk = (Vector2I)(Player.GlobalPosition / ChunkSize);
 
         if (playerChunk == _currentPlayerChunk)
         {

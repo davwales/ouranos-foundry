@@ -55,31 +55,10 @@ public partial class BlueprintPipeline : Node
     /// </summary>
     public void ValidateDependencies()
     {
-        var visitedTypes = new HashSet<Type>();
-
-        foreach (var pass in _passes)
+        var violations = RequiresPassesValidator.FindViolations(_passes.Select(p => p.GetType()));
+        if (violations.Count > 0)
         {
-            var passType = pass.GetType();
-            var attr =
-                passType
-                    .GetCustomAttributes(typeof(RequiresPassesAttribute), false)
-                    .FirstOrDefault() as RequiresPassesAttribute;
-
-            if (attr is not null)
-            {
-                foreach (var required in attr.RequiredPasses)
-                {
-                    if (!visitedTypes.Contains(required))
-                    {
-                        throw new InvalidOperationException(
-                            $"{passType.Name} requires {required.Name} to run before it, "
-                                + $"but {required.Name} was not found earlier in the pipeline."
-                        );
-                    }
-                }
-            }
-
-            visitedTypes.Add(passType);
+            throw new InvalidOperationException(violations[0]);
         }
     }
 

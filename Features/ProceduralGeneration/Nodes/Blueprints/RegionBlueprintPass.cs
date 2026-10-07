@@ -13,6 +13,9 @@ namespace Ouranos.Foundry.Features.ProceduralGeneration.Nodes.Blueprints;
 [GlobalClass]
 public partial class RegionBlueprintPass : BlueprintPass
 {
+    /// <summary>Distinct RNG salt so this pass's stream is independent of other passes.</summary>
+    private const ulong RngSalt = 1000;
+
     [Export]
     public ProceduralGenerationConfig? ProcGenConfig { get; private set; }
 
@@ -45,7 +48,7 @@ public partial class RegionBlueprintPass : BlueprintPass
             return;
         }
         var genConfig = config.GenerationConfig ?? new GenerationConfig();
-        var rng = new SeededRng(worldState.Seed, 1000);
+        var rng = new SeededRng(worldState.Seed, RngSalt);
 
         GD.Print(
             $"Placing {genConfig.RegionCount} regions in {worldState.Size}x{worldState.Size} world..."

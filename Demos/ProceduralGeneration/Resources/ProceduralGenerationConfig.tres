@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="ProceduralGenerationConfig" format=3 uid="uid://bgwprno5vbuxk"]
 
 [ext_resource type="Script" uid="uid://dw4yietv0teu7" path="res://Features/ProceduralGeneration/Resources/ProceduralGenerationConfig.cs" id="1_script"]
-[ext_resource type="Script" uid="uid://biomedef001" path="res://Features/ProceduralGeneration/Resources/BiomeDefinition.cs" id="1_xwbse"]
+[ext_resource type="Script" uid="uid://djfwcehsirkv8" path="res://Features/ProceduralGeneration/Resources/BiomeDefinition.cs" id="1_xwbse"]
 [ext_resource type="Resource" path="res://Demos/ProceduralGeneration/Resources/ChunkConfig.tres" id="2_chunkconfig"]
 [ext_resource type="Resource" uid="uid://bvvekkg8mgevq" path="res://Demos/ProceduralGeneration/Resources/GenerationConfig.tres" id="3_genconfig"]
 [ext_resource type="Resource" path="res://Demos/ProceduralGeneration/Resources/NamingConfig.tres" id="4_naming"]

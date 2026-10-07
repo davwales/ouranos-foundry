@@ -38,9 +38,15 @@ public partial class WorldGenerator : Node
 
     public bool IsBlueprintGenerated => WorldState.IsBlueprintGenerated;
 
-    public bool IsChunkReady(Vector2I coords) => _generatedChunks.ContainsKey(coords);
+    public bool IsChunkReady(Vector2I coords)
+    {
+        return _generatedChunks.ContainsKey(coords);
+    }
 
-    public ChunkData? GetChunk(Vector2I coords) => _generatedChunks.GetValueOrDefault(coords);
+    public ChunkData? GetChunk(Vector2I coords)
+    {
+        return _generatedChunks.GetValueOrDefault(coords);
+    }
 
     [Signal]
     public delegate void BlueprintGeneratedEventHandler();

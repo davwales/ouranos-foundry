@@ -4,6 +4,10 @@
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <RootNamespace>Ouranos.Foundry</RootNamespace>
     <Nullable>enable</Nullable>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Godot source generators emit undocumented public members; XML docs are optional here. -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,10 +20,6 @@
     <Content Include="Automation\pre-commit" />
     <Content Include="Automation\pre-push" />
     <Content Include="project.godot" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EditorConfigFiles Remove=".editorconfig" />
   </ItemGroup>
 
   <ItemGroup>
