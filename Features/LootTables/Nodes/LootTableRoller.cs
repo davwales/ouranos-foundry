@@ -1,13 +1,15 @@
 using Ouranos.Foundry.Core.Types;
+using Ouranos.Foundry.Features.LootTables.Resources;
+using Ouranos.Foundry.Features.LootTables.Types;
 
-namespace Ouranos.Foundry.Features.LootTables;
+namespace Ouranos.Foundry.Features.LootTables.Nodes;
 
 [GlobalClass]
 [Icon("res://Assets/icons/foundry_node.svg")]
 public partial class LootTableRoller : Node
 {
     [Export]
-    public LootTableData? Table { get; set; }
+    public LootTableData? Table { get; private set; }
 
     [Signal]
     public delegate void TableRolledEventHandler(
@@ -22,17 +24,23 @@ public partial class LootTableRoller : Node
     [Signal]
     public delegate void EmptyDropSelectedEventHandler(LootTableData table);
 
+    public void SetTable(LootTableData? table)
+    {
+        Table = table;
+    }
+
     public IReadOnlyList<LootResult> Roll(SeededRng rng, int? rollsOverride = null)
     {
-        if (Table == null)
+        if (Table is null)
         {
             GD.PushError("LootTableRoller: No LootTableData assigned.");
             return [];
         }
 
-        var context = new RollContext(OnEmptyDropSelected: table =>
-            EmitSignal(SignalName.EmptyDropSelected, table)
-        );
+        var context = new RollContext
+        {
+            OnEmptyDropSelected = table => EmitSignal(SignalName.EmptyDropSelected, table),
+        };
         var results = Table.Roll(rng, context, rollsOverride);
 
         // Convert to Godot array for signal compatibility

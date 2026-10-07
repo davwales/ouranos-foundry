@@ -1,6 +1,7 @@
 using Ouranos.Foundry.Core.Types;
+using Ouranos.Foundry.Features.LootTables.Types;
 
-namespace Ouranos.Foundry.Features.LootTables;
+namespace Ouranos.Foundry.Features.LootTables.Resources;
 
 [GlobalClass]
 public partial class ItemLootEntry : LootTableEntry
@@ -14,7 +15,7 @@ public partial class ItemLootEntry : LootTableEntry
     [Export]
     public int MaxQuantity { get; set; } = 1;
 
-    internal override IReadOnlyList<LootResult> Resolve(SeededRng rng, RollContext context)
+    public override IReadOnlyList<LootResult> Resolve(SeededRng rng, RollContext context)
     {
         if (Item is null)
         {

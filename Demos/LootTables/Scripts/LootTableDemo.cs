@@ -1,6 +1,7 @@
 using System.Text;
 using Ouranos.Foundry.Core.Types;
-using Ouranos.Foundry.Features.LootTables;
+using Ouranos.Foundry.Features.LootTables.Nodes;
+using Ouranos.Foundry.Features.LootTables.Resources;
 
 namespace Ouranos.Foundry.Demos.LootTables;
 
@@ -68,7 +69,7 @@ public partial class LootTableDemo : Control
             return;
         }
 
-        _roller.Table = table;
+        _roller.SetTable(table);
         var seed = Time.GetTicksMsec();
         var rng = new SeededRng(seed);
         _emptyDropCount = 0;

@@ -1,4 +1,4 @@
-namespace Ouranos.Foundry.Features.LootTables;
+namespace Ouranos.Foundry.Features.LootTables.Resources;
 
 [GlobalClass]
 public partial class LootResult : Resource
