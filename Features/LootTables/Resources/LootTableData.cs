@@ -51,13 +51,13 @@ public partial class LootTableData : Resource
         }
 
         var results = new List<LootResult>();
-        var consumedEntryIds = new HashSet<string>();
+        var consumedEntries = new HashSet<LootTableEntry>(ReferenceEqualityComparer.Instance);
         var rollCount = GetRollCount(rng, rollsOverride);
 
         for (var i = 0; i < rollCount; i++)
         {
             var derivedRng = rng.Derive();
-            var eligible = GetEligibleEntries(AllowDuplicates, consumedEntryIds);
+            var eligible = GetEligibleEntries(AllowDuplicates, consumedEntries);
             var entry = WeightedSelection.Select(eligible, derivedRng, context);
 
             if (entry is null)
@@ -65,11 +65,16 @@ public partial class LootTableData : Resource
                 continue;
             }
 
+            if (entry is EmptyLootEntry)
+            {
+                context.OnEmptyDropSelected?.Invoke(this);
+            }
+
             results.AddRange(entry.Resolve(derivedRng, context));
 
             if (!AllowDuplicates)
             {
-                consumedEntryIds.Add(entry.Id);
+                consumedEntries.Add(entry);
             }
         }
 
@@ -91,17 +96,15 @@ public partial class LootTableData : Resource
                 continue;
             }
 
-            var weight = entry.Weight > 0f ? entry.Weight : 0f;
             eligible.Add(entry);
-            totalWeight += weight;
+            totalWeight += entry.EffectiveWeight;
         }
 
         var probabilities = new List<ProbabilityEntry>();
 
         foreach (var entry in eligible)
         {
-            var clampedWeight = entry.Weight > 0f ? entry.Weight : 0f;
-            var probability = totalWeight > 0f ? clampedWeight / totalWeight : 0f;
+            var probability = totalWeight > 0f ? entry.EffectiveWeight / totalWeight : 0f;
 
             probabilities.Add(
                 new ProbabilityEntry
@@ -118,7 +121,7 @@ public partial class LootTableData : Resource
 
     private List<LootTableEntry> GetEligibleEntries(
         bool allowDuplicates,
-        HashSet<string> consumedEntryIds
+        HashSet<LootTableEntry> consumedEntries
     )
     {
         if (allowDuplicates)
@@ -129,7 +132,7 @@ public partial class LootTableData : Resource
         var eligible = new List<LootTableEntry>(Entries.Count);
         foreach (var entry in Entries)
         {
-            if (!consumedEntryIds.Contains(entry.Id))
+            if (!consumedEntries.Contains(entry))
             {
                 eligible.Add(entry);
             }

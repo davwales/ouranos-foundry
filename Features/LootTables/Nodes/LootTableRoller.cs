@@ -15,6 +15,13 @@ public partial class LootTableRoller : Node
         Godot.Collections.Array<LootResult> results
     );
 
+    /// <summary>
+    /// Emitted once per empty outcome, with the table (or sub-table) that selected it.
+    /// Empty outcomes produce no <see cref="LootResult"/>.
+    /// </summary>
+    [Signal]
+    public delegate void EmptyDropSelectedEventHandler(LootTableData table);
+
     public IReadOnlyList<LootResult> Roll(SeededRng rng, int? rollsOverride = null)
     {
         if (Table == null)
@@ -23,7 +30,10 @@ public partial class LootTableRoller : Node
             return [];
         }
 
-        var results = Table.Roll(rng, rollsOverride: rollsOverride);
+        var context = new RollContext(OnEmptyDropSelected: table =>
+            EmitSignal(SignalName.EmptyDropSelected, table)
+        );
+        var results = Table.Roll(rng, context, rollsOverride);
 
         // Convert to Godot array for signal compatibility
         var godotResults = new Godot.Collections.Array<LootResult>();

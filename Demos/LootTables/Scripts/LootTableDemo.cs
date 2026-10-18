@@ -33,9 +33,12 @@ public partial class LootTableDemo : Control
     [Export]
     public LootTableData? GachaTable { get; set; }
 
+    private int _emptyDropCount;
+
     public override void _Ready()
     {
         _roller?.TableRolled += OnTableRolled;
+        _roller?.EmptyDropSelected += OnEmptyDropSelected;
 
         if (_commonChestButton != null && CommonChestTable != null)
         {
@@ -68,6 +71,7 @@ public partial class LootTableDemo : Control
         _roller.Table = table;
         var seed = Time.GetTicksMsec();
         var rng = new SeededRng(seed);
+        _emptyDropCount = 0;
         var results = _roller.Roll(rng);
 
         DisplayResults(table, results, seed);
@@ -78,6 +82,14 @@ public partial class LootTableDemo : Control
     {
         _resultsLabel?.AppendText(
             $"[color=gray][signal] TableRolled fired: {table.DisplayName} → {results.Count} result{(results.Count == 1 ? "" : "s")}[/color]\n\n"
+        );
+    }
+
+    private void OnEmptyDropSelected(LootTableData table)
+    {
+        _emptyDropCount++;
+        _resultsLabel?.AppendText(
+            $"[color=gray][signal] EmptyDropSelected fired: {table.DisplayName}[/color]\n"
         );
     }
 
@@ -96,16 +108,8 @@ public partial class LootTableDemo : Control
             $"[color=green]Rolled '{table.DisplayName}' (seed: {seed})[/color]\n"
         );
 
-        var emptyCount = 0;
         foreach (var result in results)
         {
-            if (result.Item == null)
-            {
-                emptyCount++;
-                _resultsLabel.AppendText("  • Nothing\n");
-                continue;
-            }
-
             var itemName = result.Item switch
             {
                 DemoItem demoItem => demoItem.DisplayName,
@@ -117,7 +121,7 @@ public partial class LootTableDemo : Control
         }
 
         _resultsLabel.AppendText(
-            $"---\nTotal items: {results.Count} | Empty drops: {emptyCount}\n\n"
+            $"---\nTotal items: {results.Count} | Empty drops: {_emptyDropCount}\n\n"
         );
     }
 
