@@ -4,3 +4,11 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    ignore:
+      # The SDK version must match the Godot editor version, so bump it by hand.
+      - dependency-name: "Godot.NET.Sdk"
