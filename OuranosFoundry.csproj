@@ -25,12 +25,4 @@
   <ItemGroup>
     <InternalsVisibleTo Include="OuranosFoundry.Tests" />
   </ItemGroup>
-
-  <Target Name="CopyGitHooks" AfterTargets="AfterBuild">
-    <ItemGroup>
-      <_CustomFiles Include="./Automation/pre-commit" />
-      <_CustomFiles Include="./Automation/pre-push" />
-    </ItemGroup>
-    <Copy SourceFiles="@(_CustomFiles)" DestinationFolder="./.git/hooks" />
-  </Target>
 </Project>

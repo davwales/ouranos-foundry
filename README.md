@@ -5,10 +5,11 @@ slices that consuming projects can use independently.
 
 ## Quick Start
 
-1. **Prerequisites:** Godot 4.4+, .NET 10 SDK, git-lfs
-2. **Open** `project.godot` in the Godot editor
-3. **Run** the ProceduralGeneration demo: press F5 (or F6 to run the main scene)
-4. **New feature?** Copy `Features/_Template/` → `Features/YourName/`
+1. **Prerequisites:** Godot 4.6+, .NET 10 SDK
+2. **Set up** the clone: `Automation/setup.sh` (restores .NET tools and installs the git hooks)
+3. **Open** `project.godot` in the Godot editor
+4. **Run** the ProceduralGeneration demo: press F5 (or F6 to run the main scene)
+5. **New feature?** Copy `Features/_Template/` → `Features/YourName/`
 
 ## Project Layout
 
@@ -37,6 +38,9 @@ Tests/<Name>/           # Per-feature test projects
 ## Commands
 
 ```sh
+# One-time setup (tools + git hooks via core.hooksPath)
+Automation/setup.sh
+
 # Build
 dotnet build OuranosFoundry.sln
 
