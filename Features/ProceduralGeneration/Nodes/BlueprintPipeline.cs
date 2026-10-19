@@ -1,3 +1,4 @@
+using Ouranos.Foundry.Core.Attributes;
 using Ouranos.Foundry.Features.ProceduralGeneration.Resources;
 
 namespace Ouranos.Foundry.Features.ProceduralGeneration.Nodes;

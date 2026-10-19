@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Ouranos.Foundry.Core.Types;
 using Ouranos.Foundry.Features.ProceduralGeneration.Resources;
 using Ouranos.Foundry.Features.ProceduralGeneration.Types;
 

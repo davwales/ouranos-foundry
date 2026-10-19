@@ -10,7 +10,7 @@ public class GlobalClassConventionTests
     [Fact]
     public void AllPublicNodeAndResourceSubclasses_MustHaveGlobalClassAttribute()
     {
-        var assembly = typeof(Ouranos.Foundry.Features.Example.Nodes.ExampleGreeter).Assembly;
+        var assembly = typeof(Ouranos.Foundry.Core.Types.SeededRng).Assembly;
 
         var violations = assembly
             .GetTypes()
