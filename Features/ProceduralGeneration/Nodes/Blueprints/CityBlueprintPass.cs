@@ -1,5 +1,6 @@
 using Ouranos.Foundry.Core.Attributes;
 using Ouranos.Foundry.Core.Types;
+using Ouranos.Foundry.Core.Utils;
 using Ouranos.Foundry.Features.ProceduralGeneration.Resources;
 using Ouranos.Foundry.Features.ProceduralGeneration.Types;
 
@@ -68,7 +69,7 @@ public partial class CityBlueprintPass : BlueprintPass
                     continue;
                 }
 
-                var city = CreateCity(rng, position.Value, region, config, naming);
+                var city = CreateCity(rng, i, position.Value, region, config, naming);
                 worldState.Cities.Add(city);
                 region.CityIds.Add(city.Id);
                 placedCities.Add(position.Value);
@@ -147,13 +148,14 @@ public partial class CityBlueprintPass : BlueprintPass
 
     private City CreateCity(
         SeededRng rng,
+        int cityIndex,
         Vector2I position,
         Region region,
         ProceduralGenerationConfig config,
         NamingConfig naming
     )
     {
-        var cityId = Guid.NewGuid();
+        var cityId = StableId.Create(region.Id, "city", (ulong)cityIndex);
         var biomeDef = config.GetBiomeDefinition(region.BiomeId);
         var sizeId =
             biomeDef.CitySizeDistribution?.Sample(rng)
@@ -214,7 +216,7 @@ public partial class CityBlueprintPass : BlueprintPass
 
             pois.Add(
                 new PointOfInterest(
-                    Id: Guid.NewGuid(),
+                    Id: StableId.Create(cityId, "poi", (ulong)i),
                     Name: poiName,
                     PoiTypeId: poiTypeDef.Id,
                     Position: cityPosition + offset,

@@ -1,4 +1,5 @@
 using Ouranos.Foundry.Core.Types;
+using Ouranos.Foundry.Core.Utils;
 using Ouranos.Foundry.Features.ProceduralGeneration.Resources;
 using Ouranos.Foundry.Features.ProceduralGeneration.Types;
 
@@ -60,7 +61,7 @@ public partial class RegionBlueprintPass : BlueprintPass
             var name = GenerateName(rng, naming);
 
             var region = new Region(
-                Id: Guid.NewGuid(),
+                Id: StableId.Create(worldState.Seed, "region", (ulong)i),
                 Name: name,
                 Center: center,
                 BiomeId: biomeDef.Id,

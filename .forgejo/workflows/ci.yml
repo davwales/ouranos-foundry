@@ -1,3 +1,5 @@
+# Copy of .github/workflows/ci.yml for the Codeberg mirror (Forgejo Actions).
+# GitHub is the primary CI; keep this file in sync when changing the GitHub workflow.
 name: CI/CD
 
 on:
