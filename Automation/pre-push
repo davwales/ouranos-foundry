@@ -9,17 +9,19 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# Git LFS pre-push hook logic
-command -v git-lfs >/dev/null 2>&1
-if [ $? -ne 0 ]; then
-    echo >&2 "git-lfs not found."
-    exit 1
-fi
+# Git LFS pre-push hook logic, only needed once .gitattributes tracks LFS files
+if git grep -q "filter=lfs" -- ':(glob)**/.gitattributes'; then
+    command -v git-lfs >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        echo >&2 "This repository tracks Git LFS files, but git-lfs was not found."
+        exit 1
+    fi
 
-git lfs pre-push "$@"
-if [ $? -ne 0 ]; then
-    echo >&2 "Git LFS pre-push hook failed."
-    exit 1
+    git lfs pre-push "$@"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Git LFS pre-push hook failed."
+        exit 1
+    fi
 fi
 
 # If build succeeds, allow the push to proceed
