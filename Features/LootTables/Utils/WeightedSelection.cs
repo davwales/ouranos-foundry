@@ -23,7 +23,7 @@ internal static class WeightedSelection
                 continue;
             }
 
-            var weight = entry.Weight > 0f ? entry.Weight : 0f;
+            var weight = entry.EffectiveWeight;
             if (weight > 0f)
             {
                 eligible.Add(entry);
@@ -41,7 +41,7 @@ internal static class WeightedSelection
 
         foreach (var entry in eligible)
         {
-            cumulative += entry.Weight > 0f ? entry.Weight : 0f;
+            cumulative += entry.EffectiveWeight;
             if (roll < cumulative)
             {
                 return entry;

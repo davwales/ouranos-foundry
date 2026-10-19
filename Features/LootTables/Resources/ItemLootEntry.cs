@@ -24,7 +24,12 @@ public partial class ItemLootEntry : LootTableEntry
 
         var minQty = Math.Max(0, MinQuantity);
         var maxQty = Math.Max(0, MaxQuantity);
-        var quantity = minQty >= maxQty ? minQty : rng.Next(minQty, maxQty + 1);
+        if (minQty > maxQty)
+        {
+            (minQty, maxQty) = (maxQty, minQty);
+        }
+
+        var quantity = minQty == maxQty ? minQty : rng.Next(minQty, maxQty + 1);
 
         var result = new LootResult { Item = Item, Quantity = quantity };
 

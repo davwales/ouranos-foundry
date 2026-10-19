@@ -241,19 +241,97 @@ public class LootTableDataTests
     }
 
     [Fact]
-    public void Roll_WhenEmptyDropEntrySelected_ShouldReturnEmptyResult()
+    public void Roll_WhenEmptyDropEntrySelected_ShouldReturnNoResults()
     {
         // Arrange
         var emptyEntry = new EmptyLootEntry { Id = "nothing", Weight = 1f };
         var table = MakeTable(entries: [emptyEntry]);
 
         // Act
-        var results = table.Roll(new SeededRng(42));
+        var results = table.Roll(new SeededRng(42), rollsOverride: 3);
 
         // Assert
-        results.Count.ShouldBe(1);
-        results[0].Item.ShouldBeNull();
-        results[0].Quantity.ShouldBe(0);
+        results.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void Roll_WhenEmptyDropSelectedInSubTable_ShouldReportTheSubTable()
+    {
+        // Arrange
+        var subTable = MakeTable(
+            id: "child",
+            entries: [new EmptyLootEntry { Id = "nothing", Weight = 1f }]
+        );
+        var parentTable = MakeTable(
+            id: "parent",
+            entries: [new SubTableLootEntry { Weight = 1f, SubTable = subTable }]
+        );
+        var reported = new List<LootTableData>();
+        var context = new RollContext(OnEmptyDropSelected: reported.Add);
+
+        // Act
+        var results = parentTable.Roll(new SeededRng(42), context, rollsOverride: 2);
+
+        // Assert
+        results.ShouldBeEmpty();
+        reported.Count.ShouldBe(2);
+        reported.ShouldAllBe(t => t == subTable);
+    }
+
+    [Fact]
+    public void Roll_WhenEntriesHaveBlankIdsWithNoDuplicates_ShouldTreatEachEntryAsDistinct()
+    {
+        // Arrange
+        var items = new[] { new Resource(), new Resource(), new Resource() };
+        var table = MakeTable(
+            allowDuplicates: false,
+            entries: [.. items.Select(item => MakeItemEntry("", 1f, item))]
+        );
+
+        // Act
+        var results = table.Roll(new SeededRng(42), rollsOverride: 3);
+
+        // Assert
+        results.Select(r => r.Item).ShouldBe(items, ignoreOrder: true);
+    }
+
+    [Fact]
+    public void Roll_WhenEntriesShareAnIdWithNoDuplicates_ShouldTreatEachEntryAsDistinct()
+    {
+        // Arrange
+        var items = new[] { new Resource(), new Resource() };
+        var table = MakeTable(
+            allowDuplicates: false,
+            entries: [.. items.Select(item => MakeItemEntry("shared", 1f, item))]
+        );
+
+        // Act
+        var results = table.Roll(new SeededRng(42), rollsOverride: 2);
+
+        // Assert
+        results.Select(r => r.Item).ShouldBe(items, ignoreOrder: true);
+    }
+
+    [Fact]
+    public void Roll_WhenItemMinQuantityExceedsMax_ShouldSwapThem()
+    {
+        // Arrange
+        var entry = new ItemLootEntry
+        {
+            Weight = 1f,
+            Item = new Resource(),
+            MinQuantity = 5,
+            MaxQuantity = 2,
+        };
+        var table = MakeTable(entries: [entry]);
+
+        // Act
+        var results = table.Roll(new SeededRng(42), rollsOverride: 50);
+
+        // Assert
+        results.Count.ShouldBe(50);
+        results.ShouldAllBe(r => r.Quantity >= 2 && r.Quantity <= 5);
+        results.Select(r => r.Quantity).Distinct().Count().ShouldBeGreaterThan(1);
     }
 
     [Fact]
