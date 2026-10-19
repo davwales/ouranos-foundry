@@ -1,4 +1,5 @@
 using Ouranos.Foundry.Core.Types;
+using Ouranos.Foundry.Core.Utils;
 using Ouranos.Foundry.Features.ProceduralGeneration.Resources;
 using Ouranos.Foundry.Features.ProceduralGeneration.Types;
 
@@ -304,7 +305,7 @@ public partial class RoadBlueprintPass : BlueprintPass
         var pathPoints = GeneratePathPoints(source.Position, target.Position, rng, config);
 
         return new Road(
-            Id: Guid.NewGuid(),
+            Id: StableId.Create(source.Id, "road", target.Id),
             SourceCityId: source.Id,
             TargetCityId: target.Id,
             RoadTypeId: roadTypeId,
