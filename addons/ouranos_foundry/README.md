@@ -17,7 +17,7 @@ Reusable game features for Godot 4 C#: genre- and perspective-agnostic, and they
 
 Keep this folder at `res://addons/ouranos_foundry/`, because the editor icons are referenced by that path. Then build the C# project. No plugin needs enabling.
 
-See the [main README](https://github.com/davwales/ouranos-foundry#using-foundry-in-your-game) for submodule and zip installation, and the [CHANGELOG](CHANGELOG.md) for release notes.
+See the [main README](https://github.com/davwales/ouranos-foundry#using-foundry-in-your-game) for submodule and zip installation, and the [releases page](https://github.com/davwales/ouranos-foundry/releases) for release notes.
 
 ## License
 

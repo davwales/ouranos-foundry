@@ -14,4 +14,4 @@ Then:
 5. Add a `README.md` covering the feature's pieces, usage and extension points.
 6. Add tests under `Tests/Suites/Features/YourFeatureName/`. Mark a suite `[RequireGodotRuntime]` only if it creates Godot objects.
 7. Wire up a demo scene under `Demos/YourFeatureName/`.
-8. Add the feature to the feature tables in `README.md` and `addons/ouranos_foundry/README.md`, and add an entry to `addons/ouranos_foundry/CHANGELOG.md`.
+8. Add the feature to the feature tables in `README.md` and `addons/ouranos_foundry/README.md`. Give the PR a `feat:` title; it becomes the release note.

@@ -51,7 +51,7 @@ addons/ouranos_foundry/   Shipped addon (keep this path: icons are referenced by
     Types/
     Utils/
   Assets/icons/
-  CHANGELOG.md, LICENSE, README.md
+  LICENSE, README.md
 Demos/<Name>/{Scenes,Scripts,Resources}/
 Templates/Feature/        Copy to start a new feature (compiled by the root project, not shipped)
 Tests/                    GdUnit4 test project (own project.godot)
@@ -160,18 +160,18 @@ There is one test project: `Tests/OuranosFoundry.Tests.csproj`, using GdUnit4Net
 |-------|-----------|
 | `pre-commit` | CSharpier check → `dotnet format style --verify-no-changes` → `dotnet format analyzers --verify-no-changes`. Fix failures with `./Automation/format.sh`. |
 | `pre-push` | `dotnet build OuranosFoundry.sln` → Git LFS pre-push (only when `.gitattributes` tracks LFS files) |
-| CI (`.github/workflows/ci.yml`) | lint → build → test (GdUnit4 under headless Godot 4.6.3) and package (`package.yml`: subtree split + zip, each installed into a generated game by `Automation/consumer-smoke.sh`) |
-| Release (`.github/workflows/release.yml`, on `v*.*.*.*` tags) | `Automation/check-release.sh` → CI → push the `addon` branch (`git subtree split` of the addon) and an `addon-v…` tag → GitHub release with the addon zip |
+| CI (`.github/workflows/ci.yml`, on PRs and as part of Release) | lint → build → test (GdUnit4 under headless Godot 4.6.3) and package (`package.yml`: subtree split + zip, each installed into a generated game by `Automation/consumer-smoke.sh`) |
+| Release (`.github/workflows/release.yml`, on every push to `main`) | CI → if the addon or Godot version changed: `Automation/next-version.sh` → tag `v…`, push the `addon` branch (`git subtree split`) and `addon-v…` tag → GitHub release with generated notes and the addon zip |
 
 To check the packaged addon locally: `GODOT_BIN=… Automation/consumer-smoke.sh zip <zip>`, or `… submodule <repo> [branch]` (needs `git subtree` to create the branch).
 
 ### Versioning & releases
 
-- **Versions are `<Godot version>.<N>`** (e.g. `4.6.3.0`). The first three parts must equal the Godot version pinned in both `.csproj` files (`Godot.NET.Sdk/x.y.z`) and in CI (`setup-godot`). `N` restarts at 0 when the Godot version changes.
-- **Upgrading Godot** means changing all three pins together, and releasing as `<new Godot version>.0`.
-- **Record user-visible changes** under `## [Unreleased]` in `addons/ouranos_foundry/CHANGELOG.md`. Prefix breaking API changes with **BREAKING**, because the version number can't express them.
-- **To release:** rename `[Unreleased]` to the version, set `<Version>` in `OuranosFoundry.csproj`, merge to `main`, then tag `v<version>`. `check-release.sh` rejects inconsistent tags.
-- **Never commit to the `addon` branch directly.** CI regenerates it from `main`.
+- **Versions are `<Godot version>.<N>`** (e.g. `4.6.3.0`), and nobody sets them by hand. Merging to `main` releases automatically: `Automation/next-version.sh` takes the Godot version from `Godot.NET.Sdk/x.y.z` in `OuranosFoundry.csproj` and bumps `N` past the highest `v<godot>.*` tag, starting at 0 for a new Godot version.
+- **Upgrading Godot** means changing every pin together: both `.csproj` files and `setup-godot` in `ci.yml` and `package.yml`. `next-version.sh` fails the release if they disagree.
+- **Release notes are generated from PR titles,** so give PRs Conventional Commit titles. Mark breaking API changes with `!` (`feat!: …`), because the version number can't express them.
+- **Pushes that don't touch `addons/ouranos_foundry/`** (docs, demos, CI) don't publish a release, unless the Godot version changed.
+- **Never create release tags or commit to the `addon` branch by hand.** The release workflow owns them.
 
 **Git LFS:** binary assets (png, jpg, ogg, wav, glb, fbx, ttf, …) are tracked through `.gitattributes`. Make sure `git lfs install` has been run.
 

@@ -1,29 +1,26 @@
 name: Release
 
-# Tag v<godot>.<N> (e.g. v4.6.3.0) on a commit from main to publish:
-#   - the `addon` branch (a subtree split of addons/ouranos_foundry) plus an addon-v<godot>.<N> tag,
+# Every push to main runs CI (including the package smoke tests) and, if the
+# addon changed since the last release, publishes the next <godot>.<N> version:
+#   - tags v<version> on the main commit;
+#   - the `addon` branch (a subtree split of addons/ouranos_foundry) plus an addon-v<version> tag,
 #     for consumers who use git submodules;
-#   - a release zip containing addons/ouranos_foundry/, for consumers who copy it in.
-# CI (including the package smoke tests) must pass before anything is published.
+#   - a GitHub release with notes generated from merged PRs and the addon zip.
 
 on:
   push:
-    tags:
-      - "v*.*.*.*"
+    branches:
+      - main
 
 permissions:
   contents: write
 
-jobs:
-  verify:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - name: Check version
-        run: Automation/check-release.sh "$GITHUB_REF_NAME"
+concurrency:
+  group: release
+  cancel-in-progress: false
 
+jobs:
   ci:
-    needs: verify
     uses: ./.github/workflows/ci.yml
 
   publish:
@@ -33,28 +30,42 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          fetch-tags: true
+      - name: Decide version
+        id: version
+        run: |
+          version="$(Automation/next-version.sh)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          last="$(git describe --tags --abbrev=0 --match 'v[0-9]*.[0-9]*.[0-9]*.[0-9]*' 2>/dev/null || true)"
+          # Publish when the addon changed, or when the Godot version changed (new version line).
+          if [ -n "$last" ] && [ "${last%.*}" = "v${version%.*}" ] \
+            && git diff --quiet "$last" HEAD -- addons/ouranos_foundry; then
+            echo "Addon unchanged since $last; nothing to publish."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Publishing $version (previous release: ${last:-none})."
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/download-artifact@v4
+        if: steps.version.outputs.publish == 'true'
         with:
           name: ouranos_foundry-addon
           path: dist
-      - name: Publish addon branch
+      - name: Publish addon branch and tags
+        if: steps.version.outputs.publish == 'true'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
           git subtree split --prefix=addons/ouranos_foundry -b addon
-          git push origin addon
-          git tag "addon-$GITHUB_REF_NAME" addon
-          git push origin "addon-$GITHUB_REF_NAME"
-      - name: Extract release notes
-        run: |
-          version="${GITHUB_REF_NAME#v}"
-          awk -v heading="## [$version]" '
-            index($0, heading) == 1 { found = 1; next }
-            found && /^## \[/ { exit }
-            found { print }
-          ' addons/ouranos_foundry/CHANGELOG.md > release-notes.md
+          git tag "v$VERSION" HEAD
+          git tag "addon-v$VERSION" addon
+          git push origin addon "v$VERSION" "addon-v$VERSION"
       - name: Create release
+        if: steps.version.outputs.publish == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
-          mv dist/ouranos_foundry.zip "dist/ouranos_foundry-$GITHUB_REF_NAME.zip"
-          gh release create "$GITHUB_REF_NAME" "dist/ouranos_foundry-$GITHUB_REF_NAME.zip" \
-            --title "$GITHUB_REF_NAME" --notes-file release-notes.md
+          mv dist/ouranos_foundry.zip "dist/ouranos_foundry-v$VERSION.zip"
+          gh release create "v$VERSION" "dist/ouranos_foundry-v$VERSION.zip" \
+            --title "v$VERSION" --generate-notes --verify-tag

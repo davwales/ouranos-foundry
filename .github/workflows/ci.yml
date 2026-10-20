@@ -1,9 +1,7 @@
 name: CI/CD
 
+# Runs on PRs; on main it runs as part of release.yml, which publishes after it passes.
 on:
-  push:
-    branches:
-      - main
   pull_request:
   workflow_call:
 
