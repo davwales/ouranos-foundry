@@ -1,6 +1,7 @@
 using Ouranos.Foundry.Core.Types;
+using Ouranos.Foundry.Features.LootTables.Types;
 
-namespace Ouranos.Foundry.Features.LootTables;
+namespace Ouranos.Foundry.Features.LootTables.Resources;
 
 /// <summary>
 /// The sub-table is rolled with its own derived RNG stream for determinism.
@@ -17,7 +18,7 @@ public partial class SubTableLootEntry : LootTableEntry
     [Export]
     public int MaxRollsOverride { get; set; } = -1;
 
-    internal override IReadOnlyList<LootResult> Resolve(SeededRng rng, RollContext context)
+    public override IReadOnlyList<LootResult> Resolve(SeededRng rng, RollContext context)
     {
         if (SubTable is null)
         {

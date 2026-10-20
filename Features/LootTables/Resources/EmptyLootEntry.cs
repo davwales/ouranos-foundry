@@ -1,6 +1,7 @@
 using Ouranos.Foundry.Core.Types;
+using Ouranos.Foundry.Features.LootTables.Types;
 
-namespace Ouranos.Foundry.Features.LootTables;
+namespace Ouranos.Foundry.Features.LootTables.Resources;
 
 [GlobalClass]
 public partial class EmptyLootEntry : LootTableEntry
@@ -9,7 +10,7 @@ public partial class EmptyLootEntry : LootTableEntry
     /// Produces no results. The owning table reports the selection through
     /// <see cref="RollContext.OnEmptyDropSelected"/>.
     /// </summary>
-    internal override IReadOnlyList<LootResult> Resolve(SeededRng rng, RollContext context)
+    public override IReadOnlyList<LootResult> Resolve(SeededRng rng, RollContext context)
     {
         return [];
     }

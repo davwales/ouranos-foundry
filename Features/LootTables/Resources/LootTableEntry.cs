@@ -1,7 +1,13 @@
 using Ouranos.Foundry.Core.Types;
+using Ouranos.Foundry.Features.LootTables.Types;
 
-namespace Ouranos.Foundry.Features.LootTables;
+namespace Ouranos.Foundry.Features.LootTables.Resources;
 
+/// <summary>
+/// Base class for loot table entries. Subclass it (in your own assembly if you like)
+/// and override <see cref="IsEligible"/> for conditional drops and
+/// <see cref="Resolve"/> to produce results.
+/// </summary>
 [GlobalClass]
 public abstract partial class LootTableEntry : Resource
 {
@@ -19,10 +25,10 @@ public abstract partial class LootTableEntry : Resource
     /// </summary>
     internal float EffectiveWeight => Weight > 0f ? Weight : 0f;
 
-    internal virtual bool IsEligible(RollContext context)
+    public virtual bool IsEligible(RollContext context)
     {
         return true;
     }
 
-    internal abstract IReadOnlyList<LootResult> Resolve(SeededRng rng, RollContext context);
+    public abstract IReadOnlyList<LootResult> Resolve(SeededRng rng, RollContext context);
 }

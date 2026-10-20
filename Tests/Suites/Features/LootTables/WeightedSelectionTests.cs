@@ -1,6 +1,8 @@
 using GdUnit4;
 using Ouranos.Foundry.Core.Types;
-using Ouranos.Foundry.Features.LootTables;
+using Ouranos.Foundry.Features.LootTables.Resources;
+using Ouranos.Foundry.Features.LootTables.Types;
+using Ouranos.Foundry.Features.LootTables.Utils;
 using Shouldly;
 
 namespace Ouranos.Foundry.Tests.Features.LootTables;

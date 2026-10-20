@@ -1,6 +1,8 @@
 using Ouranos.Foundry.Core.Types;
+using Ouranos.Foundry.Features.LootTables.Types;
+using Ouranos.Foundry.Features.LootTables.Utils;
 
-namespace Ouranos.Foundry.Features.LootTables;
+namespace Ouranos.Foundry.Features.LootTables.Resources;
 
 [GlobalClass]
 public partial class LootTableData : Resource
@@ -33,7 +35,11 @@ public partial class LootTableData : Resource
         return Roll(rng, new RollContext(), rollsOverride);
     }
 
-    internal IReadOnlyList<LootResult> Roll(
+    /// <summary>
+    /// Rolls this table as part of an outer roll. Custom entries that nest tables
+    /// should call this with <c>context.Deeper()</c> so depth and cycle checks apply.
+    /// </summary>
+    public IReadOnlyList<LootResult> Roll(
         SeededRng rng,
         RollContext context,
         int? rollsOverride = null
@@ -47,11 +53,18 @@ public partial class LootTableData : Resource
             return [];
         }
 
+        if (context.IsRolling(this))
+        {
+            GD.PushError($"LootTableData '{Id}': Circular sub-table reference detected.");
+            return [];
+        }
+
         if (Entries.Count == 0)
         {
             return [];
         }
 
+        context = context.Entering(this);
         var results = new List<LootResult>();
         var consumedEntries = new HashSet<LootTableEntry>(ReferenceEqualityComparer.Instance);
         var rollCount = GetRollCount(rng, rollsOverride);
@@ -88,7 +101,7 @@ public partial class LootTableData : Resource
         return GetProbabilities(new RollContext());
     }
 
-    internal IReadOnlyList<ProbabilityEntry> GetProbabilities(RollContext context)
+    public IReadOnlyList<ProbabilityEntry> GetProbabilities(RollContext context)
     {
         var eligible = new List<LootTableEntry>();
         var totalWeight = 0f;

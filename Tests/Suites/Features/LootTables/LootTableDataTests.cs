@@ -1,6 +1,7 @@
 using GdUnit4;
 using Ouranos.Foundry.Core.Types;
-using Ouranos.Foundry.Features.LootTables;
+using Ouranos.Foundry.Features.LootTables.Resources;
+using Ouranos.Foundry.Features.LootTables.Types;
 using Shouldly;
 
 namespace Ouranos.Foundry.Tests.Features.LootTables;
@@ -173,6 +174,29 @@ public class LootTableDataTests
     }
 
     [TestCase]
+    public void Roll_WhenCycleMixedWithItems_ShouldSkipOnlyCyclicBranch()
+    {
+        // Arrange
+        var gold = new Resource();
+        var circularEntry = new SubTableLootEntry { Id = "circular", Weight = 1f };
+        var table = MakeTable(
+            id: "mixed_table",
+            minRolls: 2,
+            maxRolls: 2,
+            allowDuplicates: false,
+            entries: [MakeItemEntry("gold", 1f, gold), circularEntry]
+        );
+        circularEntry.SubTable = table;
+
+        // Act
+        var results = table.Roll(new SeededRng(42));
+
+        // Assert
+        results.Count.ShouldBe(1);
+        results[0].Item.ShouldBe(gold);
+    }
+
+    [TestCase]
     public void Roll_WhenMinRollsExceedsMaxRolls_ShouldSwapAndRollWithinRange()
     {
         // Arrange
@@ -266,7 +290,7 @@ public class LootTableDataTests
             entries: [new SubTableLootEntry { Weight = 1f, SubTable = subTable }]
         );
         var reported = new List<LootTableData>();
-        var context = new RollContext(OnEmptyDropSelected: reported.Add);
+        var context = new RollContext { OnEmptyDropSelected = reported.Add };
 
         // Act
         var results = parentTable.Roll(new SeededRng(42), context, rollsOverride: 2);
