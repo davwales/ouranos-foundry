@@ -1,4 +1,6 @@
+using System.Linq;
 using GdUnit4;
+using Godot;
 using Ouranos.Foundry.Core.Utils;
 using Shouldly;
 

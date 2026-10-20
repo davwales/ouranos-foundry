@@ -1,4 +1,5 @@
 using System.Text;
+using Godot;
 using Ouranos.Foundry.Core.Types;
 using Ouranos.Foundry.Features.LootTables.Nodes;
 using Ouranos.Foundry.Features.LootTables.Resources;

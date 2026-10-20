@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using GdUnit4;
+using Godot;
 using Ouranos.Foundry.Features.Health.Nodes;
 using Ouranos.Foundry.Features.Health.Types;
 using Shouldly;

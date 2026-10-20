@@ -1,3 +1,5 @@
+using Godot;
+
 namespace Ouranos.Foundry.Tests;
 
 internal static class GodotObjectTestExtensions

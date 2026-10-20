@@ -1,7 +1,5 @@
 # Symlinks created by OuranosFoundry.Tests.csproj
-/Core
-/Features
-/Assets
+/addons
 /TestResults/
 /gdunit4_testadapter*/
 /*.csproj.old

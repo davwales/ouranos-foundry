@@ -2,8 +2,8 @@
   Test project (GdUnit4Net). Suites without [RequireGodotRuntime] run in-process;
   suites with it run inside a Godot binary, so set GODOT_BIN to a Godot .NET executable.
 
-  Core/, Features/ and Assets/ are symlinked from the repo root before evaluation so
-  library sources compile into this assembly and res:// paths match the main project.
+  addons/ is symlinked from the repo root before evaluation so library sources compile
+  into this assembly and res://addons/ouranos_foundry/ paths match the main project.
 -->
 <Project Sdk="Godot.NET.Sdk/4.6.3" InitialTargets="CreateSourceSymlinks">
   <PropertyGroup>
@@ -22,13 +22,9 @@
     <PackageReference Include="Shouldly" Version="4.3.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Include="../GlobalUsings.cs" Link="GlobalUsings.cs" />
-  </ItemGroup>
-
   <Target Name="CreateSourceSymlinks">
     <ItemGroup>
-      <_SourceLink Include="Core;Features;Assets" />
+      <_SourceLink Include="addons" />
     </ItemGroup>
     <Exec
       Condition="'$(OS)' == 'Windows_NT'"
@@ -41,7 +37,7 @@
       ContinueOnError="true"
     />
     <Error
-      Condition="!Exists('$(MSBuildProjectDirectory)/Features')"
+      Condition="!Exists('$(MSBuildProjectDirectory)/addons')"
       Text="Failed to create source symlinks in $(MSBuildProjectDirectory). On Windows, enable Developer Mode."
     />
   </Target>

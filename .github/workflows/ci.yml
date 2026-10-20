@@ -5,6 +5,7 @@ on:
     branches:
       - main
   pull_request:
+  workflow_call:
 
 env:
   DOTNET_INSTALL_DIR: "./.dotnet"
@@ -67,3 +68,7 @@ jobs:
           # Import the test project once so .godot/ exists before tests launch the engine.
           "$GODOT_BIN" --path . --headless --build-solutions --quit-after 200
           xvfb-run --auto-servernum dotnet test --no-build --settings .runsettings
+
+  package:
+    needs: build
+    uses: ./.github/workflows/package.yml

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using GdUnit4;
 using Ouranos.Foundry.Core.Types;
 using Ouranos.Foundry.Features.LootTables.Resources;
