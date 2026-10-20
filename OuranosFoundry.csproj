@@ -21,8 +21,4 @@
     <Content Include="Automation\pre-push" />
     <Content Include="project.godot" />
   </ItemGroup>
-
-  <ItemGroup>
-    <InternalsVisibleTo Include="OuranosFoundry.Tests" />
-  </ItemGroup>
 </Project>

@@ -1,13 +1,13 @@
-using System.Collections.Generic;
-using System.Linq;
+using GdUnit4;
 using Ouranos.Foundry.Features.ProceduralGeneration.Nodes;
 using Ouranos.Foundry.Features.ProceduralGeneration.Nodes.Blueprints;
 using Ouranos.Foundry.Features.ProceduralGeneration.Resources;
 using Shouldly;
-using Xunit;
 
 namespace Ouranos.Foundry.Tests.Features.ProceduralGeneration;
 
+[TestSuite]
+[RequireGodotRuntime]
 public class BlueprintDeterminismTests
 {
     private static ProceduralGenerationConfig MakeConfig()
@@ -45,24 +45,28 @@ public class BlueprintDeterminismTests
         return world;
     }
 
-    [Fact]
+    [TestCase]
     public void SameSeed_ProducesIdenticalBlueprintIncludingIds()
     {
+        // Arrange & Act
         var a = GenerateBlueprint(1234);
         var b = GenerateBlueprint(1234);
 
+        // Assert
         a.Cities.Count.ShouldBeGreaterThan(0);
         a.Roads.Count.ShouldBeGreaterThan(0);
 
         Describe(a).ShouldBe(Describe(b));
     }
 
-    [Fact]
+    [TestCase]
     public void DifferentSeeds_ProduceDifferentIds()
     {
+        // Arrange & Act
         var a = GenerateBlueprint(1234);
         var b = GenerateBlueprint(5678);
 
+        // Assert
         a.Regions.Select(r => r.Id).ShouldNotBe(b.Regions.Select(r => r.Id));
     }
 

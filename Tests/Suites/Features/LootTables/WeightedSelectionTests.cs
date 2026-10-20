@@ -1,14 +1,15 @@
-using System.Collections.Generic;
+using GdUnit4;
 using Ouranos.Foundry.Core.Types;
 using Ouranos.Foundry.Features.LootTables;
 using Shouldly;
-using Xunit;
 
 namespace Ouranos.Foundry.Tests.Features.LootTables;
 
+[TestSuite]
+[RequireGodotRuntime]
 public class WeightedSelectionTests
 {
-    [Fact]
+    [TestCase]
     public void Select_WhenSingleEntry_ShouldReturnIt()
     {
         // Arrange
@@ -25,7 +26,7 @@ public class WeightedSelectionTests
         result.Id.ShouldBe("a");
     }
 
-    [Fact]
+    [TestCase]
     public void Select_WhenAllWeightsAreZero_ShouldReturnNull()
     {
         // Arrange
@@ -42,7 +43,7 @@ public class WeightedSelectionTests
         result.ShouldBeNull();
     }
 
-    [Fact]
+    [TestCase]
     public void Select_WhenUsingSameSeed_ShouldReturnSameEntry()
     {
         // Arrange
@@ -64,7 +65,7 @@ public class WeightedSelectionTests
         result1.Id.ShouldBe(result2.Id);
     }
 
-    [Fact]
+    [TestCase]
     public void Select_WhenEntryHasNegativeWeight_ShouldTreatAsZero()
     {
         // Arrange
