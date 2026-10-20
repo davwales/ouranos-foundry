@@ -1,0 +1,42 @@
+name: Package
+
+# Builds what consumers get (the `addon` subtree split and the release zip) and
+# installs each into a generated Godot game to prove it builds and runs. Called
+# from CI on every PR and from the release workflow on tags.
+
+on:
+  workflow_call:
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          lfs: true
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+      - uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.6.3
+          use-dotnet: true
+      - name: Split addon branch
+        run: |
+          git subtree split --prefix=addons/ouranos_foundry -b addon
+          git ls-tree --name-only addon
+      - name: Package addon zip
+        run: |
+          mkdir -p dist
+          zip -qr dist/ouranos_foundry.zip addons/ouranos_foundry
+      - name: Smoke test (submodule install)
+        run: GODOT_BIN="$GODOT" Automation/consumer-smoke.sh submodule "$PWD" addon
+      - name: Smoke test (zip install)
+        run: GODOT_BIN="$GODOT" Automation/consumer-smoke.sh zip dist/ouranos_foundry.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ouranos_foundry-addon
+          path: dist/ouranos_foundry.zip
+          if-no-files-found: error

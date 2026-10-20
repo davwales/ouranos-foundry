@@ -1,3 +1,5 @@
+using Godot;
+
 namespace Ouranos.Foundry.Demos.LootTables;
 
 [GlobalClass]

@@ -1,4 +1,5 @@
 using GdUnit4;
+using Godot;
 using Ouranos.Foundry.Features.Health.Nodes;
 using Shouldly;
 

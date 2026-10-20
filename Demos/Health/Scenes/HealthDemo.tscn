@@ -1,11 +1,11 @@
 [gd_scene format=3 uid="uid://5t8bvmcs1ism"]
 
 [ext_resource type="Script" uid="uid://d2oyhibc5topu" path="res://Demos/Health/Scripts/HealthDemo.cs" id="1_demo_script"]
-[ext_resource type="Script" path="res://Features/Health/Nodes/PlayerHealthBar.cs" id="2_player_bar"]
-[ext_resource type="Script" path="res://Features/Health/Nodes/HeartsContainer.cs" id="3_hearts"]
-[ext_resource type="Script" path="res://Features/Health/Nodes/FloatingHealthBar2D.cs" id="4_floating_bar"]
-[ext_resource type="Script" path="res://Features/Health/Nodes/GroupedHealthManager.cs" id="5_group_mgr"]
-[ext_resource type="Script" uid="uid://c434fm2aqk360" path="res://Features/Health/Nodes/HealthComponent.cs" id="6_health_comp"]
+[ext_resource type="Script" path="res://addons/ouranos_foundry/Features/Health/Nodes/PlayerHealthBar.cs" id="2_player_bar"]
+[ext_resource type="Script" path="res://addons/ouranos_foundry/Features/Health/Nodes/HeartsContainer.cs" id="3_hearts"]
+[ext_resource type="Script" path="res://addons/ouranos_foundry/Features/Health/Nodes/FloatingHealthBar2D.cs" id="4_floating_bar"]
+[ext_resource type="Script" path="res://addons/ouranos_foundry/Features/Health/Nodes/GroupedHealthManager.cs" id="5_group_mgr"]
+[ext_resource type="Script" uid="uid://c434fm2aqk360" path="res://addons/ouranos_foundry/Features/Health/Nodes/HealthComponent.cs" id="6_health_comp"]
 
 [node name="HealthDemo" type="Control" unique_id=225960875 node_paths=PackedStringArray("_playerHealthBar", "_heartsContainer", "_floatingHealthBar", "_groupedHealthManager", "_playerInfoLabel", "_eventLog", "_playerHealth", "_enemy1Health", "_enemy2Health", "_damage10Button", "_damage25Button", "_healButton", "_killButton", "_reviveButton", "_toggleInvulnButton", "_damageEnemy1Button", "_damageEnemy2Button")]
 layout_mode = 3

@@ -1,0 +1,15 @@
+#nullable enable
+
+using Godot;
+
+namespace Ouranos.Foundry.Features.LootTables.Resources;
+
+[GlobalClass]
+public partial class LootResult : Resource
+{
+    [Export]
+    public Resource? Item { get; set; }
+
+    [Export]
+    public int Quantity { get; set; }
+}

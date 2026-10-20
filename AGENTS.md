@@ -1,6 +1,6 @@
 # AGENTS.md: Ouranos.Foundry
 
-Guidance for anyone changing this repository, whether an AI coding agent or a human contributor. It documents the conventions that tooling enforces or reviewers expect but that you can't infer from a single file. For a project overview and quick start, see `README.md`. Per-feature details live in `Features/<Name>/README.md`.
+Guidance for anyone changing this repository, whether an AI coding agent or a human contributor. It documents the conventions that tooling enforces or reviewers expect but that you can't infer from a single file. For a project overview and quick start, see `README.md`. Per-feature details live in `addons/ouranos_foundry/Features/<Name>/README.md`.
 
 ## Purpose & Principles
 
@@ -28,6 +28,7 @@ GODOT_BIN=/path/to/Godot dotnet test Tests --settings Tests/.runsettings   # all
 
 ## Architecture
 
+- **The addon is the product.** Everything under `addons/ouranos_foundry/` is shipped to consumers, as the `addon` branch and the release zip. Everything else (`Demos/`, `Templates/`, `Tests/`, the root project) is development-only. Paths below such as `Features/` and `Core/` are relative to the addon folder.
 - **Feature slices.** Every feature under `Features/<Name>/` is a self-contained vertical slice.
   - Features must not reference each other. Shared code lives in `Core/`.
   - When promoting code to Core, **move** it: delete the feature copy and update every reference in the same change. Never leave duplicates.
@@ -38,29 +39,33 @@ GODOT_BIN=/path/to/Godot dotnet test Tests --settings Tests/.runsettings   # all
 ## Project Layout
 
 ```
-Features/<Name>/
-  Nodes/          Node subclasses only ([GlobalClass], partial)
-  Resources/      Resource subclasses ([GlobalClass], partial)
-  Types/          Plain C# types: records, enums, structs (no Godot base class)
-  Utils/          Static helpers and plain helper classes
-  README.md       Pieces, usage, extension points
-Core/             Shared, feature-agnostic code (e.g. SeededRng, LogLevel, Bresenham, StableId)
-  Attributes/
-  Types/
-  Utils/
+addons/ouranos_foundry/   Shipped addon (keep this path: icons are referenced by res:// path)
+  Features/<Name>/
+    Nodes/        Node subclasses only ([GlobalClass], partial)
+    Resources/    Resource subclasses ([GlobalClass], partial)
+    Types/        Plain C# types: records, enums, structs (no Godot base class)
+    Utils/        Static helpers and plain helper classes
+    README.md     Pieces, usage, extension points
+  Core/           Shared, feature-agnostic code (e.g. SeededRng, LogLevel, Bresenham, StableId)
+    Attributes/
+    Types/
+    Utils/
+  Assets/icons/
+  CHANGELOG.md, LICENSE, README.md
 Demos/<Name>/{Scenes,Scripts,Resources}/
-Tests/            GdUnit4 test project (own project.godot)
+Templates/Feature/        Copy to start a new feature (compiled by the root project, not shipped)
+Tests/                    GdUnit4 test project (own project.godot)
   Suites/         Test sources; mirrors source (Suites/Core/…, Suites/Features/<Name>/…)
 ```
 
 - Subfolders under `Nodes/` and `Resources/` are allowed and produce nested namespaces (`Nodes/Generation/` → `…Nodes.Generation`).
-- New features start by copying `Features/_Template/`; follow its `_README.md`.
+- New features start by copying `Templates/Feature/`; follow its `_README.md`.
 - **Never name a source folder `Debug`, `Release`, `bin`, `obj`, `x64`, `x86` and so on.** `.gitignore` silently drops them.
 
 ## Namespaces & Naming
 
 - **File-scoped namespaces** (`csharp_style_namespace_declarations = file_scoped:warning`).
-- **The namespace mirrors the folder path:** `Features/LootTables/Resources/` → `Ouranos.Foundry.Features.LootTables.Resources`. There is one exception: `Demos/<Name>/Scripts/` → `Ouranos.Foundry.Demos.<Name>`.
+- **The namespace mirrors the folder path relative to `addons/ouranos_foundry/`:** `Features/LootTables/Resources/` → `Ouranos.Foundry.Features.LootTables.Resources`. There is one exception: `Demos/<Name>/Scripts/` → `Ouranos.Foundry.Demos.<Name>`.
 - **Test namespaces:** `Ouranos.Foundry.Tests.<mirrored path>`, leaving out `Suites`. For example, `Tests/Suites/Core/Types/` → `Ouranos.Foundry.Tests.Core.Types`.
 - **One top-level type per file, named after the file.** Private nested helper types are fine.
 - **Name types by role.** Don't use a `*Node` or `*Helper` suffix.
@@ -74,7 +79,7 @@ Tests/            GdUnit4 test project (own project.godot)
 ## Godot Integration
 
 - **`[GlobalClass]` on every public Node/Resource subclass**, abstract bases included. Demo scripts are exempt.
-- **`[Icon("res://Assets/icons/foundry_node.svg")]`** goes on public nodes that users add to scenes directly. Dynamically discovered children (concrete passes, drawers) may omit it.
+- **`[Icon("res://addons/ouranos_foundry/Assets/icons/foundry_node.svg")]`** goes on public nodes that users add to scenes directly. Dynamically discovered children (concrete passes, drawers) may omit it.
 - **Exports:**
   - Nodes use `[Export] public T X { get; private set; }`. The inspector and scene loader still set private setters.
   - State a consumer may change at runtime gets a public method, not a public setter (`HealthComponent.SetInvulnerable`, `LootTableRoller.SetTable`).
@@ -114,9 +119,10 @@ Tooling enforces the following:
 - **Expression bodies:** expression-bodied **properties** are fine; **methods** are not.
 - **Null checks:** use `is null` / `is not null`, never `== null`.
 - **Modern C# is welcome:** primary constructors, collection expressions (`[]`, `[.. x]`) and C# 14 `field`-backed properties.
-- **Global usings:** `GlobalUsings.cs` already imports `System`, `System.Collections.Generic`, `System.Linq` and `Godot`. Don't re-add them. The test project compiles the same file.
+- **No global usings.** Every file declares its own `using` directives (`System`, `System.Collections.Generic`, `System.Linq`, `Godot`, …). The addon compiles inside consumer assemblies, so a global using would either be missing there or leak into the consumer's code. `dotnet format` removes unused ones.
+- **`#nullable enable`** goes at the top of every file under `addons/`, so that annotations work in consumer projects that don't enable nullable.
 - **XML doc comments are optional.** Use them for non-obvious behaviour, constraints or algorithmic intent, and escape `<`/`>` as `&lt;`/`&gt;`.
-- **Nullable** is enabled project-wide.
+- **Nullable** is enabled in every project; addon files also carry `#nullable enable` (see above).
 
 ### Errors & logging
 
@@ -132,7 +138,7 @@ There is one test project: `Tests/OuranosFoundry.Tests.csproj`, using GdUnit4Net
 - **Suites that create Godot objects** (`new SomeNode()`, `new SomeResource()`, signals) also need `[RequireGodotRuntime]`. They run inside Godot, so `GODOT_BIN` must point at a Godot .NET executable. Creating a Godot object outside the engine crashes the test host.
 - Mark each test `[TestCase]`. Assertions use Shouldly.
 - **How the project works:**
-  - Its build symlinks `Core/`, `Features/` and `Assets/` into `Tests/` and compiles them into the test assembly. Internals are therefore visible and `res://` paths match.
+  - Its build symlinks `addons/` into `Tests/` and compiles it into the test assembly. Internals are therefore visible and `res://` paths match.
   - Its own `project.godot` makes the main editor skip `Tests/`.
   - Godot generates `.uid` files for test scripts; these are gitignored.
 - **Configuring exports:** use `node.With(Type.PropertyName.X, value)` (`Tests/Suites/GodotObjectTestExtensions.cs`). It goes through Godot's property system, as the scene loader does, so `private set` stays private.
@@ -154,9 +160,18 @@ There is one test project: `Tests/OuranosFoundry.Tests.csproj`, using GdUnit4Net
 |-------|-----------|
 | `pre-commit` | CSharpier check → `dotnet format style --verify-no-changes` → `dotnet format analyzers --verify-no-changes`. Fix failures with `./Automation/format.sh`. |
 | `pre-push` | `dotnet build OuranosFoundry.sln` → Git LFS pre-push (only when `.gitattributes` tracks LFS files) |
-| CI (`.github/workflows/ci.yml`) | lint → build → test (GdUnit4 under headless Godot 4.6.3) |
+| CI (`.github/workflows/ci.yml`) | lint → build → test (GdUnit4 under headless Godot 4.6.3) and package (`package.yml`: subtree split + zip, each installed into a generated game by `Automation/consumer-smoke.sh`) |
+| Release (`.github/workflows/release.yml`, on `v*.*.*.*` tags) | `Automation/check-release.sh` → CI → push the `addon` branch (`git subtree split` of the addon) and an `addon-v…` tag → GitHub release with the addon zip |
 
-`.forgejo/workflows/ci.yml` is a copy of the GitHub workflow for the Codeberg mirror. Keep the two in sync when changing CI.
+To check the packaged addon locally: `GODOT_BIN=… Automation/consumer-smoke.sh zip <zip>`, or `… submodule <repo> [branch]` (needs `git subtree` to create the branch).
+
+### Versioning & releases
+
+- **Versions are `<Godot version>.<N>`** (e.g. `4.6.3.0`). The first three parts must equal the Godot version pinned in both `.csproj` files (`Godot.NET.Sdk/x.y.z`) and in CI (`setup-godot`). `N` restarts at 0 when the Godot version changes.
+- **Upgrading Godot** means changing all three pins together, and releasing as `<new Godot version>.0`.
+- **Record user-visible changes** under `## [Unreleased]` in `addons/ouranos_foundry/CHANGELOG.md`. Prefix breaking API changes with **BREAKING**, because the version number can't express them.
+- **To release:** rename `[Unreleased]` to the version, set `<Version>` in `OuranosFoundry.csproj`, merge to `main`, then tag `v<version>`. `check-release.sh` rejects inconsistent tags.
+- **Never commit to the `addon` branch directly.** CI regenerates it from `main`.
 
 **Git LFS:** binary assets (png, jpg, ogg, wav, glb, fbx, ttf, …) are tracked through `.gitattributes`. Make sure `git lfs install` has been run.
 
@@ -187,3 +202,4 @@ There is one test project: `Tests/OuranosFoundry.Tests.csproj`, using GdUnit4Net
 - Don't use `System.Random` or `GD.Rand*` in features.
 - Don't create Godot objects in a suite without `[RequireGodotRuntime]`.
 - Don't use `--no-verify`, and don't commit `*.csproj.old` or incidental `project.godot` churn.
+- Don't add global usings, and don't put demo, test or template code under `addons/ouranos_foundry/`.

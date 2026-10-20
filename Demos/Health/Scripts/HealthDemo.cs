@@ -1,3 +1,4 @@
+using Godot;
 using Ouranos.Foundry.Features.Health.Nodes;
 
 namespace Ouranos.Foundry.Demos.Health;
