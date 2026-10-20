@@ -411,7 +411,6 @@ CLAUDE.md
 .memory/
 .prompt_history/
 memory/*.md
-AGENTS.md
 context.md
 plan.md
 
