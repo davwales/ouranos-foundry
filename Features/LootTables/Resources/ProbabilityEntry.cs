@@ -1,0 +1,18 @@
+#nullable enable
+
+using Godot;
+
+namespace Ouranos.Foundry.Features.LootTables.Resources;
+
+[GlobalClass]
+public partial class ProbabilityEntry : Resource
+{
+    [Export]
+    public string EntryId { get; set; } = "";
+
+    [Export]
+    public float Probability { get; set; }
+
+    [Export]
+    public LootTableEntry? Entry { get; set; }
+}
