@@ -3,6 +3,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <RootNamespace>Ouranos.Foundry</RootNamespace>
+    <!-- Release version: <Godot version built against>.<Foundry release for that Godot version>. -->
+    <Version>4.6.3.0</Version>
     <Nullable>enable</Nullable>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
