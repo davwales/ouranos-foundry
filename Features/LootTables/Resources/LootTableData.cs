@@ -28,8 +28,10 @@ public partial class LootTableData : Resource
     [Export]
     public Godot.Collections.Array<LootTableEntry> Entries { get; set; } = [];
 
-    public IReadOnlyList<LootResult> Roll(SeededRng rng, int? rollsOverride = null) =>
-        Roll(rng, new RollContext(), rollsOverride);
+    public IReadOnlyList<LootResult> Roll(SeededRng rng, int? rollsOverride = null)
+    {
+        return Roll(rng, new RollContext(), rollsOverride);
+    }
 
     internal IReadOnlyList<LootResult> Roll(
         SeededRng rng,
@@ -81,8 +83,10 @@ public partial class LootTableData : Resource
         return results.AsReadOnly();
     }
 
-    public IReadOnlyList<ProbabilityEntry> GetProbabilities() =>
-        GetProbabilities(new RollContext());
+    public IReadOnlyList<ProbabilityEntry> GetProbabilities()
+    {
+        return GetProbabilities(new RollContext());
+    }
 
     internal IReadOnlyList<ProbabilityEntry> GetProbabilities(RollContext context)
     {

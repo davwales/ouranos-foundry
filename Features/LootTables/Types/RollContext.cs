@@ -6,5 +6,8 @@ namespace Ouranos.Foundry.Features.LootTables;
 /// </summary>
 internal record RollContext(int Depth = 0, Action<LootTableData>? OnEmptyDropSelected = null)
 {
-    public RollContext Deeper() => this with { Depth = Depth + 1 };
+    public RollContext Deeper()
+    {
+        return this with { Depth = Depth + 1 };
+    }
 }

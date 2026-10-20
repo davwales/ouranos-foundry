@@ -29,11 +29,15 @@ public partial class ChunkData : Resource
     public HashSet<Guid> OverlappingCityIds => [.. Descriptor.OverlappingCityIds];
     public HashSet<Guid> OverlappingRoadIds => [.. Descriptor.OverlappingRoadIds];
 
-    public int GetTile(int localX, int localY) =>
-        TerrainData[localY * Descriptor.TileSize + localX];
+    public int GetTile(int localX, int localY)
+    {
+        return TerrainData[localY * Descriptor.TileSize + localX];
+    }
 
-    public void SetTile(int localX, int localY, int value) =>
+    public void SetTile(int localX, int localY, int value)
+    {
         TerrainData[localY * Descriptor.TileSize + localX] = value;
+    }
 
     /// <summary>
     /// Creates a copy of this ChunkData. The Descriptor (immutable record) is shared;

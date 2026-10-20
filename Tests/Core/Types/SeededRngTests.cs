@@ -1,7 +1,7 @@
 using Ouranos.Foundry.Core.Types;
 using Xunit;
 
-namespace Ouranos.Foundry.Tests.Features.ProceduralGeneration.Types;
+namespace Ouranos.Foundry.Tests.Core.Types;
 
 public class SeededRngTests
 {

@@ -1,3 +1,5 @@
+using Ouranos.Foundry.Core.Attributes;
+
 namespace Ouranos.Foundry.Features.ProceduralGeneration.Nodes;
 
 /// <summary>
@@ -14,6 +16,15 @@ public partial class GenerationPipeline : Node
     public override void _Ready()
     {
         _passes = [.. GetChildren().OfType<GenerationPass>()];
+
+        foreach (
+            var violation in RequiresPassesValidator.FindViolations(
+                _passes.Select(p => p.GetType())
+            )
+        )
+        {
+            GD.PushError($"GenerationPipeline: {violation}");
+        }
     }
 
     /// <summary>

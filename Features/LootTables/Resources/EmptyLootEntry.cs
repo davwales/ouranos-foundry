@@ -9,5 +9,8 @@ public partial class EmptyLootEntry : LootTableEntry
     /// Produces no results. The owning table reports the selection through
     /// <see cref="RollContext.OnEmptyDropSelected"/>.
     /// </summary>
-    internal override IReadOnlyList<LootResult> Resolve(SeededRng rng, RollContext context) => [];
+    internal override IReadOnlyList<LootResult> Resolve(SeededRng rng, RollContext context)
+    {
+        return [];
+    }
 }

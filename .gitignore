@@ -423,3 +423,6 @@ builds/
 notes/
 appsettings.Local.json
 appsettings.Development.json
+
+# macOS
+.DS_Store

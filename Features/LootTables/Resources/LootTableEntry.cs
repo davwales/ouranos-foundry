@@ -19,7 +19,10 @@ public abstract partial class LootTableEntry : Resource
     /// </summary>
     internal float EffectiveWeight => Weight > 0f ? Weight : 0f;
 
-    internal virtual bool IsEligible(RollContext context) => true;
+    internal virtual bool IsEligible(RollContext context)
+    {
+        return true;
+    }
 
     internal abstract IReadOnlyList<LootResult> Resolve(SeededRng rng, RollContext context);
 }

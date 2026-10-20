@@ -12,7 +12,7 @@ public partial class GenerationConfig : Resource
 
     /// <summary>
     /// Half-size radius for region generation and city placement.
-    /// IMPORTANT: Must be <= MinRegionSeparation / 2 to ensure cities are always
+    /// IMPORTANT: Must be &lt;= MinRegionSeparation / 2 to ensure cities are always
     /// placed within their true Voronoi cell. If MinRegionSeparation is too small,
     /// cities may be placed closer to a neighboring region's center than their own.
     /// </summary>

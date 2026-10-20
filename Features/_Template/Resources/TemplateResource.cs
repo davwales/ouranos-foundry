@@ -7,8 +7,8 @@ namespace Ouranos.Foundry.Features._Template.Resources;
 public partial class TemplateResource : Resource
 {
     [Export]
-    public string DisplayName { get; private set; } = "Default";
+    public string DisplayName { get; set; } = "Default";
 
     [Export]
-    public float Weight { get; private set; } = 1.0f;
+    public float Weight { get; set; } = 1.0f;
 }

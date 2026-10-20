@@ -15,6 +15,9 @@ namespace Ouranos.Foundry.Features.ProceduralGeneration.Nodes.Blueprints;
 [GlobalClass]
 public partial class CityBlueprintPass : BlueprintPass
 {
+    /// <summary>Distinct RNG salt so this pass's stream is independent of other passes.</summary>
+    private const ulong RngSalt = 2000;
+
     [Export]
     public ProceduralGenerationConfig? ProcGenConfig { get; private set; }
 
@@ -53,7 +56,7 @@ public partial class CityBlueprintPass : BlueprintPass
             return;
         }
         var genConfig = config.GenerationConfig ?? new GenerationConfig();
-        var rng = new SeededRng(worldState.Seed, 2000);
+        var rng = new SeededRng(worldState.Seed, RngSalt);
         var cityCount = 0;
 
         foreach (var region in worldState.Regions)

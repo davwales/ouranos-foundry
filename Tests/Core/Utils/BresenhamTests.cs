@@ -3,7 +3,7 @@ using Godot;
 using Ouranos.Foundry.Core.Utils;
 using Xunit;
 
-namespace Ouranos.Foundry.Tests.Features.ProceduralGeneration.Utils;
+namespace Ouranos.Foundry.Tests.Core.Utils;
 
 public class BresenhamTests
 {
