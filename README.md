@@ -42,15 +42,15 @@ The `addon` branch contains only the addon folder, so no demos, tests or project
 
 **Then** build the C# project (`dotnet build`, or **Build** in the editor). Foundry's nodes (`HealthComponent`, `LootTableRoller`, `WorldGenerator`, …) now appear in the **Create New Node** dialog, and its resources in **New Resource**. You don't need to enable anything under *Project Settings → Plugins*.
 
-**Upgrading.** Read the [CHANGELOG](addons/ouranos_foundry/CHANGELOG.md) for **BREAKING** entries first. Then move the submodule to the new tag (`git -C addons/ouranos_foundry fetch --tags && git -C addons/ouranos_foundry checkout addon-v<version>`), or delete the folder and extract the new zip.
+**Upgrading.** Read the [release notes](https://github.com/davwales/ouranos-foundry/releases) first; breaking changes are titled `feat!:` or `fix!:`. Then move the submodule to the new tag (`git -C addons/ouranos_foundry fetch --tags && git -C addons/ouranos_foundry checkout addon-v<version>`), or delete the folder and extract the new zip.
 
 **Known limitation.** Godot keeps one flat registry of global class names. A class in your game with the same name as a Foundry class (for example, your own `HealthComponent`) conflicts with it, even in a different namespace. Rename your class if that happens.
 
 ### Versioning
 
-A release version is `<Godot version>.<N>`: `4.6.3.0` is the first Foundry release built and tested against Godot 4.6.3, and `4.6.3.1` the next. Pick the newest release whose first three parts match your editor. Foundry's own breaking changes are marked **BREAKING** in the CHANGELOG, because the version number can't express them.
+A release version is `<Godot version>.<N>`: `4.6.3.0` is the first Foundry release built and tested against Godot 4.6.3, and `4.6.3.1` the next. Pick the newest release whose first three parts match your editor. The version number can't express Foundry's own breaking changes, so their PRs use a Conventional Commit `!` title (`feat!: …`), which appears in the release notes.
 
-Releases are cut by pushing a `v<version>` tag on `main` after updating `<Version>` in `OuranosFoundry.csproj` and the CHANGELOG. `Automation/check-release.sh` verifies that the tag matches the pinned Godot versions. The release workflow then publishes the `addon` branch, an `addon-v<version>` tag and the zip. Every PR already builds both and installs them into a generated Godot game (`Automation/consumer-smoke.sh`), so a release can't ship an addon that doesn't build.
+Releases are automatic. Every push to `main` runs CI. If anything under `addons/ouranos_foundry/` changed since the last release, or the Godot version changed, the release workflow then publishes the next version (`Automation/next-version.sh` bumps `N`, or starts at `.0` for a new Godot version). A release consists of a `v<version>` tag, the `addon` branch with an `addon-v<version>` tag, and a GitHub release with generated notes and the zip. Every PR already builds both and installs them into a generated Godot game (`Automation/consumer-smoke.sh`), so a release can't ship an addon that doesn't build.
 
 ## Project Layout
 
@@ -59,7 +59,6 @@ addons/ouranos_foundry/ # The addon: everything consumers get
   Features/<Name>/      # Self-contained vertical slice: Nodes/, Resources/, Types/, Utils/, README.md
   Core/                 # Shared across features: Attributes/, Types/, Utils/
   Assets/               # Editor icons
-  CHANGELOG.md
 Demos/<Name>/           # Runnable demo scenes (not library code, not shipped to consumers)
 Templates/Feature/      # Starting point for new features (not shipped)
 Tests/                  # GdUnit4 test project; suites live in Tests/Suites/ (mirrors source)
