@@ -44,11 +44,6 @@ public partial class RoadGenerationPass : GenerationPass
         int tileSize
     )
     {
-        if (chunk.TerrainData is null || chunk.TerrainData.Length == 0)
-        {
-            return;
-        }
-
         var chunkWorldX = chunk.Descriptor.Coordinates.X * tileSize;
         var chunkWorldY = chunk.Descriptor.Coordinates.Y * tileSize;
         var roadDef = definitions.GetRoadType(road.RoadTypeId);
@@ -78,11 +73,7 @@ public partial class RoadGenerationPass : GenerationPass
 
             if (localX >= 0 && localX < tileSize && localY >= 0 && localY < tileSize)
             {
-                var idx = localY * tileSize + localX;
-                if (idx >= 0 && idx < chunk.TerrainData.Length)
-                {
-                    chunk.TerrainData[idx] = terrainId;
-                }
+                chunk.SetTile(localX, localY, terrainId);
             }
         }
     }
