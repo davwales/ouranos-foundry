@@ -1,7 +1,6 @@
 #nullable enable
 
 using Godot;
-using Ouranos.Foundry.Core.Types;
 using Ouranos.Foundry.Features.ProceduralGeneration.Types;
 
 namespace Ouranos.Foundry.Features.ProceduralGeneration.Nodes.Generation;
@@ -16,18 +15,9 @@ public partial class TerrainGenerationPass : GenerationPass
 {
     public override void RunPass(GenerationContext ctx, ChunkBuffer chunk)
     {
-        var (definitions, worldState) = (ctx.Definitions, ctx.World);
+        var (definitions, worldState, rng) = (ctx.Definitions, ctx.World, ctx.Rng);
         var terrain = definitions.Terrain;
         var tileSize = chunk.Descriptor.ChunkSizeTiles;
-
-        // A stream per chunk rather than ctx.Rng, which is the same for every chunk.
-        var rng = new SeededRng(
-            worldState.Seed,
-            (ulong)(
-                chunk.Descriptor.Coordinates.X * 73856093
-                + chunk.Descriptor.Coordinates.Y * 19349663
-            )
-        );
 
         var worldX = chunk.Descriptor.Coordinates.X * tileSize;
         var worldY = chunk.Descriptor.Coordinates.Y * tileSize;

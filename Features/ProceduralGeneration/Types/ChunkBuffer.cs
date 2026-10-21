@@ -11,9 +11,18 @@ namespace Ouranos.Foundry.Features.ProceduralGeneration.Types;
 /// The plain C# chunk that generation passes write to on a worker thread.
 /// <c>WorldGenerator</c> wraps it in a <c>ChunkData</c> back on the main thread.
 /// </summary>
-public sealed class ChunkBuffer(ChunkDescriptor descriptor)
+public sealed class ChunkBuffer(
+    ChunkDescriptor descriptor,
+    IReadOnlyList<PointOfInterest>? pointsOfInterest = null
+)
 {
     public ChunkDescriptor Descriptor { get; } = descriptor;
+
+    /// <summary>
+    /// Every point of interest whose position lies inside this chunk, from the blueprint.
+    /// Filled by <c>WorldGenerator</c> before any pass runs, whichever passes run.
+    /// </summary>
+    public IReadOnlyList<PointOfInterest> PointsOfInterest { get; } = pointsOfInterest ?? [];
 
     /// <summary>
     /// Terrain tile data for this chunk, indexed as [y * width + x].

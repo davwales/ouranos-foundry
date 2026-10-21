@@ -138,6 +138,19 @@ public sealed class SeededRng(ulong seed, ulong salt = 0)
     }
 
     /// <summary>
+    /// Creates a stream keyed by a 2D coordinate, such as a chunk or tile, so each
+    /// coordinate gets its own stream for a given seed and salt. For a fixed
+    /// <paramref name="seed"/> and <paramref name="salt"/>, distinct coordinates (negatives
+    /// included) always give distinct streams: both coordinates are packed into one 64-bit
+    /// key and mixed with a bijection before being combined with the seed and salt.
+    /// </summary>
+    public static SeededRng ForCoords(ulong seed, int x, int y, ulong salt = 0)
+    {
+        var key = ((ulong)(uint)x << 32) | (uint)y;
+        return new SeededRng(HashCombine(seed, salt), Mix(key));
+    }
+
+    /// <summary>
     /// Hashes a single value with the SplitMix64 mixer. Stateless and deterministic.
     /// </summary>
     internal static ulong Mix(ulong value)
