@@ -200,7 +200,7 @@ public class WorldGeneratorTests
     }
 
     [TestCase]
-    public async Task ChunkJobs_WithOneJobSlot_RunOneAtATime()
+    public async Task MaxConcurrentChunkJobs_WhenOne_RunsOneJobAtATime()
     {
         // Arrange
         var gate = new GatedTestPass();
