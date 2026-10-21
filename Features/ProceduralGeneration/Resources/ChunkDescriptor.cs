@@ -17,5 +17,5 @@ public sealed record ChunkDescriptor(
     ChunkType Type,
     IReadOnlySet<Guid> OverlappingCityIds,
     IReadOnlySet<Guid> OverlappingRoadIds,
-    int TileSize = 16
+    int ChunkSizeTiles = 16
 );

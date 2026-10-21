@@ -33,7 +33,7 @@ public partial class TerrainGenerationPass : GenerationPass
         }
         var config = ProcGenConfig;
         var terrain = config.TerrainConfig ?? new TerrainConfig();
-        var tileSize = config.ChunkConfig?.TileSize ?? chunk.Descriptor.TileSize;
+        var tileSize = chunk.Descriptor.ChunkSizeTiles;
         chunk.TerrainData = new int[tileSize * tileSize];
 
         var rng = new SeededRng(

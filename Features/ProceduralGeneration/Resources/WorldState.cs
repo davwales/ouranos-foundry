@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Godot;
 using Ouranos.Foundry.Core.Utils;
 using Ouranos.Foundry.Features.ProceduralGeneration.Types;
+using Ouranos.Foundry.Features.ProceduralGeneration.Utils;
 
 namespace Ouranos.Foundry.Features.ProceduralGeneration.Resources;
 
@@ -14,8 +15,11 @@ public partial class WorldState : WorldBlueprint
     [Export]
     public int Size { get; set; } = 1000;
 
-    [Export]
-    public int ChunkSize { get; set; } = 16;
+    /// <summary>
+    /// Chunk size in tiles, used to bucket the spatial index. Set by WorldGenerator
+    /// from <c>ChunkConfig.ChunkSizeTiles</c> before the blueprint passes run.
+    /// </summary>
+    public int ChunkSizeTiles { get; set; } = 16;
 
     public List<Region> Regions { get; private set; } = [];
 
@@ -75,14 +79,9 @@ public partial class WorldState : WorldBlueprint
 
         foreach (var city in Cities)
         {
-            var minChunk = new Vector2I(
-                (city.Position.X - city.Radius) / ChunkSize,
-                (city.Position.Y - city.Radius) / ChunkSize
-            );
-            var maxChunk = new Vector2I(
-                (city.Position.X + city.Radius) / ChunkSize,
-                (city.Position.Y + city.Radius) / ChunkSize
-            );
+            var radius = new Vector2I(city.Radius, city.Radius);
+            var minChunk = ChunkMath.WorldToChunk(city.Position - radius, ChunkSizeTiles);
+            var maxChunk = ChunkMath.WorldToChunk(city.Position + radius, ChunkSizeTiles);
 
             for (var x = minChunk.X; x <= maxChunk.X; x++)
             {
@@ -109,7 +108,7 @@ public partial class WorldState : WorldBlueprint
 
                 foreach (var point in Bresenham.GetPoints(from, to))
                 {
-                    var chunkCoord = new Vector2I(point.X / ChunkSize, point.Y / ChunkSize);
+                    var chunkCoord = ChunkMath.WorldToChunk(point, ChunkSizeTiles);
                     if (!ChunkToRoadIds.TryGetValue(chunkCoord, out var set))
                     {
                         set = [];

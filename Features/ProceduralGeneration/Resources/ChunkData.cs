@@ -36,12 +36,12 @@ public partial class ChunkData : Resource
 
     public int GetTile(int localX, int localY)
     {
-        return TerrainData[localY * Descriptor.TileSize + localX];
+        return TerrainData[localY * Descriptor.ChunkSizeTiles + localX];
     }
 
     public void SetTile(int localX, int localY, int value)
     {
-        TerrainData[localY * Descriptor.TileSize + localX] = value;
+        TerrainData[localY * Descriptor.ChunkSizeTiles + localX] = value;
     }
 
     /// <summary>
