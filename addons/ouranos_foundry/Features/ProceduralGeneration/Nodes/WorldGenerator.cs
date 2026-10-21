@@ -161,25 +161,10 @@ public partial class WorldGenerator : Node
 
         WorldState.ChunkSizeTiles = ResolvedChunkConfig.ChunkSizeTiles;
 
-        if (BlueprintPipeline is not null)
+        if (BlueprintPipeline?.RunPasses(Config, Definitions, WorldState, LogLevel) is { } failure)
         {
-            var failedPass = string.Empty;
-            var failure = string.Empty;
-            void OnPassFailed(string passName, string error)
-            {
-                failedPass = passName;
-                failure = error;
-            }
-
-            BlueprintPipeline.PassFailed += OnPassFailed;
-            var succeeded = BlueprintPipeline.RunPasses(Config, Definitions, WorldState, LogLevel);
-            BlueprintPipeline.PassFailed -= OnPassFailed;
-
-            if (!succeeded)
-            {
-                ReplaceWorldState();
-                return FailBlueprint(failedPass, failure);
-            }
+            ReplaceWorldState();
+            return FailBlueprint(failure.PassName, failure.Error.Message, failure.Error);
         }
 
         WorldState.IsBlueprintGenerated = true;
@@ -205,9 +190,11 @@ public partial class WorldGenerator : Node
         return [.. Config.Validate(), .. WorldState.Validate()];
     }
 
-    private bool FailBlueprint(string passName, string error)
+    private bool FailBlueprint(string passName, string error, Exception? exception = null)
     {
-        GD.PushError($"WorldGenerator: blueprint pass {passName} failed: {error}");
+        GD.PushError(
+            $"WorldGenerator: blueprint pass {passName} failed: {exception?.ToString() ?? error}"
+        );
         EmitSignal(SignalName.BlueprintFailed, passName, error);
         return false;
     }
@@ -228,14 +215,10 @@ public partial class WorldGenerator : Node
     }
 
     // A cancelled job may still be reading the old instance, so never clear it in place.
+    // Duplicate() keeps the script type and [Export]s; the blueprint lists start empty.
     private void ReplaceWorldState()
     {
-        WorldState = new WorldState
-        {
-            Seed = WorldState.Seed,
-            Size = WorldState.Size,
-            ChunkSizeTiles = WorldState.ChunkSizeTiles,
-        };
+        WorldState = (WorldState)WorldState.Duplicate();
     }
 
     /// <summary>
@@ -334,10 +317,10 @@ public partial class WorldGenerator : Node
         var logs = new List<string>();
 
         await jobSlots.WaitAsync(cancellationToken);
-        string? error;
+        (string PassName, Exception Error)? failure;
         try
         {
-            error = await Task.Run(
+            failure = await Task.Run(
                 () =>
                     pipeline?.RunPasses(
                         config,
@@ -357,7 +340,10 @@ public partial class WorldGenerator : Node
             logs.ForEach(GD.Print);
         }
 
-        return error is null ? new ChunkData(chunk) : throw new InvalidOperationException(error);
+        // Wraps the original exception so the log line keeps its stack trace.
+        return failure is { } f
+            ? throw new InvalidOperationException($"{f.PassName}: {f.Error.Message}", f.Error)
+            : new ChunkData(chunk);
     }
 
     private ChunkBuffer PrepareChunk(WorldState world, Vector2I chunkCoords)

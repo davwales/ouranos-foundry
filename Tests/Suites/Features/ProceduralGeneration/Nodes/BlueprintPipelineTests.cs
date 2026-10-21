@@ -44,7 +44,7 @@ public class BlueprintPipelineTests
         var result = pipeline.RunPasses(config, definitions, world, LogLevel.None);
 
         // Assert
-        result.ShouldBeTrue();
+        result.ShouldBeNull();
         var context = first.Context.ShouldNotBeNull();
         context.Config.ShouldBeSameAs(config);
         context.Definitions.ShouldBeSameAs(definitions);
