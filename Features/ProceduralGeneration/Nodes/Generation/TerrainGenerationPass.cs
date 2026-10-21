@@ -13,6 +13,8 @@ namespace Ouranos.Foundry.Features.ProceduralGeneration.Nodes.Generation;
 [GlobalClass]
 public partial class TerrainGenerationPass : GenerationPass
 {
+    public override ulong RngSalt => 4000;
+
     public override void RunPass(GenerationContext ctx, ChunkBuffer chunk)
     {
         var (definitions, worldState, rng) = (ctx.Definitions, ctx.World, ctx.Rng);
