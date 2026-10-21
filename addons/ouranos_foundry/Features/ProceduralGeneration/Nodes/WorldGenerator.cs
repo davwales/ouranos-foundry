@@ -69,10 +69,9 @@ public partial class WorldGenerator : Node
     private readonly Dictionary<Vector2I, ChunkData> _generatedChunks = [];
     private readonly HashSet<Vector2I> _inFlightChunks = [];
     private List<GenerationPass> _cachedGenerationPasses = [];
-    private ChunkConfig? _chunkConfig;
 
-    // Resolved once so every consumer sees the same chunk size; defaults when unset.
-    private ChunkConfig ResolvedChunkConfig => _chunkConfig ??= Config?.ChunkConfig ?? new();
+    // Defaults when no ChunkConfig is assigned.
+    private ChunkConfig ResolvedChunkConfig => Config?.ChunkConfig ?? new();
 
     public override void _Ready()
     {
