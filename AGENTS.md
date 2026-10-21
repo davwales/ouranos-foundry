@@ -142,7 +142,7 @@ There is one test project: `Tests/OuranosFoundry.Tests.csproj`, using GdUnit4Net
   - Its own `project.godot` makes the main editor skip `Tests/`.
   - Godot generates `.uid` files for test scripts; these are gitignored.
 - **Configuring exports:** use `node.With(Type.PropertyName.X, value)` (`Tests/Suites/GodotObjectTestExtensions.cs`). It goes through Godot's property system, as the scene loader does, so `private set` stays private.
-- **Free the nodes you create** (`root.Free()`).
+- **Free the nodes you create** (`root.Free()`), in every test. Leaked nodes holding C# signal handlers made the Godot test host crash on shutdown (exit 134/139) on some CI hosts, failing green runs. Godot's "ObjectDB instances leaked at exit" warning means a test is missing a `Free()`.
 - **Naming:**
   - Test classes are `{ClassName}Tests`.
   - Test methods are `{Method}_{Scenario}_{ExpectedOutcome}`, e.g. `Roll_WhenEntriesAreEmpty_ReturnsEmpty`. Older tests use a `Should…` prefix, which is fine.
