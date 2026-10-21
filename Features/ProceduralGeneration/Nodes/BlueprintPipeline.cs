@@ -58,6 +58,7 @@ public partial class BlueprintPipeline : Node
     /// </summary>
     public bool RunPasses(
         ProceduralGenerationConfig config,
+        GenerationDefinitions definitions,
         WorldState world,
         LogLevel logLevel = LogLevel.Basic
     )
@@ -68,7 +69,9 @@ public partial class BlueprintPipeline : Node
             {
                 var passName = pass.GetType().Name;
                 EmitSignal(SignalName.PassStarted, passName);
-                pass.RunPass(new GenerationContext(config, world, pass.Salt, logLevel));
+                pass.RunPass(
+                    new GenerationContext(config, definitions, world, pass.Salt, logLevel, GD.Print)
+                );
                 EmitSignal(SignalName.PassCompleted, passName);
             }
         );

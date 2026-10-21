@@ -3,6 +3,7 @@
 using System.Linq;
 using Godot;
 using Ouranos.Foundry.Features.ProceduralGeneration.Resources;
+using Ouranos.Foundry.Features.ProceduralGeneration.Types;
 
 namespace Ouranos.Foundry.Features.ProceduralGeneration.Nodes.Diagnostics;
 
@@ -23,17 +24,17 @@ public partial class RoadDrawer : DebugDrawer
     public override void Draw(
         CanvasItem canvas,
         WorldState world,
-        ProceduralGenerationConfig? config
+        GenerationDefinitions? definitions
     )
     {
-        if (!Visible || config is null)
+        if (!Visible || definitions is null)
         {
             return;
         }
 
         foreach (var road in world.Roads)
         {
-            var roadDef = config.GetRoadTypeDefinition(road.RoadTypeId);
+            var roadDef = definitions.GetRoadType(road.RoadTypeId);
             var points = road.PathPoints.Select(p => (Vector2)p).ToArray();
             canvas.DrawPolyline(points, roadDef.DebugColor, roadDef.DebugLineWidth);
         }

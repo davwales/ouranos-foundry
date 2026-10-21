@@ -2,15 +2,14 @@
 
 using Godot;
 using Ouranos.Foundry.Core.Utils;
-using Ouranos.Foundry.Features.ProceduralGeneration.Resources;
 using Ouranos.Foundry.Features.ProceduralGeneration.Types;
 
 namespace Ouranos.Foundry.Features.ProceduralGeneration.Nodes;
 
 /// <summary>
 /// A step of chunk generation. Runs per chunk, on a worker thread, in
-/// <c>GenerationPipeline</c> child order. Treat <c>ctx.World</c> as read-only and
-/// write only to the chunk.
+/// <c>GenerationPipeline</c> child order. Treat <c>ctx.World</c> as read-only, write only
+/// to the chunk and call no Godot API: see the Threading section of the feature README.
 /// </summary>
 [GlobalClass]
 public abstract partial class GenerationPass : Node
@@ -23,5 +22,5 @@ public abstract partial class GenerationPass : Node
 
     internal ulong Salt => RngSalt;
 
-    public abstract void RunPass(GenerationContext ctx, ChunkData chunk);
+    public abstract void RunPass(GenerationContext ctx, ChunkBuffer chunk);
 }

@@ -57,7 +57,7 @@ public partial class BlueprintDebugOverlay : Node2D
         var world = Generator.WorldState;
         foreach (var drawer in GetChildren().OfType<DebugDrawer>())
         {
-            drawer.Draw(this, world, Generator.Config);
+            drawer.Draw(this, world, Generator.Definitions);
         }
     }
 }
