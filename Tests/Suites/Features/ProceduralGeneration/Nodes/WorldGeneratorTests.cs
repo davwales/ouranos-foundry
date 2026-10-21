@@ -460,12 +460,42 @@ public class WorldGeneratorTests
 
         // Assert
         failures.Count.ShouldBe(1);
+        failures[0].ShouldStartWith($"{nameof(GenerationPipeline)}: ");
         failures[0].ShouldContain("CityGenerationPass requires TerrainGenerationPass");
         generated.ShouldBeEmpty();
         generator.IsChunkReady(Vector2I.Zero).ShouldBeFalse();
         first.EnteredCount.ShouldBe(0);
 
         generator.ChunkGenerated -= OnGenerated;
+        generator.GenerationFailed -= OnFailed;
+        root.Free();
+    }
+
+    [TestCase]
+    public async Task ChunkGeneration_WhenAPassThrows_ReportsThePassNameAndMessage()
+    {
+        // Arrange
+        var (root, generator, manager) = CreateGenerator(
+            new ChunkConfig { ViewDistance = 0 },
+            Vector2.Zero,
+            generationPipeline: MakeGenerationPipeline(new ThrowingGenerationPass())
+        );
+        var failures = new List<string>();
+        void OnFailed(Vector2I coords, string error)
+        {
+            failures.Add(error);
+        }
+
+        generator.GenerationFailed += OnFailed;
+        generator._Ready();
+
+        // Act
+        manager._Process(0);
+        await TestWait.Until(() => failures.Count > 0);
+
+        // Assert
+        failures.ShouldBe([$"{nameof(ThrowingGenerationPass)}: {ThrowingGenerationPass.Message}"]);
+
         generator.GenerationFailed -= OnFailed;
         root.Free();
     }
