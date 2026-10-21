@@ -33,9 +33,10 @@ public partial class GenerationPipeline : Node
     /// <summary>
     /// Runs the passes on <paramref name="chunk"/> in child order. Safe on a worker thread:
     /// it touches no Godot API, and passes log through <paramref name="log"/>.
-    /// Returns the first failure (a dependency violation or a pass that throws), or null.
+    /// Returns the first failure (a dependency violation, reported as this pipeline, or
+    /// a pass that throws) with the original exception, or null.
     /// </summary>
-    public string? RunPasses(
+    public (string PassName, Exception Error)? RunPasses(
         ProceduralGenerationConfig config,
         GenerationDefinitions definitions,
         WorldState world,
@@ -45,12 +46,12 @@ public partial class GenerationPipeline : Node
         CancellationToken cancellationToken = default
     )
     {
-        var failure = _passes.Run(
+        return _passes.Run(
             nameof(GenerationPipeline),
             pass =>
             {
                 var coords = chunk.Coordinates;
-                var rng = SeededRng.ForCoords(world.Seed, coords.X, coords.Y, pass.Salt);
+                var rng = SeededRng.ForCoords(world.Seed, coords.X, coords.Y, pass.RngSalt);
                 pass.RunPass(
                     new GenerationContext(config, definitions, world, rng, logLevel, log),
                     chunk
@@ -58,6 +59,5 @@ public partial class GenerationPipeline : Node
             },
             cancellationToken
         );
-        return failure?.Error;
     }
 }

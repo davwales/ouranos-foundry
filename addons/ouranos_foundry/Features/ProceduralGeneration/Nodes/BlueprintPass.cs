@@ -17,9 +17,7 @@ public abstract partial class BlueprintPass : Node
     /// Salts <c>GenerationContext.Rng</c>. Defaults to a stable hash of the full type
     /// name, so renaming or moving the pass changes its stream.
     /// </summary>
-    protected virtual ulong RngSalt => StableId.Hash(GetType().FullName ?? GetType().Name);
-
-    internal ulong Salt => RngSalt;
+    public virtual ulong RngSalt => StableId.Hash(GetType().FullName ?? GetType().Name);
 
     public abstract void RunPass(GenerationContext ctx);
 }

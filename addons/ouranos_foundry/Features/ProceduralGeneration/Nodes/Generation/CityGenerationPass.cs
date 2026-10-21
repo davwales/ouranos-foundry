@@ -44,11 +44,6 @@ public partial class CityGenerationPass : GenerationPass
         int tileSize
     )
     {
-        if (chunk.TerrainData is null || chunk.TerrainData.Length == 0)
-        {
-            return;
-        }
-
         var chunkWorldX = chunk.Descriptor.Coordinates.X * tileSize;
         var chunkWorldY = chunk.Descriptor.Coordinates.Y * tileSize;
 
@@ -61,11 +56,6 @@ public partial class CityGenerationPass : GenerationPass
                 var tileWorld = new Vector2I(worldX, worldY);
                 var dist = tileWorld.DistanceTo(city.Position);
                 var idx = y * tileSize + x;
-
-                if (idx >= chunk.TerrainData.Length)
-                {
-                    continue;
-                }
 
                 if (dist <= city.Radius)
                 {

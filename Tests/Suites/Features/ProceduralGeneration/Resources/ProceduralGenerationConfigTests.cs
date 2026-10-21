@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GdUnit4;
 using Ouranos.Foundry.Features.ProceduralGeneration.Resources;
+using Ouranos.Foundry.Features.ProceduralGeneration.Types;
 using Shouldly;
 
 namespace Ouranos.Foundry.Tests.Features.ProceduralGeneration.Resources;
@@ -104,7 +105,7 @@ public class ProceduralGenerationConfigTests
         config.HubRoadTypeId = "canal";
 
         // Act
-        var warnings = config.GetWarnings().ToList();
+        var warnings = config.GetWarnings(new GenerationDefinitions(config)).ToList();
 
         // Assert
         warnings.ShouldBe([
@@ -120,7 +121,25 @@ public class ProceduralGenerationConfigTests
         var config = ConfigEdgeCases.MakeValidConfig();
 
         // Act
-        var warnings = config.GetWarnings().ToList();
+        var warnings = config.GetWarnings(new GenerationDefinitions(config)).ToList();
+
+        // Assert
+        warnings.ShouldBeEmpty();
+    }
+
+    [TestCase("EmptyBiomeSlot")]
+    [TestCase("EmptyRoadTypeSlot")]
+    [TestCase("EmptyDistributionEntry")]
+    public void GetWarnings_WithAnEmptySlotThatValidateRejects_DoesNotThrow(string edgeCase)
+    {
+        // Arrange
+        var config = ConfigEdgeCases.MakeValidConfig();
+        ConfigEdgeCases.Apply(edgeCase, config, new WorldState());
+
+        // Act
+        var warnings = Should.NotThrow(() =>
+            config.GetWarnings(new GenerationDefinitions(config)).ToList()
+        );
 
         // Assert
         warnings.ShouldBeEmpty();
