@@ -1,5 +1,6 @@
 #nullable enable
 
+using System;
 using System.Linq;
 using Godot;
 using Ouranos.Foundry.Core.Types;
@@ -54,9 +55,10 @@ public partial class BlueprintPipeline : Node
 
     /// <summary>
     /// Runs the passes in child order. Stops at the first failure (a dependency
-    /// violation or a pass that throws), emits <c>PassFailed</c> and returns false.
+    /// violation or a pass that throws), emits <c>PassFailed</c> with the exception's
+    /// message and returns the failing pass and the exception. Returns null on success.
     /// </summary>
-    public bool RunPasses(
+    public (string PassName, Exception Error)? RunPasses(
         ProceduralGenerationConfig config,
         GenerationDefinitions definitions,
         WorldState world,
@@ -70,7 +72,14 @@ public partial class BlueprintPipeline : Node
                 var passName = pass.GetType().Name;
                 EmitSignal(SignalName.PassStarted, passName);
                 pass.RunPass(
-                    new GenerationContext(config, definitions, world, pass.Salt, logLevel, GD.Print)
+                    new GenerationContext(
+                        config,
+                        definitions,
+                        world,
+                        pass.RngSalt,
+                        logLevel,
+                        GD.Print
+                    )
                 );
                 EmitSignal(SignalName.PassCompleted, passName);
             }
@@ -78,10 +87,9 @@ public partial class BlueprintPipeline : Node
 
         if (failure is { } f)
         {
-            EmitSignal(SignalName.PassFailed, f.PassName, f.Error);
-            return false;
+            EmitSignal(SignalName.PassFailed, f.PassName, f.Error.Message);
         }
 
-        return true;
+        return failure;
     }
 }
