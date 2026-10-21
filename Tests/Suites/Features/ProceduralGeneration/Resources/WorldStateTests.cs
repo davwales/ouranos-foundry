@@ -61,7 +61,7 @@ public class WorldStateTests
     }
 
     [TestCase]
-    public void GetPointsOfInterestInChunk_PoiOutsideCityRadius_ReturnsItFromItsOwnChunk()
+    public void GetPointsOfInterestInChunk_PoiOutsideCityRadius_ListsItWithoutIndexingTheCity()
     {
         // Arrange: the footprint covers chunk (0, 0) only; the far POI is in chunk (-3, 2).
         var world = new WorldState { ChunkSizeTiles = 16 };
@@ -76,7 +76,8 @@ public class WorldStateTests
         world.RebuildSpatialIndex();
 
         // Assert
-        world.GetCitiesInChunk(new Vector2I(-3, 2)).ShouldContain(city.Id);
+        world.GetCitiesInChunk(new Vector2I(-3, 2)).ShouldBeEmpty();
+        world.ChunkToCityIds.Keys.ShouldBe([Vector2I.Zero]);
         world.GetPointsOfInterestInChunk(new Vector2I(-3, 2)).ShouldBe([far]);
         world.GetPointsOfInterestInChunk(Vector2I.Zero).ShouldBe([near]);
         world.GetPointsOfInterestInChunk(new Vector2I(1, 0)).ShouldBeEmpty();
