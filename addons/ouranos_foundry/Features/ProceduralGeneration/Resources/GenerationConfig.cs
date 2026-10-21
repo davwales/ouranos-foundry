@@ -1,6 +1,9 @@
 #nullable enable
 
+using System.Collections.Generic;
+using System.Linq;
 using Godot;
+using Ouranos.Foundry.Features.ProceduralGeneration.Utils;
 
 namespace Ouranos.Foundry.Features.ProceduralGeneration.Resources;
 
@@ -55,4 +58,25 @@ public partial class GenerationConfig : Resource
     /// </summary>
     [Export]
     public int MaxPlacementAttempts { get; set; } = 50;
+
+    /// <summary>
+    /// Returns a message for each value the blueprint passes can't generate with. Empty
+    /// when the config is valid. Override to add checks for a subclass's own fields.
+    /// </summary>
+    public virtual IEnumerable<string> Validate()
+    {
+        const string owner = nameof(GenerationConfig);
+        string?[] messages =
+        [
+            ConfigValidation.AtLeast(owner, nameof(RegionCount), RegionCount, 1),
+            MinCitiesPerRegion > MaxCitiesPerRegion
+                ? $"{owner}.{nameof(MinCitiesPerRegion)} ({MinCitiesPerRegion}) is greater than "
+                    + $"{nameof(MaxCitiesPerRegion)} ({MaxCitiesPerRegion})."
+                : null,
+            ConfigValidation.AtLeast(owner, nameof(CityPositionAttempts), CityPositionAttempts, 1),
+            ConfigValidation.AtLeast(owner, nameof(RoadWaypointSpacing), RoadWaypointSpacing, 1),
+            ConfigValidation.AtLeast(owner, nameof(RoadWaypointJitter), RoadWaypointJitter, 0),
+        ];
+        return messages.OfType<string>();
+    }
 }

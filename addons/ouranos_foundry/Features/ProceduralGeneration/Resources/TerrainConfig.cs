@@ -1,6 +1,9 @@
 #nullable enable
 
+using System.Collections.Generic;
+using System.Linq;
 using Godot;
+using Ouranos.Foundry.Features.ProceduralGeneration.Utils;
 
 namespace Ouranos.Foundry.Features.ProceduralGeneration.Resources;
 
@@ -37,4 +40,18 @@ public partial class TerrainConfig : Resource
 
     [Export]
     public int StreetGridSpacing { get; set; } = 3;
+
+    /// <summary>
+    /// Returns a message for each value the chunk passes can't generate with. Empty when
+    /// the config is valid. Override to add checks for a subclass's own fields.
+    /// </summary>
+    public virtual IEnumerable<string> Validate()
+    {
+        const string owner = nameof(TerrainConfig);
+        string?[] messages =
+        [
+            ConfigValidation.AtLeast(owner, nameof(StreetGridSpacing), StreetGridSpacing, 1),
+        ];
+        return messages.OfType<string>();
+    }
 }

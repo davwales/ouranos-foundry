@@ -1,6 +1,9 @@
 #nullable enable
 
+using System.Collections.Generic;
+using System.Linq;
 using Godot;
+using Ouranos.Foundry.Features.ProceduralGeneration.Utils;
 
 namespace Ouranos.Foundry.Features.ProceduralGeneration.Resources;
 
@@ -25,4 +28,19 @@ public partial class ChunkConfig : Resource
 
     [Export]
     public int ViewDistance { get; set; } = 3;
+
+    /// <summary>
+    /// Returns a message for each invalid size. Empty when the config is valid.
+    /// </summary>
+    public virtual IEnumerable<string> Validate()
+    {
+        const string owner = nameof(ChunkConfig);
+        string?[] messages =
+        [
+            ConfigValidation.AtLeast(owner, nameof(ChunkSizeTiles), ChunkSizeTiles, 1),
+            ConfigValidation.AtLeast(owner, nameof(TilePixelSize), TilePixelSize, 1),
+            ConfigValidation.AtLeast(owner, nameof(ViewDistance), ViewDistance, 0),
+        ];
+        return messages.OfType<string>();
+    }
 }

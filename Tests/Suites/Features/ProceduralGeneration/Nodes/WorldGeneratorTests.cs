@@ -428,6 +428,48 @@ public class WorldGeneratorTests
     }
 
     [TestCase]
+    public void GenerateBlueprint_WhenConfigIsInvalid_RunsNoPassAndReportsEveryMessage()
+    {
+        // Arrange
+        var counting = new CountingBlueprintPass();
+        var pipeline = new BlueprintPipeline();
+        pipeline.AddPass(counting);
+        var (root, generator, _) = CreateGenerator(
+            new ChunkConfig { ChunkSizeTiles = 0 },
+            Vector2.Zero,
+            blueprintPipeline: pipeline
+        );
+        generator.Config!.GenerationConfig!.RegionCount = 0;
+        generator.WorldState.Size = -5;
+        var failures = new List<(string PassName, string Error)>();
+        void OnFailed(string passName, string error)
+        {
+            failures.Add((passName, error));
+        }
+
+        generator.BlueprintFailed += OnFailed;
+
+        // Act
+        var result = generator.GenerateBlueprint();
+
+        // Assert
+        string[] expected =
+        [
+            "ChunkConfig.ChunkSizeTiles (0) must be at least 1.",
+            "GenerationConfig.RegionCount (0) must be at least 1.",
+            "WorldState.Size (-5) must be at least 1.",
+        ];
+        result.ShouldBeFalse();
+        generator.Validate().ShouldBe(expected);
+        failures.ShouldBe([(nameof(WorldGenerator), string.Join("\n", expected))]);
+        counting.RunCount.ShouldBe(0);
+        generator.IsBlueprintGenerated.ShouldBeFalse();
+
+        generator.BlueprintFailed -= OnFailed;
+        root.Free();
+    }
+
+    [TestCase]
     public async Task ChunkGeneration_WhenAPassMissesItsDependency_FailsWithoutGenerating()
     {
         // Arrange

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using Ouranos.Foundry.Core.Utils;
 using Ouranos.Foundry.Features.ProceduralGeneration.Types;
@@ -30,6 +31,15 @@ public partial class WorldState : Resource
     /// from <c>ChunkConfig.ChunkSizeTiles</c> before the blueprint passes run.
     /// </summary>
     public int ChunkSizeTiles { get; set; } = 16;
+
+    /// <summary>
+    /// Returns a message for each value generation can't start from. Empty when valid.
+    /// </summary>
+    public virtual IEnumerable<string> Validate()
+    {
+        string?[] messages = [ConfigValidation.AtLeast(nameof(WorldState), nameof(Size), Size, 1)];
+        return messages.OfType<string>();
+    }
 
     public List<Region> Regions { get; private set; } = [];
 
