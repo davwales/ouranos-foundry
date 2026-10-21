@@ -38,8 +38,7 @@ public partial class PoiPlacementPass : GenerationPass
         }
         var config = ProcGenConfig;
         var terrain = config.TerrainConfig ?? new TerrainConfig();
-        var chunkConfig = config.ChunkConfig;
-        var tileSize = chunkConfig?.TileSize ?? chunk.Descriptor.TileSize;
+        var tileSize = chunk.Descriptor.ChunkSizeTiles;
         var chunkWorldX = chunk.Descriptor.Coordinates.X * tileSize;
         var chunkWorldY = chunk.Descriptor.Coordinates.Y * tileSize;
         var chunkRect = new Rect2I(chunkWorldX, chunkWorldY, tileSize, tileSize);

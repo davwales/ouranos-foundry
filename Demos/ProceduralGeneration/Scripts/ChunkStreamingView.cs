@@ -17,7 +17,7 @@ public partial class ChunkStreamingView : Node2D
     [Export]
     public Color OutlineColor { get; private set; } = new(1f, 1f, 1f, 0.35f);
 
-    // Loaded chunk coords mapped to their tile size, taken from the chunk data.
+    // Loaded chunk coords mapped to their size in tiles, taken from the chunk data.
     private readonly Dictionary<Vector2I, int> _loadedChunks = [];
 
     public override void _Ready()
@@ -43,16 +43,16 @@ public partial class ChunkStreamingView : Node2D
 
     public override void _Draw()
     {
-        foreach (var (coords, tileSize) in _loadedChunks)
+        foreach (var (coords, chunkSize) in _loadedChunks)
         {
-            var rect = new Rect2(coords * tileSize, new Vector2(tileSize, tileSize));
+            var rect = new Rect2(coords * chunkSize, new Vector2(chunkSize, chunkSize));
             DrawRect(rect, OutlineColor, filled: false);
         }
     }
 
     private void OnChunkGenerated(Vector2I coords, ChunkData chunk)
     {
-        _loadedChunks[coords] = chunk.Descriptor.TileSize;
+        _loadedChunks[coords] = chunk.Descriptor.ChunkSizeTiles;
         QueueRedraw();
     }
 

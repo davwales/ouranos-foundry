@@ -42,7 +42,7 @@ public partial class ChunkGridDrawer : DebugDrawer
         }
 
         var worldSize = world.Size;
-        var chunkSize = world.ChunkSize;
+        var chunkSize = world.ChunkSizeTiles;
 
         for (var x = 0; x <= worldSize; x += chunkSize)
         {

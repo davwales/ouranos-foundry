@@ -4,5 +4,6 @@
 
 [resource]
 script = ExtResource("1_script")
-TileSize = 16
+ChunkSizeTiles = 16
+TilePixelSize = 1
 ViewDistance = 3

@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using Godot;
+using Ouranos.Foundry.Features.ProceduralGeneration.Utils;
 
 namespace Ouranos.Foundry.Features.ProceduralGeneration.Nodes;
 
@@ -24,11 +25,9 @@ public partial class ChunkManager : Node
     public Node2D? Player { get; private set; }
 
     [Export]
-    public int ChunkSize { get; private set; } = 16;
-
-    [Export]
     public int ViewDistanceChunks { get; private set; } = 3;
 
+    private int _chunkSizePixels = 16;
     private Vector2I _currentPlayerChunk = new(int.MinValue, int.MinValue);
     private readonly HashSet<Vector2I> _activeChunks = [];
 
@@ -39,7 +38,7 @@ public partial class ChunkManager : Node
             return;
         }
 
-        var playerChunk = (Vector2I)(Player.GlobalPosition / ChunkSize);
+        var playerChunk = ChunkMath.PixelToChunk(Player.GlobalPosition, _chunkSizePixels);
 
         if (playerChunk == _currentPlayerChunk)
         {
@@ -107,5 +106,14 @@ public partial class ChunkManager : Node
     public void SetViewDistance(int viewDistance)
     {
         ViewDistanceChunks = viewDistance;
+    }
+
+    /// <summary>
+    /// Sets the chunk size used to map the player's position to a chunk. Called by
+    /// WorldGenerator from ChunkConfig. Without it, a chunk is 16 world units wide.
+    /// </summary>
+    public void SetChunkSize(int chunkSizeTiles, int tilePixelSize)
+    {
+        _chunkSizePixels = chunkSizeTiles * tilePixelSize;
     }
 }
