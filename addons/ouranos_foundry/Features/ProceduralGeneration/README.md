@@ -32,6 +32,8 @@ Write a new pass by subclassing one of these and adding it as a child of the mat
 - **Threading:** a `GenerationPass` must not touch the scene tree or any non-thread-safe Godot API. Treat `WorldBlueprint` as read-only and write only to the `ChunkData` you were given. `WorldGenerator` emits `ChunkGenerated` back on the main thread.
 - **Ordering:** declare dependencies with `[RequiresPasses(typeof(OtherPass))]` from `Ouranos.Foundry.Core.Attributes`. `BlueprintPipeline` fails the run (`PassFailed` signal) on a violation. `GenerationPipeline` pushes an error in `_Ready`.
 - **Determinism:** each pass creates `new SeededRng(worldState.Seed, RngSalt)` with its own `RngSalt` constant. Use `rng.Derive()` for sub-streams. Never use `System.Random` or `GD.Rand*`.
+- **Chunk size:** `ChunkConfig` (on `ProceduralGenerationConfig`) is the single source of truth. `ChunkSizeTiles` (default 16) is the chunk width in tiles and `TilePixelSize` (default 1) the tile width in world units. `WorldGenerator` pushes them into `WorldState.ChunkSizeTiles`, `ChunkManager.SetChunkSize` and each `ChunkDescriptor.ChunkSizeTiles`; with no `ChunkConfig` the defaults apply. Passes read `chunk.Descriptor.ChunkSizeTiles`.
+- **Chunk coordinates floor:** convert with `ChunkMath.WorldToChunk` (tiles) or `ChunkMath.PixelToChunk` (world units), never `/`, which truncates toward zero. With 16-tile chunks, tiles -16..-1 are chunk -1 and 0..15 are chunk 0.
 - **Debug drawing:** `Nodes/Diagnostics/` contains a `BlueprintDebugOverlay` (Node2D) with `DebugDrawer` children. Drawers call the protected `RequestRedraw()` to redraw their parent canvas. This is the one sanctioned child-to-parent call; see AGENTS.md.
 
 ## Signals (WorldGenerator)

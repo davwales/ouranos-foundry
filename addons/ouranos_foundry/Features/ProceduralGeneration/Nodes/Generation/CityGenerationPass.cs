@@ -37,7 +37,7 @@ public partial class CityGenerationPass : GenerationPass
         }
         var config = ProcGenConfig;
         var terrain = config.TerrainConfig ?? new TerrainConfig();
-        var tileSize = config.ChunkConfig?.TileSize ?? chunk.Descriptor.TileSize;
+        var tileSize = chunk.Descriptor.ChunkSizeTiles;
 
         if (chunk.HasAnyRoad)
         {

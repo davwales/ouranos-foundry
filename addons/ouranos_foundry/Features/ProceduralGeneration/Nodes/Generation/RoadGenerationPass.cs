@@ -37,7 +37,7 @@ public partial class RoadGenerationPass : GenerationPass
             return;
         }
         var config = ProcGenConfig;
-        var tileSize = config.ChunkConfig?.TileSize ?? chunk.Descriptor.TileSize;
+        var tileSize = chunk.Descriptor.ChunkSizeTiles;
 
         if (chunk.Descriptor.Type == ChunkType.Wilderness)
         {

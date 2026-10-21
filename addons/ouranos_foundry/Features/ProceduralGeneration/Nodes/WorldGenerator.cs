@@ -69,6 +69,10 @@ public partial class WorldGenerator : Node
     private readonly Dictionary<Vector2I, ChunkData> _generatedChunks = [];
     private readonly HashSet<Vector2I> _inFlightChunks = [];
     private List<GenerationPass> _cachedGenerationPasses = [];
+    private ChunkConfig? _chunkConfig;
+
+    // Resolved once so every consumer sees the same chunk size; defaults when unset.
+    private ChunkConfig ResolvedChunkConfig => _chunkConfig ??= Config?.ChunkConfig ?? new();
 
     public override void _Ready()
     {
@@ -80,8 +84,9 @@ public partial class WorldGenerator : Node
             ChunkManager.RequestChunkGeneration += OnChunkGenerationRequested;
             ChunkManager.RequestChunkUnload += OnChunkUnloadRequested;
 
-            var viewDistance = Config?.ChunkConfig?.ViewDistance ?? 3;
-            ChunkManager.SetViewDistance(viewDistance);
+            var chunkConfig = ResolvedChunkConfig;
+            ChunkManager.SetViewDistance(chunkConfig.ViewDistance);
+            ChunkManager.SetChunkSize(chunkConfig.ChunkSizeTiles, chunkConfig.TilePixelSize);
         }
     }
 
@@ -104,6 +109,7 @@ public partial class WorldGenerator : Node
 
         ValidateConfig();
 
+        WorldState.ChunkSizeTiles = ResolvedChunkConfig.ChunkSizeTiles;
         BlueprintPipeline?.RunPasses(WorldState);
         WorldState.IsBlueprintGenerated = true;
 
@@ -179,7 +185,7 @@ public partial class WorldGenerator : Node
     /// Must be called on the main thread since it reads from WorldState.
     private ChunkData PrepareChunkData(Vector2I chunkCoords)
     {
-        var tileSize = Config?.ChunkConfig?.TileSize ?? 16;
+        var chunkSizeTiles = ResolvedChunkConfig.ChunkSizeTiles;
         var chunk = InitialChunkData.Copy();
 
         var cityIds = WorldState.GetCitiesInChunk(chunkCoords);
@@ -190,11 +196,11 @@ public partial class WorldGenerator : Node
             DetermineChunkType(cityIds.Count > 0, roadIds.Count > 0),
             cityIds,
             roadIds,
-            tileSize
+            chunkSizeTiles
         );
 
         chunk.Descriptor = descriptor;
-        chunk.TerrainData = new int[tileSize * tileSize];
+        chunk.TerrainData = new int[chunkSizeTiles * chunkSizeTiles];
 
         return chunk;
     }
