@@ -21,7 +21,7 @@ namespace Ouranos.Foundry.Features.ProceduralGeneration.Nodes.Blueprints;
 [GlobalClass]
 public partial class RoadBlueprintPass : BlueprintPass
 {
-    protected override ulong RngSalt => 3000;
+    public override ulong RngSalt => 3000;
 
     public override void RunPass(GenerationContext ctx)
     {
