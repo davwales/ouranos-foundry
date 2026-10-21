@@ -199,14 +199,10 @@ public partial class WorldGenerator : Node
     }
 
     // A cancelled job may still be reading the old instance, so never clear it in place.
+    // Duplicate() keeps the script type and [Export]s; the blueprint lists start empty.
     private void ReplaceWorldState()
     {
-        WorldState = new WorldState
-        {
-            Seed = WorldState.Seed,
-            Size = WorldState.Size,
-            ChunkSizeTiles = WorldState.ChunkSizeTiles,
-        };
+        WorldState = (WorldState)WorldState.Duplicate();
     }
 
     /// <summary>

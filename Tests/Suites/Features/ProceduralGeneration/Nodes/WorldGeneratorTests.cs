@@ -8,6 +8,7 @@ using Ouranos.Foundry.Features.ProceduralGeneration.Nodes.Blueprints;
 using Ouranos.Foundry.Features.ProceduralGeneration.Nodes.Generation;
 using Ouranos.Foundry.Features.ProceduralGeneration.Resources;
 using Ouranos.Foundry.Features.ProceduralGeneration.Types;
+using Ouranos.Foundry.Tests.Features.ProceduralGeneration.Resources;
 using Shouldly;
 
 namespace Ouranos.Foundry.Tests.Features.ProceduralGeneration.Nodes;
@@ -268,6 +269,72 @@ public class WorldGeneratorTests
 
         generator.ChunkGenerated -= OnGenerated;
         generator.ChunkUnloaded -= OnUnloaded;
+        root.Free();
+    }
+
+    [TestCase]
+    public void ResetBlueprint_WithAWorldStateSubclass_KeepsItsTypeAndExportsAndStartsEmpty()
+    {
+        // Arrange
+        var (root, generator, _) = CreateGenerator(
+            new ChunkConfig(),
+            Vector2.Zero,
+            blueprintPipeline: MakeRealBlueprintPipeline()
+        );
+        generator.With(
+            WorldGenerator.PropertyName.WorldState,
+            new TaggedWorldState
+            {
+                Seed = 42,
+                Size = 600,
+                Tag = "custom",
+            }
+        );
+        generator.GenerateBlueprint().ShouldBeTrue();
+        var oldWorld = generator.WorldState;
+        var cityCount = oldWorld.Cities.Count;
+
+        // Act
+        generator.ResetBlueprint();
+        var reset = generator.WorldState;
+        var regenerated = generator.GenerateBlueprint();
+
+        // Assert
+        cityCount.ShouldBeGreaterThan(0);
+        reset.ShouldNotBeSameAs(oldWorld);
+        var tagged = reset.ShouldBeOfType<TaggedWorldState>();
+        (tagged.Seed, tagged.Size, tagged.Tag).ShouldBe((42ul, 600, "custom"));
+        reset.Cities.ShouldNotBeSameAs(oldWorld.Cities);
+        oldWorld.Cities.Count.ShouldBe(cityCount);
+        regenerated.ShouldBeTrue();
+        generator.WorldState.ShouldBeSameAs(reset);
+        reset.Cities.Count.ShouldBe(cityCount);
+
+        root.Free();
+    }
+
+    [TestCase]
+    public void ResetBlueprint_WithAWorldStateSubclass_StartsWithAnEmptyBlueprint()
+    {
+        // Arrange
+        var (root, generator, _) = CreateGenerator(
+            new ChunkConfig(),
+            Vector2.Zero,
+            blueprintPipeline: MakeRealBlueprintPipeline()
+        );
+        generator.With(WorldGenerator.PropertyName.WorldState, new TaggedWorldState());
+        generator.GenerateBlueprint().ShouldBeTrue();
+
+        // Act
+        generator.ResetBlueprint();
+
+        // Assert
+        var reset = generator.WorldState;
+        reset.IsBlueprintGenerated.ShouldBeFalse();
+        (reset.Regions.Count, reset.Cities.Count, reset.Roads.Count).ShouldBe((0, 0, 0));
+        (reset.CityById.Count, reset.RoadById.Count).ShouldBe((0, 0));
+        (reset.ChunkToCityIds.Count, reset.ChunkToRoadIds.Count).ShouldBe((0, 0));
+
         root.Free();
     }
 
