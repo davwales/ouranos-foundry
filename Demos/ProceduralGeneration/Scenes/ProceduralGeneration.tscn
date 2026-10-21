@@ -21,6 +21,8 @@
 [ext_resource type="Script" uid="uid://haphx3t6svg8" path="res://addons/ouranos_foundry/Features/ProceduralGeneration/Nodes/Diagnostics/ChunkGridDrawer.cs" id="17_cgd"]
 [ext_resource type="Script" uid="uid://d06feiwn4udd6" path="res://addons/ouranos_foundry/Features/ProceduralGeneration/Nodes/Diagnostics/CenterMarkerDrawer.cs" id="18_cmd"]
 [ext_resource type="Script" uid="uid://bjyqmg5xcohn2" path="res://addons/ouranos_foundry/Features/ProceduralGeneration/Nodes/Diagnostics/VoronoiEdgeDrawer.cs" id="19_ved"]
+[ext_resource type="Script" uid="uid://djh4bgcvap6bn" path="res://Demos/ProceduralGeneration/Scripts/ChunkStreamingView.cs" id="22_n4fnk"]
+[ext_resource type="Script" uid="uid://d1x75q51pt4qu" path="res://Demos/ProceduralGeneration/Scripts/DemoPlayer.cs" id="23_m15lp"]
 
 [sub_resource type="Resource" id="Resource_ivusq"]
 script = ExtResource("2_7g5bu")
@@ -42,8 +44,9 @@ BlueprintPipeline = NodePath("BlueprintPipeline")
 GenerationPipeline = NodePath("GenerationPipeline")
 metadata/_custom_type_script = "uid://b8v7sh6mmbp6l"
 
-[node name="ChunkManager" type="Node" parent="WorldGenerator" unique_id=265713237]
+[node name="ChunkManager" type="Node" parent="WorldGenerator" unique_id=265713237 node_paths=PackedStringArray("Player")]
 script = ExtResource("2_7scug")
+Player = NodePath("../../DemoPlayer")
 metadata/_custom_type_script = "uid://cgkxq2gfqxxa0"
 
 [node name="BlueprintPipeline" type="Node" parent="WorldGenerator" unique_id=737191507]
@@ -109,3 +112,23 @@ script = ExtResource("18_cmd")
 [node name="VoronoiEdgeDrawer" type="Node" parent="BlueprintDebugOverlay" unique_id=572872471]
 script = ExtResource("19_ved")
 Visible = false
+
+[node name="ChunkStreamingView" type="Node2D" parent="." unique_id=460094591 node_paths=PackedStringArray("Generator")]
+script = ExtResource("22_n4fnk")
+Generator = NodePath("../WorldGenerator")
+
+[node name="DemoPlayer" type="Node2D" parent="." unique_id=487571987]
+position = Vector2(500, 500)
+script = ExtResource("23_m15lp")
+
+[node name="Camera2D" type="Camera2D" parent="DemoPlayer" unique_id=1385125595]
+zoom = Vector2(4, 4)
+
+[node name="Hud" type="CanvasLayer" parent="." unique_id=299388919]
+
+[node name="Hint" type="Label" parent="Hud" unique_id=838934681]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 16.0
+offset_bottom = 16.0
+text = "Arrow keys to move"
