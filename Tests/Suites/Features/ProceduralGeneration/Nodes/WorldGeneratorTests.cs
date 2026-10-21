@@ -93,18 +93,6 @@ public class WorldGeneratorTests
         return pipeline;
     }
 
-    /// <summary>Awaits process frames until the condition holds, failing after a timeout.</summary>
-    private static async Task WaitUntil(Func<bool> condition)
-    {
-        var tree = (SceneTree)Engine.GetMainLoop();
-        var deadline = DateTime.UtcNow + WaitTimeout;
-        while (!condition())
-        {
-            DateTime.UtcNow.ShouldBeLessThan(deadline, "Timed out waiting for the condition.");
-            await tree.ToSignal(tree, SceneTree.SignalName.ProcessFrame);
-        }
-    }
-
     [TestCase]
     public async Task Ready_WithChunkSizeTiles32_UsesItEverywhere()
     {
@@ -133,7 +121,7 @@ public class WorldGeneratorTests
 
         manager._Process(0);
         // Not ToSignal: its continuation runs inside the emit, and freeing the emitter there errors.
-        await WaitUntil(() => generator.IsChunkReady(new Vector2I(-1, 2)));
+        await TestWait.Until(() => generator.IsChunkReady(new Vector2I(-1, 2)));
 
         // Assert
         generator.WorldState.ChunkSizeTiles.ShouldBe(32);
@@ -186,7 +174,7 @@ public class WorldGeneratorTests
         // With one job slot, chunk (1, 0) only starts once the unloaded job has finished.
         manager.Player!.Position = new Vector2(16, 0);
         manager._Process(0);
-        await WaitUntil(() => generated.Count > 0);
+        await TestWait.Until(() => generated.Count > 0);
 
         // Assert
         generated.ShouldBe(new List<Vector2I> { new(1, 0) });
@@ -224,7 +212,7 @@ public class WorldGeneratorTests
         gate.Entered.Wait(WaitTimeout).ShouldBeTrue();
         var enteredWhileGated = gate.EnteredCount;
         gate.Release.Set();
-        await WaitUntil(() => generated.Count == 9);
+        await TestWait.Until(() => generated.Count == 9);
 
         // Assert
         enteredWhileGated.ShouldBe(1);
@@ -263,14 +251,14 @@ public class WorldGeneratorTests
         var world = generator.WorldState;
         var counts = (world.Regions.Count, world.Cities.Count, world.Roads.Count);
         manager._Process(0);
-        await WaitUntil(() => generated.Count == 1);
+        await TestWait.Until(() => generated.Count == 1);
 
         // Act
         generator.ResetBlueprint();
         var resetState = (generator.IsBlueprintGenerated, world.Cities.Count);
         var regenerated = generator.GenerateBlueprint();
         manager._Process(0);
-        await WaitUntil(() => generated.Count == 2);
+        await TestWait.Until(() => generated.Count == 2);
 
         // Assert
         counts.Item2.ShouldBeGreaterThan(0);

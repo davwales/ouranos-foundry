@@ -73,7 +73,7 @@ public class BlueprintDeterminismTests
     }
 
     // Records holding List<T> compare lists by reference, so flatten everything to strings.
-    private static List<string> Describe(WorldState world)
+    internal static List<string> Describe(WorldState world)
     {
         var lines = new List<string>();
 
