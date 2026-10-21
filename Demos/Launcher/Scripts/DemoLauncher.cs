@@ -15,13 +15,13 @@ public partial class DemoLauncher : Control
     ];
 
     [Export]
-    private VBoxContainer? _buttonList;
+    public VBoxContainer? ButtonList { get; private set; }
 
     public override void _Ready()
     {
-        if (_buttonList is null)
+        if (ButtonList is null)
         {
-            GD.PushError("DemoLauncher: _buttonList is not assigned.");
+            GD.PushError("DemoLauncher: ButtonList is not assigned.");
             return;
         }
 
@@ -32,7 +32,7 @@ public partial class DemoLauncher : Control
                 BaseButton.SignalName.Pressed,
                 Callable.From(() => GetTree().ChangeSceneToFile(scenePath))
             );
-            _buttonList.AddChild(button);
+            ButtonList.AddChild(button);
         }
     }
 }

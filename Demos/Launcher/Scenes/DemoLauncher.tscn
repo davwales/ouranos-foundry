@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://cltjh3uybvadg" path="res://Demos/Launcher/Scripts/DemoLauncher.cs" id="1_pdxyi"]
 
-[node name="DemoLauncher" type="Control" unique_id=704926908 node_paths=PackedStringArray("_buttonList")]
+[node name="DemoLauncher" type="Control" unique_id=704926908 node_paths=PackedStringArray("ButtonList")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -10,7 +10,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_pdxyi")
-_buttonList = NodePath("CenterContainer/ButtonList")
+ButtonList = NodePath("CenterContainer/ButtonList")
 
 [node name="CenterContainer" type="CenterContainer" parent="." unique_id=463261995]
 layout_mode = 0
