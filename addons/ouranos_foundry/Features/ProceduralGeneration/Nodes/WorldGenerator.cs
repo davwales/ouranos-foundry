@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Godot;
 using Ouranos.Foundry.Core.Types;
@@ -39,6 +40,12 @@ public partial class WorldGenerator : Node
     [Export]
     public GenerationPipeline? GenerationPipeline { get; private set; }
 
+    /// <summary>
+    /// How many chunks may run their generation passes at once. Further requests wait.
+    /// </summary>
+    [Export]
+    public int MaxConcurrentChunkJobs { get; private set; } = 4;
+
     [Export]
     public LogLevel LogLevel { get; private set; } = LogLevel.Basic;
 
@@ -58,6 +65,9 @@ public partial class WorldGenerator : Node
     public delegate void BlueprintGeneratedEventHandler();
 
     [Signal]
+    public delegate void BlueprintFailedEventHandler(string passName, string error);
+
+    [Signal]
     public delegate void ChunkGeneratedEventHandler(Vector2I coords, ChunkData chunk);
 
     [Signal]
@@ -67,7 +77,8 @@ public partial class WorldGenerator : Node
     public delegate void GenerationFailedEventHandler(Vector2I coords, string error);
 
     private readonly Dictionary<Vector2I, ChunkData> _generatedChunks = [];
-    private readonly HashSet<Vector2I> _inFlightChunks = [];
+    private readonly Dictionary<Vector2I, CancellationTokenSource> _inFlightChunks = [];
+    private SemaphoreSlim _chunkJobSlots = new(1);
     private List<GenerationPass> _cachedGenerationPasses = [];
 
     // Defaults when no ChunkConfig is assigned.
@@ -75,6 +86,7 @@ public partial class WorldGenerator : Node
 
     public override void _Ready()
     {
+        _chunkJobSlots = new SemaphoreSlim(Math.Max(1, MaxConcurrentChunkJobs));
         CacheGenerationPasses();
         GenerateBlueprint();
 
@@ -97,11 +109,15 @@ public partial class WorldGenerator : Node
         }
     }
 
-    public void GenerateBlueprint()
+    /// <summary>
+    /// Runs the blueprint passes. On failure the partial blueprint is cleared,
+    /// <c>BlueprintFailed</c> is emitted and false is returned.
+    /// </summary>
+    public bool GenerateBlueprint()
     {
         if (WorldState.IsBlueprintGenerated)
         {
-            return;
+            return true;
         }
 
         Log("Generating world blueprint...", LogLevel.Basic);
@@ -109,20 +125,62 @@ public partial class WorldGenerator : Node
         ValidateConfig();
 
         WorldState.ChunkSizeTiles = ResolvedChunkConfig.ChunkSizeTiles;
-        BlueprintPipeline?.RunPasses(WorldState);
+
+        if (BlueprintPipeline is not null)
+        {
+            var failedPass = string.Empty;
+            var failure = string.Empty;
+            void OnPassFailed(string passName, string error)
+            {
+                failedPass = passName;
+                failure = error;
+            }
+
+            BlueprintPipeline.PassFailed += OnPassFailed;
+            var succeeded = BlueprintPipeline.RunPasses(WorldState);
+            BlueprintPipeline.PassFailed -= OnPassFailed;
+
+            if (!succeeded)
+            {
+                WorldState.Clear();
+                GD.PushError($"WorldGenerator: blueprint pass {failedPass} failed: {failure}");
+                EmitSignal(SignalName.BlueprintFailed, failedPass, failure);
+                return false;
+            }
+        }
+
         WorldState.IsBlueprintGenerated = true;
+        ChunkManager?.ResetTracking();
 
         Log("World blueprint complete.", LogLevel.Basic);
         EmitSignal(SignalName.BlueprintGenerated);
+        return true;
     }
 
+    /// <summary>
+    /// Cancels in-flight chunk jobs, unloads every generated chunk (emitting
+    /// <c>ChunkUnloaded</c>) and clears the blueprint so it can be generated again.
+    /// </summary>
     public void ResetBlueprint()
     {
-        WorldState.IsBlueprintGenerated = false;
+        foreach (var coords in _inFlightChunks.Keys.Concat(_generatedChunks.Keys).ToList())
+        {
+            UnloadChunk(coords);
+        }
+
+        WorldState.Clear();
     }
 
+    /// <summary>
+    /// Unloads a generated chunk, or cancels its generation if it is still in flight.
+    /// </summary>
     public void UnloadChunk(Vector2I coords)
     {
+        if (_inFlightChunks.Remove(coords, out var job))
+        {
+            job.Cancel();
+        }
+
         if (_generatedChunks.Remove(coords))
         {
             Log($"Chunk {coords} unloaded.", LogLevel.Verbose);
@@ -132,53 +190,93 @@ public partial class WorldGenerator : Node
 
     private async void OnChunkGenerationRequested(Vector2I chunkCoords)
     {
-        if (_generatedChunks.ContainsKey(chunkCoords))
+        if (
+            !WorldState.IsBlueprintGenerated
+            || _generatedChunks.ContainsKey(chunkCoords)
+            || _inFlightChunks.ContainsKey(chunkCoords)
+        )
         {
             return;
         }
 
-        if (!_inFlightChunks.Add(chunkCoords))
-        {
-            return;
-        }
+        var job = new CancellationTokenSource();
+        _inFlightChunks[chunkCoords] = job;
 
         try
         {
-            await GenerateChunkAsync(chunkCoords);
+            var chunk = await GenerateChunkAsync(chunkCoords, job.Token);
+            if (IsCurrentJob(chunkCoords, job))
+            {
+                _generatedChunks[chunkCoords] = chunk;
+                Log(
+                    $"Chunk {chunkCoords} generated. Type: {chunk.Type}, "
+                        + $"Cities: {chunk.OverlappingCityIds.Count}, Roads: {chunk.OverlappingRoadIds.Count}",
+                    LogLevel.Verbose
+                );
+                EmitSignal(SignalName.ChunkGenerated, chunkCoords, chunk);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Unloaded or reset while generating: nothing to report.
         }
         catch (Exception e)
         {
-            Log($"Chunk generation failed for {chunkCoords}: {e}", LogLevel.Basic);
-            EmitSignal(SignalName.GenerationFailed, chunkCoords, e.Message);
+            if (IsCurrentJob(chunkCoords, job))
+            {
+                Log($"Chunk generation failed for {chunkCoords}: {e}", LogLevel.Basic);
+                EmitSignal(SignalName.GenerationFailed, chunkCoords, e.Message);
+            }
         }
         finally
         {
-            _inFlightChunks.Remove(chunkCoords);
+            if (IsCurrentJob(chunkCoords, job))
+            {
+                _inFlightChunks.Remove(chunkCoords);
+            }
+
+            job.Dispose();
         }
     }
 
-    private async Task GenerateChunkAsync(Vector2I chunkCoords)
+    // False once the chunk was unloaded (or unloaded and re-requested) mid-generation.
+    private bool IsCurrentJob(Vector2I chunkCoords, CancellationTokenSource job)
+    {
+        return _inFlightChunks.GetValueOrDefault(chunkCoords) == job
+            && !job.IsCancellationRequested;
+    }
+
+    private async Task<ChunkData> GenerateChunkAsync(
+        Vector2I chunkCoords,
+        CancellationToken cancellationToken
+    )
     {
         var chunk = PrepareChunkData(chunkCoords);
+        var jobSlots = _chunkJobSlots;
 
-        await Task.Run(() =>
+        await jobSlots.WaitAsync(cancellationToken);
+        try
         {
-            foreach (var pass in _cachedGenerationPasses)
-            {
-                pass.RunPass(WorldState, chunk);
-            }
+            await Task.Run(
+                () =>
+                {
+                    foreach (var pass in _cachedGenerationPasses)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        pass.RunPass(WorldState, chunk);
+                    }
 
-            chunk.IsGenerated = true;
-        });
+                    chunk.IsGenerated = true;
+                },
+                cancellationToken
+            );
+        }
+        finally
+        {
+            jobSlots.Release();
+        }
 
-        _generatedChunks[chunkCoords] = chunk;
-
-        Log(
-            $"Chunk {chunkCoords} generated. Type: {chunk.Type}, "
-                + $"Cities: {chunk.OverlappingCityIds.Count}, Roads: {chunk.OverlappingRoadIds.Count}",
-            LogLevel.Verbose
-        );
-        EmitSignal(SignalName.ChunkGenerated, chunkCoords, chunk);
+        return chunk;
     }
 
     /// Must be called on the main thread since it reads from WorldState.

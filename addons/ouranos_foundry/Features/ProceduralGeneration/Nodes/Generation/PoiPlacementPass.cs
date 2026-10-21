@@ -1,5 +1,6 @@
 #nullable enable
 
+using System;
 using Godot;
 using Ouranos.Foundry.Features.ProceduralGeneration.Resources;
 using Ouranos.Foundry.Features.ProceduralGeneration.Types;
@@ -21,7 +22,7 @@ public partial class PoiPlacementPass : GenerationPass
     {
         if (worldBlueprint is not WorldState worldState)
         {
-            return;
+            throw new InvalidOperationException($"{GetType().Name} requires a WorldState.");
         }
 
         if (!chunk.HasAnyCity)
@@ -31,10 +32,9 @@ public partial class PoiPlacementPass : GenerationPass
 
         if (ProcGenConfig is null)
         {
-            GD.PushError(
-                $"{Name}: ProceduralGenerationConfig is not assigned. Add it in the inspector."
+            throw new InvalidOperationException(
+                $"{GetType().Name}: ProceduralGenerationConfig is not assigned. Add it in the inspector."
             );
-            return;
         }
         var config = ProcGenConfig;
         var terrain = config.TerrainConfig ?? new TerrainConfig();

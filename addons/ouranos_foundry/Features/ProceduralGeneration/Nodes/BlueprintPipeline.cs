@@ -68,9 +68,18 @@ public partial class BlueprintPipeline : Node
         }
     }
 
-    public void RunPasses(WorldBlueprint worldBlueprint)
+    /// <summary>
+    /// Runs the passes in child order. Stops at the first failure (a dependency
+    /// violation or a pass that throws), emits <c>PassFailed</c> and returns false.
+    /// </summary>
+    public bool RunPasses(WorldBlueprint worldBlueprint)
     {
-        ValidateDependencies();
+        var violations = RequiresPassesValidator.FindViolations(_passes.Select(p => p.GetType()));
+        if (violations.Count > 0)
+        {
+            EmitSignal(SignalName.PassFailed, nameof(BlueprintPipeline), violations[0]);
+            return false;
+        }
 
         foreach (var pass in _passes)
         {
@@ -84,15 +93,18 @@ public partial class BlueprintPipeline : Node
             catch (Exception e)
             {
                 EmitSignal(SignalName.PassFailed, passName, e.Message);
+                return false;
             }
         }
+
+        return true;
     }
 
     /// <summary>
     /// Convenience overload that accepts WorldState directly.
     /// </summary>
-    public void RunPasses(WorldState worldState)
+    public bool RunPasses(WorldState worldState)
     {
-        RunPasses((WorldBlueprint)worldState);
+        return RunPasses((WorldBlueprint)worldState);
     }
 }
