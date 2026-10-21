@@ -21,22 +21,11 @@ namespace Ouranos.Foundry.Features.ProceduralGeneration.Nodes.Blueprints;
 [GlobalClass]
 public partial class RoadBlueprintPass : BlueprintPass
 {
-    /// <summary>Distinct RNG salt so this pass's stream is independent of other passes.</summary>
-    private const ulong RngSalt = 3000;
+    protected override ulong RngSalt => 3000;
 
-    [Export]
-    public ProceduralGenerationConfig? ProcGenConfig { get; private set; }
-
-    [Export]
-    public string DefaultRoadTypeId { get; private set; } = "dirt";
-
-    public override void RunPass(WorldBlueprint worldBlueprint)
+    public override void RunPass(GenerationContext ctx)
     {
-        if (worldBlueprint is not WorldState worldState)
-        {
-            throw new InvalidOperationException($"{GetType().Name} requires a WorldState.");
-        }
-
+        var (config, worldState, rng) = (ctx.Config, ctx.World, ctx.Rng);
         if (worldState.Cities.Count == 0)
         {
             throw new InvalidOperationException(
@@ -44,28 +33,17 @@ public partial class RoadBlueprintPass : BlueprintPass
             );
         }
 
-        if (ProcGenConfig is null)
-        {
-            throw new InvalidOperationException(
-                $"{GetType().Name}: ProceduralGenerationConfig is not assigned. Add it in the inspector."
-            );
-        }
-
-        var config = ProcGenConfig;
         var genConfig = config.GenerationConfig ?? new GenerationConfig();
-        var rng = new SeededRng(worldState.Seed, RngSalt);
-        var roadCount = 0;
-
-        roadCount += ConnectIntraRegionRoads(worldState, rng, config, genConfig);
-        roadCount += ConnectInterRegionRoads(worldState, rng, config);
+        var roadCount = ConnectIntraRegionRoads(worldState, rng, config, genConfig);
+        roadCount += ConnectInterRegionRoads(worldState, rng, config, genConfig);
 
         worldState.RebuildLookups();
         worldState.RebuildSpatialIndex();
 
-        GD.Print($"Placed {roadCount} roads connecting {worldState.Cities.Count} cities.");
+        ctx.Log($"Placed {roadCount} roads connecting {worldState.Cities.Count} cities.");
     }
 
-    private int ConnectIntraRegionRoads(
+    private static int ConnectIntraRegionRoads(
         WorldState worldState,
         SeededRng rng,
         ProceduralGenerationConfig config,
@@ -76,17 +54,18 @@ public partial class RoadBlueprintPass : BlueprintPass
 
         foreach (var region in worldState.Regions)
         {
-            var regionCities = region
-                .CityIds.Select(id => worldState.CityById.GetValueOrDefault(id))
-                .Where(c => c is not null)
-                .ToList();
-
+            var regionCities = CitiesOf(region, worldState);
             if (regionCities.Count < 2)
             {
                 continue;
             }
 
-            var mstRoads = BuildMinimumSpanningTree(regionCities, rng, genConfig);
+            var mstRoads = BuildMinimumSpanningTree(
+                regionCities,
+                rng,
+                genConfig,
+                config.DefaultRoadTypeId
+            );
             foreach (var road in mstRoads)
             {
                 worldState.Roads.Add(road);
@@ -109,14 +88,15 @@ public partial class RoadBlueprintPass : BlueprintPass
         return roadCount;
     }
 
-    private int ConnectInterRegionRoads(
+    private static int ConnectInterRegionRoads(
         WorldState worldState,
         SeededRng rng,
-        ProceduralGenerationConfig config
+        ProceduralGenerationConfig config,
+        GenerationConfig genConfig
     )
     {
         var roadCount = 0;
-        var hubRoads = ConnectRegionalHubs(worldState, rng, config);
+        var hubRoads = ConnectRegionalHubs(worldState, rng, config, genConfig);
         foreach (var road in hubRoads)
         {
             worldState.Roads.Add(road);
@@ -126,46 +106,29 @@ public partial class RoadBlueprintPass : BlueprintPass
         return roadCount;
     }
 
-    private List<Road> BuildMinimumSpanningTree(
-        List<City?> cities,
+    private static List<City> CitiesOf(Region region, WorldState world)
+    {
+        return
+        [
+            .. region.CityIds.Select(id => world.CityById.GetValueOrDefault(id)).OfType<City>(),
+        ];
+    }
+
+    private static List<Road> BuildMinimumSpanningTree(
+        List<City> cities,
         SeededRng rng,
-        GenerationConfig config
+        GenerationConfig config,
+        string roadTypeId
     )
     {
         var roads = new List<Road>();
-        if (cities.Count < 2)
-        {
-            return roads;
-        }
-
-        var edges = new List<(float Distance, int From, int To)>();
-        for (var i = 0; i < cities.Count; i++)
-        {
-            for (var j = i + 1; j < cities.Count; j++)
-            {
-                if (cities[i] is null || cities[j] is null)
-                {
-                    continue;
-                }
-
-                var dist = cities[i]!.Position.DistanceTo(cities[j]!.Position);
-                edges.Add((dist, i, j));
-            }
-        }
-
+        var edges = BuildEdges(cities);
         edges.Sort((a, b) => a.Distance.CompareTo(b.Distance));
 
         RunKruskalMst(
             edges,
             cities.Count,
-            (from, to) =>
-            {
-                var cityFrom = cities[from]!;
-                var cityTo = cities[to]!;
-
-                var road = CreateRoad(rng, cityFrom, cityTo, config, DefaultRoadTypeId);
-                roads.Add(road);
-            }
+            (from, to) => roads.Add(CreateRoad(rng, cities[from], cities[to], config, roadTypeId))
         );
 
         return roads;
@@ -217,7 +180,8 @@ public partial class RoadBlueprintPass : BlueprintPass
     private static List<Road> ConnectRegionalHubs(
         WorldState world,
         SeededRng rng,
-        ProceduralGenerationConfig config
+        ProceduralGenerationConfig config,
+        GenerationConfig genConfig
     )
     {
         var roads = new List<Road>();
@@ -230,7 +194,7 @@ public partial class RoadBlueprintPass : BlueprintPass
             return roads;
         }
 
-        var edges = BuildHubEdges(hubs);
+        var edges = BuildEdges(hubs);
 
         edges.Sort((a, b) => a.Distance.CompareTo(b.Distance));
 
@@ -239,13 +203,7 @@ public partial class RoadBlueprintPass : BlueprintPass
             hubs.Count,
             (from, to) =>
             {
-                var road = CreateRoad(
-                    rng,
-                    hubs[from],
-                    hubs[to],
-                    config.GenerationConfig ?? new GenerationConfig(),
-                    hubRoadDef.Id
-                );
+                var road = CreateRoad(rng, hubs[from], hubs[to], genConfig, hubRoadDef.Id);
                 roads.Add(road);
 
                 if (world.CityById.TryGetValue(hubs[from].Id, out var sourceCity))
@@ -268,34 +226,27 @@ public partial class RoadBlueprintPass : BlueprintPass
         var hubs = new List<City>();
         foreach (var region in world.Regions)
         {
-            var regionCities = region
-                .CityIds.Select(id => world.CityById.GetValueOrDefault(id))
-                .Where(c => c is not null)
-                .ToList();
-
+            var regionCities = CitiesOf(region, world);
             if (regionCities.Count == 0)
             {
                 continue;
             }
 
-            var hub = regionCities
-                .OrderByDescending(c => c!.Radius)
-                .ThenBy(_ => rng.Next())
-                .First();
-            hubs.Add(hub!);
+            var hub = regionCities.OrderByDescending(c => c.Radius).ThenBy(_ => rng.Next()).First();
+            hubs.Add(hub);
         }
 
         return hubs;
     }
 
-    private static List<(float Distance, int From, int To)> BuildHubEdges(List<City> hubs)
+    private static List<(float Distance, int From, int To)> BuildEdges(List<City> cities)
     {
         var edges = new List<(float Distance, int From, int To)>();
-        for (var i = 0; i < hubs.Count; i++)
+        for (var i = 0; i < cities.Count; i++)
         {
-            for (var j = i + 1; j < hubs.Count; j++)
+            for (var j = i + 1; j < cities.Count; j++)
             {
-                var dist = hubs[i].Position.DistanceTo(hubs[j].Position);
+                var dist = cities[i].Position.DistanceTo(cities[j].Position);
                 edges.Add((dist, i, j));
             }
         }

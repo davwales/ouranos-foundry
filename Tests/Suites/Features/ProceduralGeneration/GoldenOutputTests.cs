@@ -141,32 +141,15 @@ public class GoldenOutputTests
         var manager = new ChunkManager().With(ChunkManager.PropertyName.Player, player);
 
         var blueprintPipeline = new BlueprintPipeline();
-        blueprintPipeline.AddPass(
-            new RegionBlueprintPass().With(RegionBlueprintPass.PropertyName.ProcGenConfig, config)
-        );
-        blueprintPipeline.AddPass(
-            new CityBlueprintPass().With(CityBlueprintPass.PropertyName.ProcGenConfig, config)
-        );
-        blueprintPipeline.AddPass(
-            new RoadBlueprintPass().With(RoadBlueprintPass.PropertyName.ProcGenConfig, config)
-        );
+        blueprintPipeline.AddPass<RegionBlueprintPass>();
+        blueprintPipeline.AddPass<CityBlueprintPass>();
+        blueprintPipeline.AddPass<RoadBlueprintPass>();
 
         var generationPipeline = new GenerationPipeline();
-        generationPipeline.AddChild(
-            new TerrainGenerationPass().With(
-                TerrainGenerationPass.PropertyName.ProcGenConfig,
-                config
-            )
-        );
-        generationPipeline.AddChild(
-            new CityGenerationPass().With(CityGenerationPass.PropertyName.ProcGenConfig, config)
-        );
-        generationPipeline.AddChild(
-            new RoadGenerationPass().With(RoadGenerationPass.PropertyName.ProcGenConfig, config)
-        );
-        generationPipeline.AddChild(
-            new PoiPlacementPass().With(PoiPlacementPass.PropertyName.ProcGenConfig, config)
-        );
+        generationPipeline.AddChild(new TerrainGenerationPass());
+        generationPipeline.AddChild(new CityGenerationPass());
+        generationPipeline.AddChild(new RoadGenerationPass());
+        generationPipeline.AddChild(new PoiPlacementPass());
         // The tree isn't running, so cache the passes the way _Ready would.
         generationPipeline._Ready();
 

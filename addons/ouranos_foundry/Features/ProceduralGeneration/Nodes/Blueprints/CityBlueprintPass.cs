@@ -20,22 +20,11 @@ namespace Ouranos.Foundry.Features.ProceduralGeneration.Nodes.Blueprints;
 [GlobalClass]
 public partial class CityBlueprintPass : BlueprintPass
 {
-    /// <summary>Distinct RNG salt so this pass's stream is independent of other passes.</summary>
-    private const ulong RngSalt = 2000;
+    protected override ulong RngSalt => 2000;
 
-    [Export]
-    public ProceduralGenerationConfig? ProcGenConfig { get; private set; }
-
-    [Export]
-    public NamingConfig? NamingConfig { get; private set; }
-
-    public override void RunPass(WorldBlueprint worldBlueprint)
+    public override void RunPass(GenerationContext ctx)
     {
-        if (worldBlueprint is not WorldState worldState)
-        {
-            throw new InvalidOperationException($"{GetType().Name} requires a WorldState.");
-        }
-
+        var (config, worldState, rng) = (ctx.Config, ctx.World, ctx.Rng);
         if (worldState.Regions.Count == 0)
         {
             throw new InvalidOperationException(
@@ -43,23 +32,8 @@ public partial class CityBlueprintPass : BlueprintPass
             );
         }
 
-        if (ProcGenConfig is null)
-        {
-            throw new InvalidOperationException(
-                $"{GetType().Name}: ProceduralGenerationConfig is not assigned. Add it in the inspector."
-            );
-        }
-        var config = ProcGenConfig;
-
-        var naming = NamingConfig ?? config.NamingConfig;
-        if (naming is null)
-        {
-            throw new InvalidOperationException(
-                $"{GetType().Name}: No NamingConfig available. Assign it in the inspector or add one to ProceduralGenerationConfig."
-            );
-        }
+        var naming = config.NamingConfig ?? new NamingConfig();
         var genConfig = config.GenerationConfig ?? new GenerationConfig();
-        var rng = new SeededRng(worldState.Seed, RngSalt);
         var cityCount = 0;
 
         foreach (var region in worldState.Regions)
@@ -84,7 +58,7 @@ public partial class CityBlueprintPass : BlueprintPass
         }
 
         worldState.RebuildLookups();
-        GD.Print($"Placed {cityCount} cities across {worldState.Regions.Count} regions.");
+        ctx.Log($"Placed {cityCount} cities across {worldState.Regions.Count} regions.");
     }
 
     private static int GetCityCountForRegion(

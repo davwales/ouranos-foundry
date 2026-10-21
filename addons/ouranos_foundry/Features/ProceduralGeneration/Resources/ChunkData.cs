@@ -24,15 +24,8 @@ public partial class ChunkData : Resource
     /// </summary>
     public int[] TerrainData { get; set; } = [];
 
-    /// <summary>
-    /// Whether this chunk has been fully generated and applied to the scene.
-    /// </summary>
-    public bool IsGenerated { get; set; }
-
     public Vector2I Coordinates => Descriptor.Coordinates;
     public ChunkType Type => Descriptor.Type;
-    public HashSet<Guid> OverlappingCityIds => [.. Descriptor.OverlappingCityIds];
-    public HashSet<Guid> OverlappingRoadIds => [.. Descriptor.OverlappingRoadIds];
 
     public int GetTile(int localX, int localY)
     {
@@ -42,18 +35,5 @@ public partial class ChunkData : Resource
     public void SetTile(int localX, int localY, int value)
     {
         TerrainData[localY * Descriptor.ChunkSizeTiles + localX] = value;
-    }
-
-    /// <summary>
-    /// Creates a copy of this ChunkData. The Descriptor (immutable record) is shared;
-    /// TerrainData is deep-copied if present. IsGenerated is always reset to false.
-    /// </summary>
-    public virtual ChunkData Copy()
-    {
-        return new ChunkData
-        {
-            Descriptor = Descriptor,
-            TerrainData = TerrainData.Length > 0 ? (int[])TerrainData.Clone() : [],
-        };
     }
 }

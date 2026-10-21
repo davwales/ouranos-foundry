@@ -1,12 +1,25 @@
 #nullable enable
 
 using Godot;
-using Ouranos.Foundry.Features.ProceduralGeneration.Resources;
+using Ouranos.Foundry.Core.Utils;
+using Ouranos.Foundry.Features.ProceduralGeneration.Types;
 
 namespace Ouranos.Foundry.Features.ProceduralGeneration.Nodes;
 
+/// <summary>
+/// A step of the world blueprint. Runs once, on the main thread, in
+/// <c>BlueprintPipeline</c> child order.
+/// </summary>
 [GlobalClass]
 public abstract partial class BlueprintPass : Node
 {
-    public abstract void RunPass(WorldBlueprint worldBlueprint);
+    /// <summary>
+    /// Salts <c>GenerationContext.Rng</c>. Defaults to a stable hash of the full type
+    /// name, so renaming or moving the pass changes its stream.
+    /// </summary>
+    protected virtual ulong RngSalt => StableId.Hash(GetType().FullName ?? GetType().Name);
+
+    internal ulong Salt => RngSalt;
+
+    public abstract void RunPass(GenerationContext ctx);
 }

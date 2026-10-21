@@ -5,6 +5,7 @@ using GdUnit4;
 using Godot;
 using Ouranos.Foundry.Features.ProceduralGeneration.Nodes;
 using Ouranos.Foundry.Features.ProceduralGeneration.Nodes.Blueprints;
+using Ouranos.Foundry.Features.ProceduralGeneration.Nodes.Generation;
 using Ouranos.Foundry.Features.ProceduralGeneration.Resources;
 using Ouranos.Foundry.Features.ProceduralGeneration.Types;
 using Shouldly;
@@ -78,18 +79,12 @@ public class WorldGeneratorTests
         return pipeline;
     }
 
-    private static BlueprintPipeline MakeRealBlueprintPipeline(ProceduralGenerationConfig config)
+    private static BlueprintPipeline MakeRealBlueprintPipeline()
     {
         var pipeline = new BlueprintPipeline();
-        pipeline.AddPass(
-            new RegionBlueprintPass().With(RegionBlueprintPass.PropertyName.ProcGenConfig, config)
-        );
-        pipeline.AddPass(
-            new CityBlueprintPass().With(CityBlueprintPass.PropertyName.ProcGenConfig, config)
-        );
-        pipeline.AddPass(
-            new RoadBlueprintPass().With(RoadBlueprintPass.PropertyName.ProcGenConfig, config)
-        );
+        pipeline.AddPass<RegionBlueprintPass>();
+        pipeline.AddPass<CityBlueprintPass>();
+        pipeline.AddPass<RoadBlueprintPass>();
         return pipeline;
     }
 
@@ -231,7 +226,7 @@ public class WorldGeneratorTests
         var (root, generator, manager) = CreateGenerator(
             chunkConfig,
             Vector2.Zero,
-            blueprintPipeline: MakeRealBlueprintPipeline(MakeConfig(chunkConfig))
+            blueprintPipeline: MakeRealBlueprintPipeline()
         );
         var generated = new List<Vector2I>();
         var unloaded = new List<Vector2I>();
@@ -321,14 +316,9 @@ public class WorldGeneratorTests
     public void GenerateBlueprint_WhenPassesAreMisordered_ReturnsFalseWithoutThrowing()
     {
         // Arrange
-        var config = MakeConfig(new ChunkConfig());
         var pipeline = new BlueprintPipeline();
-        pipeline.AddPass(
-            new CityBlueprintPass().With(CityBlueprintPass.PropertyName.ProcGenConfig, config)
-        );
-        pipeline.AddPass(
-            new RegionBlueprintPass().With(RegionBlueprintPass.PropertyName.ProcGenConfig, config)
-        );
+        pipeline.AddPass<CityBlueprintPass>();
+        pipeline.AddPass<RegionBlueprintPass>();
         var (root, generator, _) = CreateGenerator(
             new ChunkConfig(),
             Vector2.Zero,
@@ -361,6 +351,74 @@ public class WorldGeneratorTests
 
         pipeline.PassFailed -= OnPassFailed;
         generator.BlueprintFailed -= OnBlueprintFailed;
+        root.Free();
+    }
+
+    [TestCase]
+    public void GenerateBlueprint_WhenConfigIsMissing_ReportsFailure()
+    {
+        // Arrange
+        var generator = new WorldGenerator();
+        var failures = new List<string>();
+        void OnFailed(string passName, string error)
+        {
+            failures.Add(passName);
+        }
+
+        generator.BlueprintFailed += OnFailed;
+
+        // Act
+        var result = generator.GenerateBlueprint();
+
+        // Assert
+        result.ShouldBeFalse();
+        failures.ShouldBe([nameof(WorldGenerator)]);
+        generator.IsBlueprintGenerated.ShouldBeFalse();
+
+        generator.BlueprintFailed -= OnFailed;
+        generator.Free();
+    }
+
+    [TestCase]
+    public async Task ChunkGeneration_WhenAPassMissesItsDependency_FailsWithoutGenerating()
+    {
+        // Arrange
+        var first = new GatedTestPass();
+        first.Release.Set();
+        var (root, generator, manager) = CreateGenerator(
+            new ChunkConfig { ViewDistance = 0 },
+            Vector2.Zero,
+            generationPipeline: MakeGenerationPipeline(first, new CityGenerationPass())
+        );
+        var generated = new List<Vector2I>();
+        var failures = new List<string>();
+        void OnGenerated(Vector2I coords, ChunkData chunk)
+        {
+            generated.Add(coords);
+        }
+
+        void OnFailed(Vector2I coords, string error)
+        {
+            failures.Add(error);
+        }
+
+        generator.ChunkGenerated += OnGenerated;
+        generator.GenerationFailed += OnFailed;
+        generator._Ready();
+
+        // Act
+        manager._Process(0);
+        await TestWait.Until(() => failures.Count > 0);
+
+        // Assert
+        failures.Count.ShouldBe(1);
+        failures[0].ShouldContain("CityGenerationPass requires TerrainGenerationPass");
+        generated.ShouldBeEmpty();
+        generator.IsChunkReady(Vector2I.Zero).ShouldBeFalse();
+        first.EnteredCount.ShouldBe(0);
+
+        generator.ChunkGenerated -= OnGenerated;
+        generator.GenerationFailed -= OnFailed;
         root.Free();
     }
 }

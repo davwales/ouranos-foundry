@@ -1,7 +1,7 @@
 #nullable enable
 
-using System;
 using Godot;
+using Ouranos.Foundry.Core.Attributes;
 using Ouranos.Foundry.Core.Utils;
 using Ouranos.Foundry.Features.ProceduralGeneration.Resources;
 using Ouranos.Foundry.Features.ProceduralGeneration.Types;
@@ -12,41 +12,20 @@ namespace Ouranos.Foundry.Features.ProceduralGeneration.Nodes.Generation;
 /// Generates road tiles within chunks that overlap with road path points.
 /// Draws road paths between waypoints using Bresenham-style line traversal.
 /// </summary>
+[RequiresPasses(typeof(TerrainGenerationPass))]
 [GlobalClass]
 public partial class RoadGenerationPass : GenerationPass
 {
-    [Export]
-    public ProceduralGenerationConfig? ProcGenConfig { get; private set; }
-
-    public override void RunPass(WorldBlueprint worldBlueprint, ChunkData chunk)
+    public override void RunPass(GenerationContext ctx, ChunkData chunk)
     {
-        if (worldBlueprint is not WorldState worldState)
-        {
-            throw new InvalidOperationException($"{GetType().Name} requires a WorldState.");
-        }
+        var (config, worldState) = (ctx.Config, ctx.World);
 
         if (!chunk.HasAnyRoad)
         {
             return;
         }
 
-        if (ProcGenConfig is null)
-        {
-            throw new InvalidOperationException(
-                $"{GetType().Name}: ProceduralGenerationConfig is not assigned. Add it in the inspector."
-            );
-        }
-        var config = ProcGenConfig;
         var tileSize = chunk.Descriptor.ChunkSizeTiles;
-
-        if (chunk.Descriptor.Type == ChunkType.Wilderness)
-        {
-            chunk.Descriptor = chunk.Descriptor with { Type = ChunkType.Road };
-        }
-        else if (chunk.Descriptor.Type == ChunkType.City)
-        {
-            chunk.Descriptor = chunk.Descriptor with { Type = ChunkType.Mixed };
-        }
 
         foreach (var roadId in chunk.RoadIds)
         {
