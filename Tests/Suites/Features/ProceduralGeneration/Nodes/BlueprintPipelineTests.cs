@@ -3,6 +3,7 @@ using Ouranos.Foundry.Core.Types;
 using Ouranos.Foundry.Core.Utils;
 using Ouranos.Foundry.Features.ProceduralGeneration.Nodes;
 using Ouranos.Foundry.Features.ProceduralGeneration.Resources;
+using Ouranos.Foundry.Features.ProceduralGeneration.Types;
 using Shouldly;
 
 namespace Ouranos.Foundry.Tests.Features.ProceduralGeneration.Nodes;
@@ -14,10 +15,11 @@ public class BlueprintPipelineTests
     private const ulong Seed = 42;
 
     [TestCase]
-    public void RunPasses_WithCustomPasses_GivesEachTheConfigWorldAndItsOwnRng()
+    public void RunPasses_WithCustomPasses_GivesEachTheConfigDefinitionsWorldAndItsOwnRng()
     {
         // Arrange
         var config = new ProceduralGenerationConfig();
+        var definitions = new GenerationDefinitions(config);
         var world = new WorldState { Seed = Seed };
         var first = new RecordingBlueprintPass();
         var sameType = new RecordingBlueprintPass();
@@ -39,12 +41,13 @@ public class BlueprintPipelineTests
         ];
 
         // Act
-        var result = pipeline.RunPasses(config, world, LogLevel.None);
+        var result = pipeline.RunPasses(config, definitions, world, LogLevel.None);
 
         // Assert
         result.ShouldBeTrue();
         var context = first.Context.ShouldNotBeNull();
         context.Config.ShouldBeSameAs(config);
+        context.Definitions.ShouldBeSameAs(definitions);
         context.World.ShouldBeSameAs(world);
         first.Draws.ShouldBe(expectedDraws);
         sameType.Draws.ShouldBe(first.Draws);

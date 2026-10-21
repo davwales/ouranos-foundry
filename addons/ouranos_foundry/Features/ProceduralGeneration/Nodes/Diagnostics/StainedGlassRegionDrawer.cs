@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using Godot;
 using Ouranos.Foundry.Features.ProceduralGeneration.Resources;
+using Ouranos.Foundry.Features.ProceduralGeneration.Types;
 
 namespace Ouranos.Foundry.Features.ProceduralGeneration.Nodes.Diagnostics;
 
@@ -46,17 +47,17 @@ public sealed partial class StainedGlassRegionDrawer : DebugDrawer
     public override void Draw(
         CanvasItem canvas,
         WorldState world,
-        ProceduralGenerationConfig? config
+        GenerationDefinitions? definitions
     )
     {
-        if (!Visible || config is null)
+        if (!Visible || definitions is null)
         {
             return;
         }
 
         if (_stainedGlassRects is null)
         {
-            BuildStainedGlass(world, config);
+            BuildStainedGlass(world, definitions);
         }
 
         foreach (var (rect, color) in _stainedGlassRects!)
@@ -65,7 +66,7 @@ public sealed partial class StainedGlassRegionDrawer : DebugDrawer
         }
     }
 
-    private void BuildStainedGlass(WorldState world, ProceduralGenerationConfig config)
+    private void BuildStainedGlass(WorldState world, GenerationDefinitions definitions)
     {
         var rects = new List<(Rect2, Color)>();
         var spacing = Mathf.Max(1, SampleSpacing);
@@ -83,7 +84,7 @@ public sealed partial class StainedGlassRegionDrawer : DebugDrawer
                     continue;
                 }
 
-                var biomeDef = config.GetBiomeDefinition(region.BiomeId);
+                var biomeDef = definitions.GetBiome(region.BiomeId);
                 var color = new Color(
                     biomeDef.DebugColor.R,
                     biomeDef.DebugColor.G,

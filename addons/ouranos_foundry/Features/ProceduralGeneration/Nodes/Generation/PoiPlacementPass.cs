@@ -16,16 +16,16 @@ namespace Ouranos.Foundry.Features.ProceduralGeneration.Nodes.Generation;
 [GlobalClass]
 public partial class PoiPlacementPass : GenerationPass
 {
-    public override void RunPass(GenerationContext ctx, ChunkData chunk)
+    public override void RunPass(GenerationContext ctx, ChunkBuffer chunk)
     {
-        var (config, worldState) = (ctx.Config, ctx.World);
+        var (definitions, worldState) = (ctx.Definitions, ctx.World);
 
         if (!chunk.HasAnyCity)
         {
             return;
         }
 
-        var terrain = config.TerrainConfig ?? new TerrainConfig();
+        var terrain = definitions.Terrain;
         var tileSize = chunk.Descriptor.ChunkSizeTiles;
         var chunkWorldX = chunk.Descriptor.Coordinates.X * tileSize;
         var chunkWorldY = chunk.Descriptor.Coordinates.Y * tileSize;
@@ -42,19 +42,27 @@ public partial class PoiPlacementPass : GenerationPass
             {
                 if (chunkRect.HasPoint(poi.Position))
                 {
-                    MarkPoiInChunk(chunk, poi, chunkWorldX, chunkWorldY, terrain, config, tileSize);
+                    MarkPoiInChunk(
+                        chunk,
+                        poi,
+                        chunkWorldX,
+                        chunkWorldY,
+                        terrain,
+                        definitions,
+                        tileSize
+                    );
                 }
             }
         }
     }
 
     private static void MarkPoiInChunk(
-        ChunkData chunk,
+        ChunkBuffer chunk,
         PointOfInterest poi,
         int chunkWorldX,
         int chunkWorldY,
         TerrainConfig terrain,
-        ProceduralGenerationConfig config,
+        GenerationDefinitions definitions,
         int tileSize
     )
     {
@@ -63,7 +71,7 @@ public partial class PoiPlacementPass : GenerationPass
             return;
         }
 
-        var poiDef = config.GetPoiTypeDefinition(poi.PoiTypeId);
+        var poiDef = definitions.GetPoiType(poi.PoiTypeId);
         var localX = poi.Position.X - chunkWorldX;
         var localY = poi.Position.Y - chunkWorldY;
 

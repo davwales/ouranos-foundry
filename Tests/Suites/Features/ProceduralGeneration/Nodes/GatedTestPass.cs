@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using Ouranos.Foundry.Features.ProceduralGeneration.Nodes;
 using Ouranos.Foundry.Features.ProceduralGeneration.Resources;
@@ -8,7 +9,7 @@ namespace Ouranos.Foundry.Tests.Features.ProceduralGeneration.Nodes;
 
 /// <summary>
 /// Generation pass that sets <see cref="Entered"/> and then blocks its worker
-/// thread until the test sets <see cref="Release"/>.
+/// thread until the test sets <see cref="Release"/>. Records the world each run read.
 /// </summary>
 public partial class GatedTestPass : GenerationPass
 {
@@ -27,8 +28,12 @@ public partial class GatedTestPass : GenerationPass
     /// <summary>The most RunPass calls that were ever in progress at once.</summary>
     public int MaxConcurrentRuns { get; private set; }
 
-    public override void RunPass(GenerationContext ctx, ChunkData chunk)
+    /// <summary>Each run's world and its city count on entry and on exit.</summary>
+    public List<(WorldState World, int CitiesAtEntry, int CitiesAtExit)> Runs { get; } = [];
+
+    public override void RunPass(GenerationContext ctx, ChunkBuffer chunk)
     {
+        var citiesAtEntry = ctx.World.Cities.Count;
         lock (_lock)
         {
             EnteredCount++;
@@ -49,6 +54,7 @@ public partial class GatedTestPass : GenerationPass
             lock (_lock)
             {
                 _running--;
+                Runs.Add((ctx.World, citiesAtEntry, ctx.World.Cities.Count));
             }
         }
     }

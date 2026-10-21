@@ -1,5 +1,6 @@
 #nullable enable
 
+using System;
 using System.Linq;
 using System.Threading;
 using Godot;
@@ -30,20 +31,27 @@ public partial class GenerationPipeline : Node
     }
 
     /// <summary>
-    /// Runs the passes on <paramref name="chunk"/> in child order. Safe on a worker thread.
+    /// Runs the passes on <paramref name="chunk"/> in child order. Safe on a worker thread:
+    /// it touches no Godot API, and passes log through <paramref name="log"/>.
     /// Returns the first failure (a dependency violation or a pass that throws), or null.
     /// </summary>
     public string? RunPasses(
         ProceduralGenerationConfig config,
+        GenerationDefinitions definitions,
         WorldState world,
+        ChunkBuffer chunk,
         LogLevel logLevel,
-        ChunkData chunk,
+        Action<string> log,
         CancellationToken cancellationToken = default
     )
     {
         var failure = _passes.Run(
             nameof(GenerationPipeline),
-            pass => pass.RunPass(new GenerationContext(config, world, pass.Salt, logLevel), chunk),
+            pass =>
+                pass.RunPass(
+                    new GenerationContext(config, definitions, world, pass.Salt, logLevel, log),
+                    chunk
+                ),
             cancellationToken
         );
         return failure?.Error;

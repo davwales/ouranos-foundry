@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using Ouranos.Foundry.Core.Attributes;
 using Ouranos.Foundry.Core.Types;
@@ -24,7 +25,7 @@ public partial class CityBlueprintPass : BlueprintPass
 
     public override void RunPass(GenerationContext ctx)
     {
-        var (config, worldState, rng) = (ctx.Config, ctx.World, ctx.Rng);
+        var (definitions, worldState, rng) = (ctx.Definitions, ctx.World, ctx.Rng);
         if (worldState.Regions.Count == 0)
         {
             throw new InvalidOperationException(
@@ -32,13 +33,13 @@ public partial class CityBlueprintPass : BlueprintPass
             );
         }
 
-        var naming = config.NamingConfig ?? new NamingConfig();
-        var genConfig = config.GenerationConfig ?? new GenerationConfig();
+        var naming = definitions.Naming;
+        var genConfig = definitions.Generation;
         var cityCount = 0;
 
         foreach (var region in worldState.Regions)
         {
-            var cityCountInRegion = GetCityCountForRegion(rng, region, config, genConfig);
+            var cityCountInRegion = GetCityCountForRegion(rng, region, definitions, genConfig);
             var placedCities = new List<Vector2I>();
 
             for (var i = 0; i < cityCountInRegion; i++)
@@ -49,7 +50,7 @@ public partial class CityBlueprintPass : BlueprintPass
                     continue;
                 }
 
-                var city = CreateCity(rng, i, position.Value, region, config, naming);
+                var city = CreateCity(rng, i, position.Value, region, definitions, naming);
                 worldState.Cities.Add(city);
                 region.CityIds.Add(city.Id);
                 placedCities.Add(position.Value);
@@ -64,12 +65,12 @@ public partial class CityBlueprintPass : BlueprintPass
     private static int GetCityCountForRegion(
         SeededRng rng,
         Region region,
-        ProceduralGenerationConfig config,
+        GenerationDefinitions definitions,
         GenerationConfig genConfig
     )
     {
         var baseCount = rng.Next(genConfig.MinCitiesPerRegion, genConfig.MaxCitiesPerRegion + 1);
-        var biomeDef = config.GetBiomeDefinition(region.BiomeId);
+        var biomeDef = definitions.GetBiome(region.BiomeId);
         return Math.Max(1, baseCount + biomeDef.CityCountModifier);
     }
 
@@ -131,22 +132,22 @@ public partial class CityBlueprintPass : BlueprintPass
         int cityIndex,
         Vector2I position,
         Region region,
-        ProceduralGenerationConfig config,
+        GenerationDefinitions definitions,
         NamingConfig naming
     )
     {
         var cityId = StableId.Create(region.Id, "city", (ulong)cityIndex);
-        var biomeDef = config.GetBiomeDefinition(region.BiomeId);
+        var biomeDef = definitions.GetBiome(region.BiomeId);
         var sizeId =
             biomeDef.CitySizeDistribution?.Sample(rng)
-            ?? config.GetDefaultCitySizeId()
+            ?? definitions.CitySizes.FirstOrDefault()?.Id
             ?? "village";
-        var sizeDef = config.GetCitySizeDefinition(sizeId);
+        var sizeDef = definitions.GetCitySize(sizeId);
         var name = GenerateCityName(rng, naming);
         var radius = sizeDef.Radius;
         var cityRng = rng.Derive();
 
-        var pois = GeneratePois(cityRng, cityId, position, sizeDef, config);
+        var pois = GeneratePois(cityRng, cityId, position, sizeDef, definitions);
 
         return new City(
             Id: cityId,
@@ -172,11 +173,11 @@ public partial class CityBlueprintPass : BlueprintPass
         Guid cityId,
         Vector2I cityPosition,
         CitySizeDefinition sizeDef,
-        ProceduralGenerationConfig config
+        GenerationDefinitions definitions
     )
     {
         var poiCount = sizeDef.PoiCount;
-        var poiDefs = config.PoiTypeDefinitions;
+        var poiDefs = definitions.PoiTypes;
         var pois = new List<PointOfInterest>();
 
         if (poiDefs.Count == 0)

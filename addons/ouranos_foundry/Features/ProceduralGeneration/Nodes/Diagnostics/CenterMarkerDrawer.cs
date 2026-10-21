@@ -2,6 +2,7 @@
 
 using Godot;
 using Ouranos.Foundry.Features.ProceduralGeneration.Resources;
+using Ouranos.Foundry.Features.ProceduralGeneration.Types;
 
 namespace Ouranos.Foundry.Features.ProceduralGeneration.Nodes.Diagnostics;
 
@@ -22,7 +23,7 @@ public partial class CenterMarkerDrawer : DebugDrawer
     public override void Draw(
         CanvasItem canvas,
         WorldState world,
-        ProceduralGenerationConfig? config
+        GenerationDefinitions? definitions
     )
     {
         if (!Visible)

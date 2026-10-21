@@ -15,8 +15,10 @@ namespace Ouranos.Foundry.Features.ProceduralGeneration.Nodes;
 /// <summary>
 /// Entry point for world generation. Orchestrates blueprint generation (once,
 /// at startup or load) and chunk generation (on demand as the player moves).
-/// Blueprint data is immutable after generation and safe to read from worker threads.
-/// Chunk computation runs off-thread; scene tree modifications are deferred to main.
+/// Chunk passes run off-thread on a plain <c>ChunkBuffer</c>; the result is wrapped in a
+/// <c>ChunkData</c>, logged and emitted back on the main thread. A <c>WorldState</c> is
+/// never changed once its blueprint is generated: a reset or failed run replaces it, so
+/// each chunk job reads the world and <c>Definitions</c> it was dispatched with.
 /// </summary>
 [GlobalClass]
 [Icon("res://addons/ouranos_foundry/Assets/icons/foundry_node.svg")]
@@ -47,6 +49,12 @@ public partial class WorldGenerator : Node
     public LogLevel LogLevel { get; private set; } = LogLevel.Basic;
 
     public bool IsBlueprintGenerated => WorldState.IsBlueprintGenerated;
+
+    /// <summary>
+    /// The snapshot of <c>Config</c>'s definitions that the last blueprint run built and
+    /// handed to every pass. Null until <c>GenerateBlueprint</c> runs with a config.
+    /// </summary>
+    public GenerationDefinitions? Definitions { get; private set; }
 
     public bool IsChunkReady(Vector2I coords)
     {
@@ -142,6 +150,13 @@ public partial class WorldGenerator : Node
         Log("Generating world blueprint...", LogLevel.Basic);
 
         ValidateConfig(Config);
+        Definitions = new GenerationDefinitions(Config);
+        foreach (var id in Definitions.UnknownIds)
+        {
+            GD.PushWarning(
+                $"WorldGenerator: the config refers to unknown {id}. Using the default."
+            );
+        }
 
         WorldState.ChunkSizeTiles = ResolvedChunkConfig.ChunkSizeTiles;
 
@@ -156,12 +171,12 @@ public partial class WorldGenerator : Node
             }
 
             BlueprintPipeline.PassFailed += OnPassFailed;
-            var succeeded = BlueprintPipeline.RunPasses(Config, WorldState, LogLevel);
+            var succeeded = BlueprintPipeline.RunPasses(Config, Definitions, WorldState, LogLevel);
             BlueprintPipeline.PassFailed -= OnPassFailed;
 
             if (!succeeded)
             {
-                WorldState.Clear();
+                ReplaceWorldState();
                 return FailBlueprint(failedPass, failure);
             }
         }
@@ -183,7 +198,8 @@ public partial class WorldGenerator : Node
 
     /// <summary>
     /// Cancels in-flight chunk jobs, unloads every generated chunk (emitting
-    /// <c>ChunkUnloaded</c>) and clears the blueprint so it can be generated again.
+    /// <c>ChunkUnloaded</c>) and replaces <c>WorldState</c> with an empty one (same seed,
+    /// size and chunk size) so the blueprint can be generated again.
     /// </summary>
     public void ResetBlueprint()
     {
@@ -192,7 +208,18 @@ public partial class WorldGenerator : Node
             UnloadChunk(coords);
         }
 
-        WorldState.Clear();
+        ReplaceWorldState();
+    }
+
+    // A cancelled job may still be reading the old instance, so never clear it in place.
+    private void ReplaceWorldState()
+    {
+        WorldState = new WorldState
+        {
+            Seed = WorldState.Seed,
+            Size = WorldState.Size,
+            ChunkSizeTiles = WorldState.ChunkSizeTiles,
+        };
     }
 
     /// <summary>
@@ -216,6 +243,7 @@ public partial class WorldGenerator : Node
     {
         if (
             Config is null
+            || Definitions is null
             || !WorldState.IsBlueprintGenerated
             || _generatedChunks.ContainsKey(chunkCoords)
             || _inFlightChunks.ContainsKey(chunkCoords)
@@ -229,7 +257,7 @@ public partial class WorldGenerator : Node
 
         try
         {
-            var chunk = await GenerateChunkAsync(Config, chunkCoords, job.Token);
+            var chunk = await GenerateChunkAsync(Config, Definitions, chunkCoords, job.Token);
             if (IsCurrentJob(chunkCoords, job))
             {
                 _generatedChunks[chunkCoords] = chunk;
@@ -271,43 +299,56 @@ public partial class WorldGenerator : Node
             && !job.IsCancellationRequested;
     }
 
+    // The worker lambda only calls plain C#: passes write to a ChunkBuffer and log into a
+    // list that is printed here, back on the main thread.
     private async Task<ChunkData> GenerateChunkAsync(
         ProceduralGenerationConfig config,
+        GenerationDefinitions definitions,
         Vector2I chunkCoords,
         CancellationToken cancellationToken
     )
     {
-        var chunk = PrepareChunkData(chunkCoords);
         var (pipeline, world, logLevel, jobSlots) = (
             GenerationPipeline,
             WorldState,
             LogLevel,
             _chunkJobSlots
         );
+        var chunk = PrepareChunk(world, chunkCoords);
+        var logs = new List<string>();
 
         await jobSlots.WaitAsync(cancellationToken);
         string? error;
         try
         {
             error = await Task.Run(
-                () => pipeline?.RunPasses(config, world, logLevel, chunk, cancellationToken),
+                () =>
+                    pipeline?.RunPasses(
+                        config,
+                        definitions,
+                        world,
+                        chunk,
+                        logLevel,
+                        logs.Add,
+                        cancellationToken
+                    ),
                 cancellationToken
             );
         }
         finally
         {
             jobSlots.Release();
+            logs.ForEach(GD.Print);
         }
 
-        return error is null ? chunk : throw new InvalidOperationException(error);
+        return error is null ? new ChunkData(chunk) : throw new InvalidOperationException(error);
     }
 
-    /// Must be called on the main thread since it reads from WorldState.
-    private ChunkData PrepareChunkData(Vector2I chunkCoords)
+    private ChunkBuffer PrepareChunk(WorldState world, Vector2I chunkCoords)
     {
         var chunkSizeTiles = ResolvedChunkConfig.ChunkSizeTiles;
-        var cityIds = WorldState.GetCitiesInChunk(chunkCoords);
-        var roadIds = WorldState.GetRoadsInChunk(chunkCoords);
+        var cityIds = world.GetCitiesInChunk(chunkCoords);
+        var roadIds = world.GetRoadsInChunk(chunkCoords);
 
         var descriptor = new ChunkDescriptor(
             chunkCoords,
@@ -317,11 +358,7 @@ public partial class WorldGenerator : Node
             chunkSizeTiles
         );
 
-        return new ChunkData
-        {
-            Descriptor = descriptor,
-            TerrainData = new int[chunkSizeTiles * chunkSizeTiles],
-        };
+        return new ChunkBuffer(descriptor);
     }
 
     private static ChunkType DetermineChunkType(bool hasCities, bool hasRoads)
