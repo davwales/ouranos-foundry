@@ -48,11 +48,13 @@ public partial class WorldState : Resource
     public List<Road> Roads { get; private set; } = [];
 
     /// <summary>
-    /// Spatial index mapping chunk coordinates to city IDs that overlap that chunk: the
-    /// chunks of the city's footprint plus those holding any of its POIs. Built during
-    /// blueprint generation and used by generation passes.
+    /// Spatial index mapping chunk coordinates to city IDs whose footprint overlaps that
+    /// chunk. Built during blueprint generation and used by generation passes.
     /// </summary>
     public Dictionary<Vector2I, HashSet<Guid>> ChunkToCityIds { get; private set; } = [];
+
+    // Each POI under the chunk holding its position, wherever its city is.
+    private readonly Dictionary<Vector2I, List<PointOfInterest>> _chunkToPois = [];
 
     /// <summary>
     /// Spatial index mapping chunk coordinates to road IDs that overlap that chunk.
@@ -97,6 +99,7 @@ public partial class WorldState : Resource
     {
         ChunkToCityIds.Clear();
         ChunkToRoadIds.Clear();
+        _chunkToPois.Clear();
 
         foreach (var city in Cities)
         {
@@ -119,17 +122,16 @@ public partial class WorldState : Resource
                 }
             }
 
-            // A POI placed outside the city's radius still belongs to its city's chunks.
             foreach (var poi in city.PointsOfInterest)
             {
                 var poiChunk = ChunkMath.WorldToChunk(poi.Position, ChunkSizeTiles);
-                if (!ChunkToCityIds.TryGetValue(poiChunk, out var set))
+                if (!_chunkToPois.TryGetValue(poiChunk, out var pois))
                 {
-                    set = [];
-                    ChunkToCityIds[poiChunk] = set;
+                    pois = [];
+                    _chunkToPois[poiChunk] = pois;
                 }
 
-                set.Add(city.Id);
+                pois.Add(poi);
             }
         }
 
@@ -164,21 +166,12 @@ public partial class WorldState : Resource
     }
 
     /// <summary>
-    /// Returns the points of interest whose position lies inside the given chunk, from the
-    /// cities indexed in it. Needs <c>RebuildLookups</c> and <c>RebuildSpatialIndex</c>.
+    /// Returns the points of interest whose position lies inside the given chunk, even
+    /// outside their city's footprint. Needs <c>RebuildSpatialIndex</c>.
     /// </summary>
     public IReadOnlyList<PointOfInterest> GetPointsOfInterestInChunk(Vector2I chunkCoord)
     {
-        var origin = chunkCoord * ChunkSizeTiles;
-        var rect = new Rect2I(origin, ChunkSizeTiles, ChunkSizeTiles);
-        return
-        [
-            .. GetCitiesInChunk(chunkCoord)
-                .Select(id => CityById.GetValueOrDefault(id))
-                .OfType<City>()
-                .SelectMany(city => city.PointsOfInterest)
-                .Where(poi => rect.HasPoint(poi.Position)),
-        ];
+        return _chunkToPois.GetValueOrDefault(chunkCoord) ?? [];
     }
 
     /// <summary>
