@@ -50,6 +50,22 @@ public partial class WorldState : WorldBlueprint
     public Dictionary<Guid, Road> RoadById { get; private set; } = [];
 
     /// <summary>
+    /// Removes all blueprint data and resets <c>IsBlueprintGenerated</c>, so the
+    /// blueprint can be generated again without duplicating anything.
+    /// </summary>
+    public void Clear()
+    {
+        Regions.Clear();
+        Cities.Clear();
+        Roads.Clear();
+        CityById.Clear();
+        RoadById.Clear();
+        ChunkToCityIds.Clear();
+        ChunkToRoadIds.Clear();
+        IsBlueprintGenerated = false;
+    }
+
+    /// <summary>
     /// Rebuilds lookup dictionaries after modifying Regions, Cities, or Roads lists.
     /// Must be called after each blueprint pass completes.
     /// </summary>

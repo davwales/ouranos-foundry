@@ -34,22 +34,21 @@ public partial class RoadBlueprintPass : BlueprintPass
     {
         if (worldBlueprint is not WorldState worldState)
         {
-            GD.PrintErr("RoadBlueprintPass requires a WorldState.");
-            return;
+            throw new InvalidOperationException($"{GetType().Name} requires a WorldState.");
         }
 
         if (worldState.Cities.Count == 0)
         {
-            GD.PrintErr("RoadBlueprintPass: No cities found. Run CityBlueprintPass first.");
-            return;
+            throw new InvalidOperationException(
+                $"{GetType().Name}: No cities found. Run CityBlueprintPass first."
+            );
         }
 
         if (ProcGenConfig is null)
         {
-            GD.PushError(
-                $"{Name}: ProceduralGenerationConfig is not assigned. Add it in the inspector."
+            throw new InvalidOperationException(
+                $"{GetType().Name}: ProceduralGenerationConfig is not assigned. Add it in the inspector."
             );
-            return;
         }
 
         var config = ProcGenConfig;

@@ -33,32 +33,30 @@ public partial class CityBlueprintPass : BlueprintPass
     {
         if (worldBlueprint is not WorldState worldState)
         {
-            GD.PrintErr("CityBlueprintPass requires a WorldState.");
-            return;
+            throw new InvalidOperationException($"{GetType().Name} requires a WorldState.");
         }
 
         if (worldState.Regions.Count == 0)
         {
-            GD.PrintErr("CityBlueprintPass: No regions found. Run RegionBlueprintPass first.");
-            return;
+            throw new InvalidOperationException(
+                $"{GetType().Name}: No regions found. Run RegionBlueprintPass first."
+            );
         }
 
         if (ProcGenConfig is null)
         {
-            GD.PushError(
-                $"{Name}: ProceduralGenerationConfig is not assigned. Add it in the inspector."
+            throw new InvalidOperationException(
+                $"{GetType().Name}: ProceduralGenerationConfig is not assigned. Add it in the inspector."
             );
-            return;
         }
         var config = ProcGenConfig;
 
         var naming = NamingConfig ?? config.NamingConfig;
         if (naming is null)
         {
-            GD.PushError(
-                $"{Name}: No NamingConfig available. Assign it in the inspector or add one to ProceduralGenerationConfig."
+            throw new InvalidOperationException(
+                $"{GetType().Name}: No NamingConfig available. Assign it in the inspector or add one to ProceduralGenerationConfig."
             );
-            return;
         }
         var genConfig = config.GenerationConfig ?? new GenerationConfig();
         var rng = new SeededRng(worldState.Seed, RngSalt);
