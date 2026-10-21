@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://dl48lsd82k15a"]
+
+[ext_resource type="Script" uid="uid://cltjh3uybvadg" path="res://Demos/Launcher/Scripts/DemoLauncher.cs" id="1_pdxyi"]
+
+[node name="DemoLauncher" type="Control" unique_id=704926908 node_paths=PackedStringArray("ButtonList")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_pdxyi")
+ButtonList = NodePath("CenterContainer/ButtonList")
+
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=463261995]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="ButtonList" type="VBoxContainer" parent="CenterContainer" unique_id=1835862473]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="CenterContainer/ButtonList" unique_id=1139476557]
+layout_mode = 2
+text = "Ouranos.Foundry Demos"
+horizontal_alignment = 1
