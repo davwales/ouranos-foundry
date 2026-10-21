@@ -43,7 +43,8 @@ public partial class GenerationPipeline : Node
     {
         var failure = _passes.Run(
             nameof(GenerationPipeline),
-            pass => pass.RunPass(new GenerationContext(config, world, pass.Salt, logLevel), chunk),
+            pass =>
+                pass.RunPass(new GenerationContext(config, world, pass.RngSalt, logLevel), chunk),
             cancellationToken
         );
         return failure?.Error;
