@@ -66,11 +66,6 @@ public partial class PoiPlacementPass : GenerationPass
         int tileSize
     )
     {
-        if (chunk.TerrainData is null || chunk.TerrainData.Length == 0)
-        {
-            return;
-        }
-
         var poiDef = definitions.GetPoiType(poi.PoiTypeId);
         var localX = poi.Position.X - chunkWorldX;
         var localY = poi.Position.Y - chunkWorldY;
@@ -80,10 +75,6 @@ public partial class PoiPlacementPass : GenerationPass
             return;
         }
 
-        var idx = localY * tileSize + localX;
-        if (idx >= 0 && idx < chunk.TerrainData.Length)
-        {
-            chunk.TerrainData[idx] = terrain.PoiTerrainIdBase + poiDef.TerrainIdOffset;
-        }
+        chunk.SetTile(localX, localY, terrain.PoiTerrainIdBase + poiDef.TerrainIdOffset);
     }
 }
