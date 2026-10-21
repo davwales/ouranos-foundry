@@ -86,6 +86,13 @@ public partial class WorldGenerator : Node
 
     public override void _Ready()
     {
+        if (MaxConcurrentChunkJobs < 1)
+        {
+            GD.PushError(
+                $"WorldGenerator: MaxConcurrentChunkJobs must be at least 1 (got {MaxConcurrentChunkJobs}). Using 1."
+            );
+        }
+
         _chunkJobSlots = new SemaphoreSlim(Math.Max(1, MaxConcurrentChunkJobs));
         CacheGenerationPasses();
         GenerateBlueprint();
@@ -98,6 +105,23 @@ public partial class WorldGenerator : Node
             var chunkConfig = ResolvedChunkConfig;
             ChunkManager.SetViewDistance(chunkConfig.ViewDistance);
             ChunkManager.SetChunkSize(chunkConfig.ChunkSizeTiles, chunkConfig.TilePixelSize);
+        }
+    }
+
+    public override void _ExitTree()
+    {
+        // Cancelled jobs are no longer current, so their continuations never touch this node.
+        foreach (var job in _inFlightChunks.Values)
+        {
+            job.Cancel();
+        }
+
+        _inFlightChunks.Clear();
+
+        if (ChunkManager is not null)
+        {
+            ChunkManager.RequestChunkGeneration -= OnChunkGenerationRequested;
+            ChunkManager.RequestChunkUnload -= OnChunkUnloadRequested;
         }
     }
 
@@ -216,7 +240,7 @@ public partial class WorldGenerator : Node
                 EmitSignal(SignalName.ChunkGenerated, chunkCoords, chunk);
             }
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException) when (job.IsCancellationRequested)
         {
             // Unloaded or reset while generating: nothing to report.
         }
