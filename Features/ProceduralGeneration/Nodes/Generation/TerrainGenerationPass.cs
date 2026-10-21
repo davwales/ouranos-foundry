@@ -51,7 +51,8 @@ public partial class TerrainGenerationPass : GenerationPass
 
         for (var i = 0; i < chunk.TerrainData.Length; i++)
         {
-            if (rng.NextDouble() < terrain.TerrainNoiseChance)
+            // A biome with no variants has no noise.
+            if (variantCount > 0 && rng.NextDouble() < terrain.TerrainNoiseChance)
             {
                 chunk.TerrainData[i] = baseTerrain + rng.Next(1, variantCount + 1);
             }

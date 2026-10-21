@@ -1,6 +1,9 @@
 #nullable enable
 
+using System.Collections.Generic;
+using System.Linq;
 using Godot;
+using Ouranos.Foundry.Features.ProceduralGeneration.Utils;
 
 namespace Ouranos.Foundry.Features.ProceduralGeneration.Resources;
 
@@ -26,6 +29,20 @@ public partial class PoiTypeDefinition : Resource
     /// </summary>
     [Export]
     public Godot.Collections.Dictionary<string, Variant> CustomData { get; set; } = [];
+
+    /// <summary>
+    /// Returns a message for each invalid value: each POI's name is picked from
+    /// <c>NameOptions</c>, so it may not be empty.
+    /// </summary>
+    public virtual IEnumerable<string> Validate()
+    {
+        var owner = $"{nameof(PoiTypeDefinition)} '{Id}'";
+        string?[] messages =
+        [
+            ConfigValidation.NotEmpty(owner, nameof(NameOptions), NameOptions?.Length ?? 0),
+        ];
+        return messages.OfType<string>();
+    }
 
     public static readonly PoiTypeDefinition Default = new()
     {

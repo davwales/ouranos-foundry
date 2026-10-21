@@ -1,6 +1,9 @@
 #nullable enable
 
+using System.Collections.Generic;
+using System.Linq;
 using Godot;
+using Ouranos.Foundry.Features.ProceduralGeneration.Utils;
 
 namespace Ouranos.Foundry.Features.ProceduralGeneration.Resources;
 
@@ -35,6 +38,25 @@ public partial class BiomeDefinition : Resource
     /// </summary>
     [Export]
     public Godot.Collections.Dictionary<string, Variant> CustomData { get; set; } = new();
+
+    /// <summary>
+    /// Returns a message for each invalid value. A <c>TerrainVariantCount</c> of 0 is valid:
+    /// the biome's terrain then has no noise.
+    /// </summary>
+    public virtual IEnumerable<string> Validate()
+    {
+        var owner = $"{nameof(BiomeDefinition)} '{Id}'";
+        var entries = CitySizeDistribution?.Entries ?? [];
+        string?[] messages =
+        [
+            ConfigValidation.AtLeast(owner, nameof(TerrainVariantCount), TerrainVariantCount, 0),
+            .. entries
+                .Select((entry, i) => (entry, i))
+                .Where(e => e.entry is null)
+                .Select(e => $"{owner}.{nameof(CitySizeDistribution)}.Entries[{e.i}] is empty."),
+        ];
+        return messages.OfType<string>();
+    }
 
     public static readonly BiomeDefinition Default = new()
     {
