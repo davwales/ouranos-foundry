@@ -145,25 +145,10 @@ public partial class WorldGenerator : Node
 
         WorldState.ChunkSizeTiles = ResolvedChunkConfig.ChunkSizeTiles;
 
-        if (BlueprintPipeline is not null)
+        if (BlueprintPipeline?.RunPasses(Config, WorldState, LogLevel) is { } failure)
         {
-            var failedPass = string.Empty;
-            var failure = string.Empty;
-            void OnPassFailed(string passName, string error)
-            {
-                failedPass = passName;
-                failure = error;
-            }
-
-            BlueprintPipeline.PassFailed += OnPassFailed;
-            var succeeded = BlueprintPipeline.RunPasses(Config, WorldState, LogLevel);
-            BlueprintPipeline.PassFailed -= OnPassFailed;
-
-            if (!succeeded)
-            {
-                WorldState.Clear();
-                return FailBlueprint(failedPass, failure);
-            }
+            WorldState.Clear();
+            return FailBlueprint(failure.PassName, failure.Error.Message, failure.Error);
         }
 
         WorldState.IsBlueprintGenerated = true;
@@ -174,9 +159,11 @@ public partial class WorldGenerator : Node
         return true;
     }
 
-    private bool FailBlueprint(string passName, string error)
+    private bool FailBlueprint(string passName, string error, Exception? exception = null)
     {
-        GD.PushError($"WorldGenerator: blueprint pass {passName} failed: {error}");
+        GD.PushError(
+            $"WorldGenerator: blueprint pass {passName} failed: {exception?.ToString() ?? error}"
+        );
         EmitSignal(SignalName.BlueprintFailed, passName, error);
         return false;
     }
@@ -286,10 +273,10 @@ public partial class WorldGenerator : Node
         );
 
         await jobSlots.WaitAsync(cancellationToken);
-        string? error;
+        (string PassName, Exception Error)? failure;
         try
         {
-            error = await Task.Run(
+            failure = await Task.Run(
                 () => pipeline?.RunPasses(config, world, logLevel, chunk, cancellationToken),
                 cancellationToken
             );
@@ -299,7 +286,10 @@ public partial class WorldGenerator : Node
             jobSlots.Release();
         }
 
-        return error is null ? chunk : throw new InvalidOperationException(error);
+        // Wraps the original exception so the log line keeps its stack trace.
+        return failure is { } f
+            ? throw new InvalidOperationException($"{f.PassName}: {f.Error.Message}", f.Error)
+            : chunk;
     }
 
     /// Must be called on the main thread since it reads from WorldState.

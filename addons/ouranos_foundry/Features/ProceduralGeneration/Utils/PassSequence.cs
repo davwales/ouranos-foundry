@@ -22,10 +22,12 @@ internal sealed class PassSequence<TPass>(IReadOnlyList<TPass> passes)
     /// <summary>
     /// Runs the passes in order and stops at the first failure: a dependency violation
     /// (reported as <paramref name="pipelineName"/>) or a pass that throws. Returns null
-    /// on success. Cancellation is checked between passes and is rethrown, not reported.
-    /// Touches no Godot API, so it is safe on a worker thread.
+    /// on success. A violation is reported as an <c>InvalidOperationException</c>; a thrown
+    /// exception is returned as is, so its stack trace survives. Cancellation is checked
+    /// between passes and is rethrown, not reported. Touches no Godot API, so it is safe
+    /// on a worker thread.
     /// </summary>
-    public (string PassName, string Error)? Run(
+    public (string PassName, Exception Error)? Run(
         string pipelineName,
         Action<TPass> runPass,
         CancellationToken cancellationToken = default
@@ -33,7 +35,7 @@ internal sealed class PassSequence<TPass>(IReadOnlyList<TPass> passes)
     {
         if (Violation is not null)
         {
-            return (pipelineName, Violation);
+            return (pipelineName, new InvalidOperationException(Violation));
         }
 
         foreach (var pass in passes)
@@ -45,7 +47,7 @@ internal sealed class PassSequence<TPass>(IReadOnlyList<TPass> passes)
             }
             catch (Exception e) when (!cancellationToken.IsCancellationRequested)
             {
-                return (pass.GetType().Name, e.Message);
+                return (pass.GetType().Name, e);
             }
         }
 
