@@ -10,8 +10,13 @@ using Ouranos.Foundry.Features.ProceduralGeneration.Utils;
 namespace Ouranos.Foundry.Features.ProceduralGeneration.Resources;
 
 [GlobalClass]
-public partial class WorldState : WorldBlueprint
+public partial class WorldState : Resource
 {
+    [Export]
+    public ulong Seed { get; set; }
+
+    public bool IsBlueprintGenerated { get; set; }
+
     [Export]
     public int Size { get; set; } = 1000;
 

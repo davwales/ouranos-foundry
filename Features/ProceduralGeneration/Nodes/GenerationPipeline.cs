@@ -1,43 +1,51 @@
 #nullable enable
 
-using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Godot;
-using Ouranos.Foundry.Core.Attributes;
+using Ouranos.Foundry.Core.Types;
+using Ouranos.Foundry.Features.ProceduralGeneration.Resources;
+using Ouranos.Foundry.Features.ProceduralGeneration.Types;
+using Ouranos.Foundry.Features.ProceduralGeneration.Utils;
 
 namespace Ouranos.Foundry.Features.ProceduralGeneration.Nodes;
 
 /// <summary>
-/// Discovers and caches generation passes at startup. WorldGenerator calls
-/// GetPasses() to retrieve the pass list; passes are executed directly by
-/// the generator rather than through this pipeline.
+/// Discovers its <c>GenerationPass</c> children in <c>_Ready</c> and runs them on each
+/// chunk that <c>WorldGenerator</c> generates.
 /// </summary>
 [GlobalClass]
 [Icon("res://addons/ouranos_foundry/Assets/icons/foundry_node.svg")]
 public partial class GenerationPipeline : Node
 {
-    private List<GenerationPass> _passes = [];
+    private PassSequence<GenerationPass> _passes = new([]);
 
     public override void _Ready()
     {
-        _passes = [.. GetChildren().OfType<GenerationPass>()];
-
-        foreach (
-            var violation in RequiresPassesValidator.FindViolations(
-                _passes.Select(p => p.GetType())
-            )
-        )
+        _passes = new([.. GetChildren().OfType<GenerationPass>()]);
+        if (_passes.Violation is not null)
         {
-            GD.PushError($"GenerationPipeline: {violation}");
+            GD.PushError($"GenerationPipeline: {_passes.Violation}");
         }
     }
 
     /// <summary>
-    /// Returns a snapshot of the generation passes. Used by WorldGenerator to
-    /// avoid calling GetChildren on a worker thread.
+    /// Runs the passes on <paramref name="chunk"/> in child order. Safe on a worker thread.
+    /// Returns the first failure (a dependency violation or a pass that throws), or null.
     /// </summary>
-    public IReadOnlyList<GenerationPass> GetPasses()
+    public string? RunPasses(
+        ProceduralGenerationConfig config,
+        WorldState world,
+        LogLevel logLevel,
+        ChunkData chunk,
+        CancellationToken cancellationToken = default
+    )
     {
-        return _passes.AsReadOnly();
+        var failure = _passes.Run(
+            nameof(GenerationPipeline),
+            pass => pass.RunPass(new GenerationContext(config, world, pass.Salt, logLevel), chunk),
+            cancellationToken
+        );
+        return failure?.Error;
     }
 }

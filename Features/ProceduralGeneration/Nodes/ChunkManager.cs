@@ -93,15 +93,6 @@ public partial class ChunkManager : Node
     }
 
     /// <summary>
-    /// Removes a chunk from the active set without emitting an unload signal.
-    /// Used by WorldGenerator when it handles unloading internally.
-    /// </summary>
-    public void ForgetChunk(Vector2I chunkCoords)
-    {
-        _activeChunks.Remove(chunkCoords);
-    }
-
-    /// <summary>
     /// Forgets every active chunk without emitting unload signals, so the next
     /// <c>_Process</c> requests the whole area around the player again. Called by
     /// WorldGenerator after it regenerates the blueprint.

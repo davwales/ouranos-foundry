@@ -1,6 +1,5 @@
 #nullable enable
 
-using System;
 using System.Collections.Generic;
 using Godot;
 using Ouranos.Foundry.Core.Types;
@@ -18,43 +17,13 @@ namespace Ouranos.Foundry.Features.ProceduralGeneration.Nodes.Blueprints;
 [GlobalClass]
 public partial class RegionBlueprintPass : BlueprintPass
 {
-    /// <summary>Distinct RNG salt so this pass's stream is independent of other passes.</summary>
-    private const ulong RngSalt = 1000;
+    protected override ulong RngSalt => 1000;
 
-    [Export]
-    public ProceduralGenerationConfig? ProcGenConfig { get; private set; }
-
-    [Export]
-    public NamingConfig? NamingConfig { get; private set; }
-
-    public override void RunPass(WorldBlueprint worldBlueprint)
+    public override void RunPass(GenerationContext ctx)
     {
-        if (worldBlueprint is not WorldState worldState)
-        {
-            throw new InvalidOperationException($"{GetType().Name} requires a WorldState.");
-        }
-
-        if (ProcGenConfig is null)
-        {
-            throw new InvalidOperationException(
-                $"{GetType().Name}: ProceduralGenerationConfig is not assigned. Add it in the inspector."
-            );
-        }
-        var config = ProcGenConfig;
-
-        var naming = NamingConfig ?? config.NamingConfig;
-        if (naming is null)
-        {
-            throw new InvalidOperationException(
-                $"{GetType().Name}: No NamingConfig available. Assign it in the inspector or add one to ProceduralGenerationConfig."
-            );
-        }
+        var (config, worldState, rng) = (ctx.Config, ctx.World, ctx.Rng);
+        var naming = config.NamingConfig ?? new NamingConfig();
         var genConfig = config.GenerationConfig ?? new GenerationConfig();
-        var rng = new SeededRng(worldState.Seed, RngSalt);
-
-        GD.Print(
-            $"Placing {genConfig.RegionCount} regions in {worldState.Size}x{worldState.Size} world..."
-        );
 
         var worldSize = worldState.Size;
         var regionCenters = GenerateRegionCenters(rng, worldSize, genConfig);
@@ -77,7 +46,7 @@ public partial class RegionBlueprintPass : BlueprintPass
             worldState.Regions.Add(region);
         }
 
-        GD.Print($"Placed {worldState.Regions.Count} regions.");
+        ctx.Log($"Placed {worldState.Regions.Count} regions.");
     }
 
     private static List<Vector2I> GenerateRegionCenters(

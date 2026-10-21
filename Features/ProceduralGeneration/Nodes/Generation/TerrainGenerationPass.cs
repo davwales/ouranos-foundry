@@ -1,9 +1,9 @@
 #nullable enable
 
-using System;
 using Godot;
 using Ouranos.Foundry.Core.Types;
 using Ouranos.Foundry.Features.ProceduralGeneration.Resources;
+using Ouranos.Foundry.Features.ProceduralGeneration.Types;
 
 namespace Ouranos.Foundry.Features.ProceduralGeneration.Nodes.Generation;
 
@@ -15,27 +15,14 @@ namespace Ouranos.Foundry.Features.ProceduralGeneration.Nodes.Generation;
 [GlobalClass]
 public partial class TerrainGenerationPass : GenerationPass
 {
-    [Export]
-    public ProceduralGenerationConfig? ProcGenConfig { get; private set; }
-
-    public override void RunPass(WorldBlueprint worldBlueprint, ChunkData chunk)
+    public override void RunPass(GenerationContext ctx, ChunkData chunk)
     {
-        if (worldBlueprint is not WorldState worldState)
-        {
-            throw new InvalidOperationException($"{GetType().Name} requires a WorldState.");
-        }
-
-        if (ProcGenConfig is null)
-        {
-            throw new InvalidOperationException(
-                $"{GetType().Name}: ProceduralGenerationConfig is not assigned. Add it in the inspector."
-            );
-        }
-        var config = ProcGenConfig;
+        var (config, worldState) = (ctx.Config, ctx.World);
         var terrain = config.TerrainConfig ?? new TerrainConfig();
         var tileSize = chunk.Descriptor.ChunkSizeTiles;
         chunk.TerrainData = new int[tileSize * tileSize];
 
+        // A stream per chunk rather than ctx.Rng, which is the same for every chunk.
         var rng = new SeededRng(
             worldState.Seed,
             (ulong)(
