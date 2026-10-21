@@ -150,14 +150,13 @@ public partial class WorldGenerator : Node
             return FailBlueprint(nameof(WorldGenerator), string.Join("\n", errors));
         }
 
-        foreach (var warning in Config.GetWarnings())
-        {
-            GD.PushWarning($"WorldGenerator: {warning}");
-        }
-
         Log("Generating world blueprint...", LogLevel.Basic);
 
         Definitions = new GenerationDefinitions(Config);
+        foreach (var warning in Config.GetWarnings(Definitions))
+        {
+            GD.PushWarning($"WorldGenerator: {warning}");
+        }
 
         WorldState.ChunkSizeTiles = ResolvedChunkConfig.ChunkSizeTiles;
 

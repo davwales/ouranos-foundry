@@ -89,10 +89,11 @@ public partial class ProceduralGenerationConfig : Resource
     /// <summary>
     /// Returns a message for each setting that generation works around with a default,
     /// which is probably not what was meant: an empty city size, POI type or road type
-    /// table, or an Id that no definition has. Only meaningful once <c>Validate()</c>
-    /// returns nothing.
+    /// table, or an Id that no definition has (from <paramref name="definitions"/>, a
+    /// snapshot of this config). <c>WorldGenerator</c> pushes each one; tools can call
+    /// <c>config.GetWarnings(new GenerationDefinitions(config))</c>.
     /// </summary>
-    public virtual IEnumerable<string> GetWarnings()
+    public virtual IEnumerable<string> GetWarnings(GenerationDefinitions definitions)
     {
         const string owner = nameof(ProceduralGenerationConfig);
         var emptyTables = new[]
@@ -121,7 +122,7 @@ public partial class ProceduralGenerationConfig : Resource
             }
         }
 
-        foreach (var id in new GenerationDefinitions(this).UnknownIds)
+        foreach (var id in definitions.UnknownIds)
         {
             yield return $"{owner} refers to unknown {id}. The default is used.";
         }
