@@ -28,7 +28,9 @@ public partial class ChunkManager : Node
     public int ViewDistanceChunks { get; private set; } = 3;
 
     private int _chunkSizePixels = 16;
-    private Vector2I _currentPlayerChunk = new(int.MinValue, int.MinValue);
+    private static readonly Vector2I NoChunk = new(int.MinValue, int.MinValue);
+
+    private Vector2I _currentPlayerChunk = NoChunk;
     private readonly HashSet<Vector2I> _activeChunks = [];
 
     public override void _Process(double delta)
@@ -97,6 +99,17 @@ public partial class ChunkManager : Node
     public void ForgetChunk(Vector2I chunkCoords)
     {
         _activeChunks.Remove(chunkCoords);
+    }
+
+    /// <summary>
+    /// Forgets every active chunk without emitting unload signals, so the next
+    /// <c>_Process</c> requests the whole area around the player again. Called by
+    /// WorldGenerator after it regenerates the blueprint.
+    /// </summary>
+    public void ResetTracking()
+    {
+        _activeChunks.Clear();
+        _currentPlayerChunk = NoChunk;
     }
 
     /// <summary>

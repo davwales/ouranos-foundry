@@ -1,5 +1,6 @@
 #nullable enable
 
+using System;
 using Godot;
 using Ouranos.Foundry.Core.Utils;
 using Ouranos.Foundry.Features.ProceduralGeneration.Resources;
@@ -21,7 +22,7 @@ public partial class RoadGenerationPass : GenerationPass
     {
         if (worldBlueprint is not WorldState worldState)
         {
-            return;
+            throw new InvalidOperationException($"{GetType().Name} requires a WorldState.");
         }
 
         if (!chunk.HasAnyRoad)
@@ -31,10 +32,9 @@ public partial class RoadGenerationPass : GenerationPass
 
         if (ProcGenConfig is null)
         {
-            GD.PushError(
-                $"{Name}: ProceduralGenerationConfig is not assigned. Add it in the inspector."
+            throw new InvalidOperationException(
+                $"{GetType().Name}: ProceduralGenerationConfig is not assigned. Add it in the inspector."
             );
-            return;
         }
         var config = ProcGenConfig;
         var tileSize = chunk.Descriptor.ChunkSizeTiles;
