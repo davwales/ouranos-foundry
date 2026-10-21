@@ -178,7 +178,8 @@ To check the packaged addon locally: `GODOT_BIN=… Automation/consumer-smoke.sh
 ## Domain Patterns
 
 ### RNG (all features)
-- Use `new SeededRng(seed, salt)` (`Core/Types/SeededRng.cs`) for all randomness. Give each consumer a named salt constant (`private const ulong RngSalt = 2000;`), not a magic number.
+- Use `new SeededRng(seed, salt)` (`Core/Types/SeededRng.cs`) for all randomness, with a named salt, not a magic number. Procgen passes override `protected virtual ulong RngSalt` (`protected override ulong RngSalt => 2000;`) and use `ctx.Rng`.
+- Use `SeededRng.ForCoords(seed, x, y, salt)` for a stream keyed by coordinates (e.g. per chunk).
 - Call `rng.Derive()` to create independent sub-streams for nested or parallel work.
 - Never use `System.Random`, `GD.Randi()`/`GD.Randf()` or `RandomNumberGenerator` in features. Demos may seed from the clock.
 

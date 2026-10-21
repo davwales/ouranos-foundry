@@ -374,7 +374,7 @@ public partial class WorldGenerator : Node
             chunkSizeTiles
         );
 
-        return new ChunkBuffer(descriptor);
+        return new ChunkBuffer(descriptor, world.GetPointsOfInterestInChunk(chunkCoords));
     }
 
     private static ChunkType DetermineChunkType(bool hasCities, bool hasRoads)

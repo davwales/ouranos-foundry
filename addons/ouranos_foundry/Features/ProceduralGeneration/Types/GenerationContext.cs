@@ -15,7 +15,7 @@ public sealed class GenerationContext(
     ProceduralGenerationConfig config,
     GenerationDefinitions definitions,
     WorldState world,
-    ulong rngSalt,
+    SeededRng rng,
     LogLevel logLevel,
     Action<string> log
 )
@@ -32,10 +32,12 @@ public sealed class GenerationContext(
     public WorldState World { get; } = world;
 
     /// <summary>
-    /// Seeded from <c>World.Seed</c> and the pass's <c>RngSalt</c>, so the same seed and
-    /// pass always get the same stream. A chunk pass gets the same stream for every chunk.
+    /// The pass's own stream, seeded from <c>World.Seed</c> and the pass's <c>RngSalt</c>.
+    /// A blueprint pass gets <c>new SeededRng(World.Seed, RngSalt)</c>; a chunk pass gets
+    /// <c>SeededRng.ForCoords(World.Seed, chunk.X, chunk.Y, RngSalt)</c>, a stream unique to
+    /// (seed, pass, chunk).
     /// </summary>
-    public SeededRng Rng { get; } = new(world.Seed, rngSalt);
+    public SeededRng Rng { get; } = rng;
 
     public LogLevel LogLevel { get; } = logLevel;
 

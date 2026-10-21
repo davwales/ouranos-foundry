@@ -48,8 +48,9 @@ public partial class WorldState : Resource
     public List<Road> Roads { get; private set; } = [];
 
     /// <summary>
-    /// Spatial index mapping chunk coordinates to city IDs that overlap that chunk.
-    /// Built during blueprint generation and used by generation passes.
+    /// Spatial index mapping chunk coordinates to city IDs that overlap that chunk: the
+    /// chunks of the city's footprint plus those holding any of its POIs. Built during
+    /// blueprint generation and used by generation passes.
     /// </summary>
     public Dictionary<Vector2I, HashSet<Guid>> ChunkToCityIds { get; private set; } = [];
 
@@ -117,6 +118,19 @@ public partial class WorldState : Resource
                     set.Add(city.Id);
                 }
             }
+
+            // A POI placed outside the city's radius still belongs to its city's chunks.
+            foreach (var poi in city.PointsOfInterest)
+            {
+                var poiChunk = ChunkMath.WorldToChunk(poi.Position, ChunkSizeTiles);
+                if (!ChunkToCityIds.TryGetValue(poiChunk, out var set))
+                {
+                    set = [];
+                    ChunkToCityIds[poiChunk] = set;
+                }
+
+                set.Add(city.Id);
+            }
         }
 
         foreach (var road in Roads)
@@ -147,6 +161,24 @@ public partial class WorldState : Resource
     public IReadOnlySet<Guid> GetCitiesInChunk(Vector2I chunkCoord)
     {
         return ChunkToCityIds.GetValueOrDefault(chunkCoord, []);
+    }
+
+    /// <summary>
+    /// Returns the points of interest whose position lies inside the given chunk, from the
+    /// cities indexed in it. Needs <c>RebuildLookups</c> and <c>RebuildSpatialIndex</c>.
+    /// </summary>
+    public IReadOnlyList<PointOfInterest> GetPointsOfInterestInChunk(Vector2I chunkCoord)
+    {
+        var origin = chunkCoord * ChunkSizeTiles;
+        var rect = new Rect2I(origin, ChunkSizeTiles, ChunkSizeTiles);
+        return
+        [
+            .. GetCitiesInChunk(chunkCoord)
+                .Select(id => CityById.GetValueOrDefault(id))
+                .OfType<City>()
+                .SelectMany(city => city.PointsOfInterest)
+                .Where(poi => rect.HasPoint(poi.Position)),
+        ];
     }
 
     /// <summary>
