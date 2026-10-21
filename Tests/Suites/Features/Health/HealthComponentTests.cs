@@ -27,7 +27,7 @@ public class HealthComponentTests
     public void Damage_WhenAmountPositive_ShouldReduceHealthAndReturnDamage()
     {
         // Arrange
-        var (_, component) = CreateComponent();
+        var (root, component) = CreateComponent();
         component._Ready();
 
         // Act
@@ -36,13 +36,15 @@ public class HealthComponentTests
         // Assert
         result.ShouldBe(30f);
         component.CurrentHealth.ShouldBe(70f);
+
+        root.Free();
     }
 
     [TestCase]
     public void Damage_WhenAmountExceedsHealth_ShouldClampAndReturnRemaining()
     {
         // Arrange
-        var (_, component) = CreateComponent(baseMaxHealth: 100f, startingHealth: 10f);
+        var (root, component) = CreateComponent(baseMaxHealth: 100f, startingHealth: 10f);
         component._Ready();
 
         // Act
@@ -51,13 +53,15 @@ public class HealthComponentTests
         // Assert
         result.ShouldBe(10f);
         component.CurrentHealth.ShouldBe(0f);
+
+        root.Free();
     }
 
     [TestCase]
     public void Damage_WhenDead_ShouldReturnZeroAndNotChangeHealth()
     {
         // Arrange
-        var (_, component) = CreateComponent(startingHealth: 0f);
+        var (root, component) = CreateComponent(startingHealth: 0f);
         component._Ready();
 
         // Act
@@ -66,13 +70,15 @@ public class HealthComponentTests
         // Assert
         result.ShouldBe(0f);
         component.CurrentHealth.ShouldBe(0f);
+
+        root.Free();
     }
 
     [TestCase]
     public void Damage_WhenInvulnerable_ShouldReturnZeroAndNotReduceHealth()
     {
         // Arrange
-        var (_, component) = CreateComponent();
+        var (root, component) = CreateComponent();
         component._Ready();
         component.SetInvulnerable(true);
 
@@ -83,13 +89,15 @@ public class HealthComponentTests
         result.ShouldBe(0f);
         component.CurrentHealth.ShouldBe(100f);
         component.IsInvulnerable.ShouldBe(true);
+
+        root.Free();
     }
 
     [TestCase]
     public void Damage_WhenAmountZeroOrNegative_ShouldReturnZero()
     {
         // Arrange
-        var (_, component) = CreateComponent();
+        var (root, component) = CreateComponent();
         component._Ready();
 
         // Act
@@ -99,13 +107,15 @@ public class HealthComponentTests
         // Assert
         resultZero.ShouldBe(0f);
         resultNegative.ShouldBe(0f);
+
+        root.Free();
     }
 
     [TestCase]
     public void Heal_WhenAmountPositive_ShouldIncreaseHealthAndReturnHealing()
     {
         // Arrange
-        var (_, component) = CreateComponent(startingHealth: 30f);
+        var (root, component) = CreateComponent(startingHealth: 30f);
         component._Ready();
 
         // Act
@@ -114,13 +124,15 @@ public class HealthComponentTests
         // Assert
         result.ShouldBe(20f);
         component.CurrentHealth.ShouldBe(50f);
+
+        root.Free();
     }
 
     [TestCase]
     public void Heal_WhenWouldExceedMax_ShouldClampAndReturnActual()
     {
         // Arrange
-        var (_, component) = CreateComponent(startingHealth: 90f);
+        var (root, component) = CreateComponent(startingHealth: 90f);
         component._Ready();
 
         // Act
@@ -129,13 +141,15 @@ public class HealthComponentTests
         // Assert
         result.ShouldBe(10f);
         component.CurrentHealth.ShouldBe(100f);
+
+        root.Free();
     }
 
     [TestCase]
     public void Heal_WhenDeadWithoutRevival_ShouldReturnZero()
     {
         // Arrange
-        var (_, component) = CreateComponent(startingHealth: 0f);
+        var (root, component) = CreateComponent(startingHealth: 0f);
         component._Ready();
         component.Set(HealthComponent.PropertyName.AllowRevival, false);
 
@@ -146,13 +160,15 @@ public class HealthComponentTests
         result.ShouldBe(0f);
         component.CurrentHealth.ShouldBe(0f);
         component.AllowRevival.ShouldBe(false);
+
+        root.Free();
     }
 
     [TestCase]
     public void Heal_WhenDeadWithRevival_ShouldRestoreHealth()
     {
         // Arrange
-        var (_, component) = CreateComponent(startingHealth: 0f);
+        var (root, component) = CreateComponent(startingHealth: 0f);
         component._Ready();
         component.Set(HealthComponent.PropertyName.AllowRevival, true);
 
@@ -163,13 +179,15 @@ public class HealthComponentTests
         result.ShouldBe(50f);
         component.CurrentHealth.ShouldBe(50f);
         component.AllowRevival.ShouldBe(true);
+
+        root.Free();
     }
 
     [TestCase]
     public void Heal_WhenAlreadyAtMax_ShouldReturnZero()
     {
         // Arrange
-        var (_, component) = CreateComponent();
+        var (root, component) = CreateComponent();
         component._Ready();
 
         // Act
@@ -178,13 +196,15 @@ public class HealthComponentTests
         // Assert
         result.ShouldBe(0f);
         component.CurrentHealth.ShouldBe(100f);
+
+        root.Free();
     }
 
     [TestCase]
     public void MaxHealth_WhenProviderAssigned_ShouldUseProviderValue()
     {
         // Arrange
-        var (_, component) = CreateComponent(baseMaxHealth: 100f);
+        var (root, component) = CreateComponent(baseMaxHealth: 100f);
         component.MaxHealthProvider = () => 200f;
 
         // Act
@@ -192,13 +212,15 @@ public class HealthComponentTests
 
         // Assert
         max.ShouldBe(200f);
+
+        root.Free();
     }
 
     [TestCase]
     public void MaxHealth_WhenProviderNull_ShouldUseBaseMaxHealth()
     {
         // Arrange
-        var (_, component) = CreateComponent(baseMaxHealth: 100f);
+        var (root, component) = CreateComponent(baseMaxHealth: 100f);
         component.MaxHealthProvider = null;
 
         // Act
@@ -206,52 +228,60 @@ public class HealthComponentTests
 
         // Assert
         max.ShouldBe(100f);
+
+        root.Free();
     }
 
     [TestCase]
     public void StartingHealth_WhenNegative_ShouldInitializeToMaxHealth()
     {
         // Arrange
-        var (_, component) = CreateComponent(baseMaxHealth: 100f, startingHealth: -1f);
+        var (root, component) = CreateComponent(baseMaxHealth: 100f, startingHealth: -1f);
 
         // Act
         component._Ready();
 
         // Assert
         component.CurrentHealth.ShouldBe(100f);
+
+        root.Free();
     }
 
     [TestCase]
     public void StartingHealth_WhenPositive_ShouldInitializeToSpecifiedValue()
     {
         // Arrange
-        var (_, component) = CreateComponent(baseMaxHealth: 100f, startingHealth: 50f);
+        var (root, component) = CreateComponent(baseMaxHealth: 100f, startingHealth: 50f);
 
         // Act
         component._Ready();
 
         // Assert
         component.CurrentHealth.ShouldBe(50f);
+
+        root.Free();
     }
 
     [TestCase]
     public void StartingHealth_WhenExceedsMax_ShouldClampToMax()
     {
         // Arrange
-        var (_, component) = CreateComponent(baseMaxHealth: 100f, startingHealth: 200f);
+        var (root, component) = CreateComponent(baseMaxHealth: 100f, startingHealth: 200f);
 
         // Act
         component._Ready();
 
         // Assert
         component.CurrentHealth.ShouldBe(100f);
+
+        root.Free();
     }
 
     [TestCase]
     public void Serialize_ShouldReturnCorrectDictionary()
     {
         // Arrange
-        var (_, component) = CreateComponent(startingHealth: 70f);
+        var (root, component) = CreateComponent(startingHealth: 70f);
         component._Ready();
 
         // Act
@@ -262,13 +292,15 @@ public class HealthComponentTests
         data.ContainsKey("max_health").ShouldBeTrue();
         data["current_health"].As<float>().ShouldBe(70f);
         data["max_health"].As<float>().ShouldBe(100f);
+
+        root.Free();
     }
 
     [TestCase]
     public void Deserialize_WhenValidData_ShouldRestoreState()
     {
         // Arrange
-        var (_, component) = CreateComponent();
+        var (root, component) = CreateComponent();
         component._Ready();
 
         var data = new Godot.Collections.Dictionary<string, Variant>
@@ -283,13 +315,15 @@ public class HealthComponentTests
 
         // Assert
         component.CurrentHealth.ShouldBe(50f);
+
+        root.Free();
     }
 
     [TestCase]
     public void Deserialize_WhenHealthExceedsMax_ShouldClampToMax()
     {
         // Arrange
-        var (_, component) = CreateComponent();
+        var (root, component) = CreateComponent();
 
         var data = new Godot.Collections.Dictionary<string, Variant>
         {
@@ -302,13 +336,15 @@ public class HealthComponentTests
 
         // Assert
         component.CurrentHealth.ShouldBe(100f);
+
+        root.Free();
     }
 
     [TestCase]
     public void Deserialize_WhenKeysMissing_ShouldUseDefaults()
     {
         // Arrange
-        var (_, component) = CreateComponent();
+        var (root, component) = CreateComponent();
 
         var data = new Godot.Collections.Dictionary<string, Variant>();
 
@@ -317,13 +353,15 @@ public class HealthComponentTests
 
         // Assert
         component.CurrentHealth.ShouldBe(0f);
+
+        root.Free();
     }
 
     [TestCase]
     public void Deserialize_IsDeadKey_ShouldBeIgnored()
     {
         // Arrange
-        var (_, component) = CreateComponent();
+        var (root, component) = CreateComponent();
 
         var data = new Godot.Collections.Dictionary<string, Variant> { { "current_health", 50f } };
 
@@ -333,69 +371,81 @@ public class HealthComponentTests
         // Assert
         component.CurrentHealth.ShouldBe(50f);
         component.IsDead.ShouldBeFalse();
+
+        root.Free();
     }
 
     [TestCase]
     public void IsDead_WhenHealthAboveZero_ShouldBeFalse()
     {
         // Arrange
-        var (_, component) = CreateComponent(startingHealth: 50f);
+        var (root, component) = CreateComponent(startingHealth: 50f);
         component._Ready();
 
         // Act & Assert
         component.IsDead.ShouldBeFalse();
+
+        root.Free();
     }
 
     [TestCase]
     public void IsDead_WhenHealthZero_ShouldBeTrue()
     {
         // Arrange
-        var (_, component) = CreateComponent(startingHealth: 0f);
+        var (root, component) = CreateComponent(startingHealth: 0f);
         component._Ready();
 
         // Act & Assert
         component.IsDead.ShouldBeTrue();
+
+        root.Free();
     }
 
     [TestCase]
     public void HealthFraction_ShouldReturnRatioOfCurrentToMax()
     {
         // Arrange
-        var (_, component) = CreateComponent(startingHealth: 30f);
+        var (root, component) = CreateComponent(startingHealth: 30f);
         component._Ready();
 
         // Act & Assert
         component.HealthFraction.ShouldBe(0.3f);
+
+        root.Free();
     }
 
     [TestCase]
     public void HealthFraction_WhenDead_ShouldReturnZero()
     {
         // Arrange
-        var (_, component) = CreateComponent(startingHealth: 0f);
+        var (root, component) = CreateComponent(startingHealth: 0f);
         component._Ready();
 
         // Act & Assert
         component.HealthFraction.ShouldBe(0f);
+
+        root.Free();
     }
 
     [TestCase]
     public void HealthFraction_WhenMaxHealthIsZero_ShouldReturnZero()
     {
         // Arrange
-        var (_, component) = CreateComponent(baseMaxHealth: 0f);
+        var (root, component) = CreateComponent(baseMaxHealth: 0f);
         component.MaxHealthProvider = () => 0f;
         component._Ready();
 
         // Act & Assert
         component.HealthFraction.ShouldBe(0f);
+
+        root.Free();
     }
 
     [TestCase]
     public void RefreshMaxHealth_WhenCurrentWithinMax_ShouldEmitSignalsAndReturnZero()
     {
         // Arrange
-        var (_, component) = CreateComponent(baseMaxHealth: 100f, startingHealth: 50f);
+        var (root, component) = CreateComponent(baseMaxHealth: 100f, startingHealth: 50f);
         component._Ready();
 
         float? receivedMax = null;
@@ -416,13 +466,15 @@ public class HealthComponentTests
         receivedMax.ShouldBe(100f);
         receivedChangedCurrent.ShouldBe(50f);
         receivedChangedMax.ShouldBe(100f);
+
+        root.Free();
     }
 
     [TestCase]
     public void RefreshMaxHealth_WhenCurrentExceedsMax_ShouldClampAndReturnAmountClamped()
     {
         // Arrange
-        var (_, component) = CreateComponent(baseMaxHealth: 100f, startingHealth: 100f);
+        var (root, component) = CreateComponent(baseMaxHealth: 100f, startingHealth: 100f);
         component._Ready();
         component.MaxHealthProvider = () => 60f;
 
@@ -432,13 +484,15 @@ public class HealthComponentTests
         // Assert
         clamped.ShouldBe(40f);
         component.CurrentHealth.ShouldBe(60f);
+
+        root.Free();
     }
 
     [TestCase]
     public void SetBaseMaxHealth_ShouldUpdateBaseAndReturnNewMax()
     {
         // Arrange
-        var (_, component) = CreateComponent(baseMaxHealth: 100f, startingHealth: 50f);
+        var (root, component) = CreateComponent(baseMaxHealth: 100f, startingHealth: 50f);
         component._Ready();
 
         // Act
@@ -447,13 +501,15 @@ public class HealthComponentTests
         // Assert
         newMax.ShouldBe(200f);
         component.BaseMaxHealth.ShouldBe(200f);
+
+        root.Free();
     }
 
     [TestCase]
     public void SetBaseMaxHealth_ShouldEnforceMinimumOfOne()
     {
         // Arrange
-        var (_, component) = CreateComponent();
+        var (root, component) = CreateComponent();
         component._Ready();
 
         // Act
@@ -462,13 +518,15 @@ public class HealthComponentTests
         // Assert
         newMax.ShouldBe(1f);
         component.BaseMaxHealth.ShouldBe(1f);
+
+        root.Free();
     }
 
     [TestCase]
     public void SetBaseMaxHealth_WithClampCurrent_ShouldClampHealth()
     {
         // Arrange
-        var (_, component) = CreateComponent(baseMaxHealth: 100f, startingHealth: 80f);
+        var (root, component) = CreateComponent(baseMaxHealth: 100f, startingHealth: 80f);
         component._Ready();
 
         // Act
@@ -476,13 +534,15 @@ public class HealthComponentTests
 
         // Assert
         component.CurrentHealth.ShouldBe(50f);
+
+        root.Free();
     }
 
     [TestCase]
     public void SetBaseMaxHealth_WithoutClampCurrent_ShouldNotClampHealth()
     {
         // Arrange
-        var (_, component) = CreateComponent(baseMaxHealth: 100f, startingHealth: 80f);
+        var (root, component) = CreateComponent(baseMaxHealth: 100f, startingHealth: 80f);
         component._Ready();
 
         // Act
@@ -490,13 +550,15 @@ public class HealthComponentTests
 
         // Assert
         component.CurrentHealth.ShouldBe(80f);
+
+        root.Free();
     }
 
     [TestCase]
     public void SetBaseMaxHealth_ShouldEmitMaxHealthChangedSignal()
     {
         // Arrange
-        var (_, component) = CreateComponent();
+        var (root, component) = CreateComponent();
         component._Ready();
 
         float? receivedMax = null;
@@ -507,13 +569,15 @@ public class HealthComponentTests
 
         // Assert
         receivedMax.ShouldBe(200f);
+
+        root.Free();
     }
 
     [TestCase]
     public void Ready_ShouldEmitMaxHealthChangedSignal()
     {
         // Arrange
-        var (_, component) = CreateComponent(baseMaxHealth: 100f, startingHealth: 70f);
+        var (root, component) = CreateComponent(baseMaxHealth: 100f, startingHealth: 70f);
         float? receivedMax = null;
         component.MaxHealthChanged += max => receivedMax = max;
 
@@ -522,13 +586,15 @@ public class HealthComponentTests
 
         // Assert
         receivedMax.ShouldBe(100f);
+
+        root.Free();
     }
 
     [TestCase]
     public void Ready_ShouldEmitHealthChangedSignal()
     {
         // Arrange
-        var (_, component) = CreateComponent(baseMaxHealth: 100f, startingHealth: 70f);
+        var (root, component) = CreateComponent(baseMaxHealth: 100f, startingHealth: 70f);
         float? receivedCurrent = null;
         float? receivedMax = null;
         component.HealthChanged += (current, max) =>
@@ -543,13 +609,15 @@ public class HealthComponentTests
         // Assert
         receivedCurrent.ShouldBe(70f);
         receivedMax.ShouldBe(100f);
+
+        root.Free();
     }
 
     [TestCase]
     public void Ready_WithDefaultStartingHealth_ShouldEmitHealthChangedAtMax()
     {
         // Arrange
-        var (_, component) = CreateComponent(baseMaxHealth: 100f, startingHealth: -1f);
+        var (root, component) = CreateComponent(baseMaxHealth: 100f, startingHealth: -1f);
         float? receivedCurrent = null;
         component.HealthChanged += (current, _) => receivedCurrent = current;
 
@@ -558,13 +626,15 @@ public class HealthComponentTests
 
         // Assert
         receivedCurrent.ShouldBe(100f);
+
+        root.Free();
     }
 
     [TestCase]
     public void IsInvulnerable_WhenSetViaExport_ShouldBlockDamage()
     {
         // Arrange
-        var (_, component) = CreateComponent();
+        var (root, component) = CreateComponent();
         component._Ready();
         component.SetInvulnerable(true);
 
@@ -574,13 +644,15 @@ public class HealthComponentTests
         // Assert
         result.ShouldBe(0f);
         component.CurrentHealth.ShouldBe(100f);
+
+        root.Free();
     }
 
     [TestCase]
     public void AllowRevival_WhenSetViaExport_ShouldEnableHealingWhenDead()
     {
         // Arrange
-        var (_, component) = CreateComponent(startingHealth: 0f);
+        var (root, component) = CreateComponent(startingHealth: 0f);
         component._Ready();
         component.Set(HealthComponent.PropertyName.AllowRevival, true);
 
@@ -590,13 +662,15 @@ public class HealthComponentTests
         // Assert
         result.ShouldBe(50f);
         component.CurrentHealth.ShouldBe(50f);
+
+        root.Free();
     }
 
     [TestCase]
     public void Damage_ShouldEmitHealthDecreasedSignal()
     {
         // Arrange
-        var (_, component) = CreateComponent();
+        var (root, component) = CreateComponent();
         component._Ready();
 
         float? receivedAmount = null;
@@ -613,13 +687,15 @@ public class HealthComponentTests
         // Assert
         receivedAmount.ShouldBe(30f);
         receivedCurrent.ShouldBe(70f);
+
+        root.Free();
     }
 
     [TestCase]
     public void Damage_ShouldEmitHealthChangedSignal()
     {
         // Arrange
-        var (_, component) = CreateComponent();
+        var (root, component) = CreateComponent();
         component._Ready();
 
         float? receivedCurrent = null;
@@ -636,13 +712,15 @@ public class HealthComponentTests
         // Assert
         receivedCurrent.ShouldBe(70f);
         receivedMax.ShouldBe(100f);
+
+        root.Free();
     }
 
     [TestCase]
     public void Damage_WhenHealthReachesZero_ShouldEmitHealthDepletedSignal()
     {
         // Arrange
-        var (_, component) = CreateComponent(startingHealth: 10f);
+        var (root, component) = CreateComponent(startingHealth: 10f);
         component._Ready();
 
         var depletedFired = false;
@@ -653,13 +731,15 @@ public class HealthComponentTests
 
         // Assert
         depletedFired.ShouldBeTrue();
+
+        root.Free();
     }
 
     [TestCase]
     public void Heal_ShouldEmitHealthIncreasedSignal()
     {
         // Arrange
-        var (_, component) = CreateComponent(startingHealth: 30f);
+        var (root, component) = CreateComponent(startingHealth: 30f);
         component._Ready();
 
         float? receivedAmount = null;
@@ -676,13 +756,15 @@ public class HealthComponentTests
         // Assert
         receivedAmount.ShouldBe(20f);
         receivedCurrent.ShouldBe(50f);
+
+        root.Free();
     }
 
     [TestCase]
     public void Heal_WhenReviving_ShouldEmitHealthRestoredSignal()
     {
         // Arrange
-        var (_, component) = CreateComponent(startingHealth: 0f);
+        var (root, component) = CreateComponent(startingHealth: 0f);
         component._Ready();
         component.Set(HealthComponent.PropertyName.AllowRevival, true);
 
@@ -694,13 +776,15 @@ public class HealthComponentTests
 
         // Assert
         restoredFired.ShouldBeTrue();
+
+        root.Free();
     }
 
     [TestCase]
     public void SignalOrder_Damage_ShouldBeDecreasedThenChanged()
     {
         // Arrange
-        var (_, component) = CreateComponent();
+        var (root, component) = CreateComponent();
         component._Ready();
 
         var signalOrder = new List<string>();
@@ -714,13 +798,15 @@ public class HealthComponentTests
         signalOrder.Count.ShouldBe(2);
         signalOrder[0].ShouldBe("health_decreased");
         signalOrder[1].ShouldBe("health_changed");
+
+        root.Free();
     }
 
     [TestCase]
     public void SignalOrder_Damage_WhenHealthReachesZero_ShouldBeDecreasedThenChangedThenDepleted()
     {
         // Arrange
-        var (_, component) = CreateComponent(startingHealth: 30f);
+        var (root, component) = CreateComponent(startingHealth: 30f);
         component._Ready();
 
         var signalOrder = new List<string>();
@@ -736,6 +822,8 @@ public class HealthComponentTests
         signalOrder[0].ShouldBe("health_decreased");
         signalOrder[1].ShouldBe("health_changed");
         signalOrder[2].ShouldBe("health_depleted");
+
+        root.Free();
     }
 
     [TestCase]
@@ -759,6 +847,8 @@ public class HealthComponentTests
         signalOrder[0].ShouldBe("health_increased");
         signalOrder[1].ShouldBe("health_changed");
         signalOrder[2].ShouldBe("health_restored");
+
+        root.Free();
     }
 
     [TestCase]
@@ -779,13 +869,15 @@ public class HealthComponentTests
 
         // Assert
         receivedSource.ShouldBe(source);
+
+        root.Free();
     }
 
     [TestCase]
     public void SetBaseMaxHealth_WithMaxHealthProvider_ShouldUseProviderMax()
     {
         // Arrange
-        var (_, component) = CreateComponent(baseMaxHealth: 100f);
+        var (root, component) = CreateComponent(baseMaxHealth: 100f);
         component._Ready();
         component.MaxHealthProvider = () => 200f;
 
@@ -795,13 +887,15 @@ public class HealthComponentTests
         // Assert
         newMax.ShouldBe(200f);
         component.BaseMaxHealth.ShouldBe(50f);
+
+        root.Free();
     }
 
     [TestCase]
     public void Deserialize_ShouldEmitHealthChangedSignal()
     {
         // Arrange
-        var (_, component) = CreateComponent(baseMaxHealth: 100f);
+        var (root, component) = CreateComponent(baseMaxHealth: 100f);
         component._Ready();
 
         float? receivedCurrent = null;
@@ -820,13 +914,15 @@ public class HealthComponentTests
         // Assert
         receivedCurrent.ShouldBe(50f);
         receivedMax.ShouldBe(100f);
+
+        root.Free();
     }
 
     [TestCase]
     public void RefreshMaxHealth_WhenNothingChanged_ShouldStillEmitSignals()
     {
         // Arrange
-        var (_, component) = CreateComponent(baseMaxHealth: 100f, startingHealth: 50f);
+        var (root, component) = CreateComponent(baseMaxHealth: 100f, startingHealth: 50f);
         component._Ready();
 
         var maxHealthChangedFired = false;
@@ -840,5 +936,7 @@ public class HealthComponentTests
         // Assert
         maxHealthChangedFired.ShouldBeTrue();
         healthChangedFired.ShouldBeTrue();
+
+        root.Free();
     }
 }

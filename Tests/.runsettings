@@ -10,5 +10,9 @@
   <GdUnit4>
     <DisplayName>FullyQualifiedName</DisplayName>
     <CaptureStdOut>true</CaptureStdOut>
+    <!-- Run the Godot test host without a display or renderer. The suites don't render, and the
+         X11/GL stack (software Mesa on CI) can make the first launch on a fresh machine slower
+         than the adapter's fixed 10 s connect timeout. -->
+    <Parameters>--headless</Parameters>
   </GdUnit4>
 </RunSettings>

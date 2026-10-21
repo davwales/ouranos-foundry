@@ -356,7 +356,7 @@ public class GroupedHealthManagerTests
     public void MonitorHealthComponent_Null_ShouldBeNoOp()
     {
         // Arrange
-        var (_, _, _, manager) = CreateManager();
+        var (root, _, _, manager) = CreateManager();
         manager._Ready();
 
         var container = GetContainer(manager);
@@ -368,6 +368,8 @@ public class GroupedHealthManagerTests
 
         // Assert
         container.GetChildCount().ShouldBe(initialCount);
+
+        root.Free();
     }
 
     [TestCase]
