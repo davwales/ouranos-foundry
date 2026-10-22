@@ -35,7 +35,7 @@ jobs:
         run: GODOT_BIN="$GODOT" Automation/consumer-smoke.sh submodule "$PWD" addon
       - name: Smoke test (zip install)
         run: GODOT_BIN="$GODOT" Automation/consumer-smoke.sh zip dist/ouranos_foundry.zip
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ouranos_foundry-addon
           path: dist/ouranos_foundry.zip
