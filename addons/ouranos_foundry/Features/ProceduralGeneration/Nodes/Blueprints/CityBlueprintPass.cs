@@ -83,6 +83,7 @@ public partial class CityBlueprintPass : BlueprintPass
     )
     {
         var placeRadius = config.MinRegionSize;
+        var worldMax = new Vector2I(worldState.Size - 1, worldState.Size - 1);
 
         for (var attempt = 0; attempt < config.CityPositionAttempts; attempt++)
         {
@@ -92,7 +93,9 @@ public partial class CityBlueprintPass : BlueprintPass
                 (int)(Mathf.Cos(angle) * distance),
                 (int)(Mathf.Sin(angle) * distance)
             );
-            var position = region.Center + offset;
+            // Keep cities inside the world. A city can still land outside its own Voronoi
+            // cell when MinRegionSize is large relative to the region spacing.
+            var position = (region.Center + offset).Clamp(Vector2I.Zero, worldMax);
 
             var tooClose = false;
             foreach (var existing in existingCities)

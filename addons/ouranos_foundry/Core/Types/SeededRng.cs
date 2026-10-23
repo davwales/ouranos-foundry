@@ -50,16 +50,23 @@ public sealed class SeededRng(ulong seed, ulong salt = 0)
     }
 
     /// <summary>
-    /// Returns a random integer in [minValue, maxValue) using rejection sampling.
+    /// Returns a random integer in [minValue, maxValue). Like <c>System.Random</c>, returns
+    /// <paramref name="minValue"/> when the range is empty (<c>minValue == maxValue</c>),
+    /// without advancing the stream, and throws when <c>minValue &gt; maxValue</c>.
     /// </summary>
     public int Next(int minValue, int maxValue)
     {
-        if (minValue >= maxValue)
+        if (minValue > maxValue)
         {
             throw new System.ArgumentOutOfRangeException(
-                nameof(maxValue),
-                "maxValue must be greater than minValue."
+                nameof(minValue),
+                "minValue must not be greater than maxValue."
             );
+        }
+
+        if (minValue == maxValue)
+        {
+            return minValue;
         }
 
         var range = (ulong)(maxValue - minValue);

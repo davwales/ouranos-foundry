@@ -30,10 +30,11 @@ public sealed class GenerationDefinitions
 
     public GenerationDefinitions(ProceduralGenerationConfig config)
     {
-        Biomes = new([.. config.BiomeDefinitions]);
-        CitySizes = new([.. config.CitySizeDefinitions]);
-        PoiTypes = new([.. config.PoiTypeDefinitions]);
-        RoadTypes = new([.. config.RoadTypeDefinitions]);
+        // Empty slots are skipped; Validate() reports them.
+        Biomes = new([.. config.BiomeDefinitions.OfType<BiomeDefinition>()]);
+        CitySizes = new([.. config.CitySizeDefinitions.OfType<CitySizeDefinition>()]);
+        PoiTypes = new([.. config.PoiTypeDefinitions.OfType<PoiTypeDefinition>()]);
+        RoadTypes = new([.. config.RoadTypeDefinitions.OfType<RoadTypeDefinition>()]);
         _biomes = ById(Biomes, d => d.Id);
         _citySizes = ById(CitySizes, d => d.Id);
         _poiTypes = ById(PoiTypes, d => d.Id);
@@ -45,7 +46,7 @@ public sealed class GenerationDefinitions
         var sizeIds = Biomes
             .Select(b => b.CitySizeDistribution)
             .OfType<CitySizeDistribution>()
-            .SelectMany(d => d.Entries.Select(e => e.SizeId));
+            .SelectMany(d => d.Entries.OfType<WeightedSizeEntry>().Select(e => e.SizeId));
         string[] roadTypeIds = [config.HubRoadTypeId, config.DefaultRoadTypeId];
         UnknownIds =
         [
@@ -81,7 +82,7 @@ public sealed class GenerationDefinitions
 
     /// <summary>
     /// Road type and city size Ids the config refers to that no definition has. Lookups of
-    /// them return the Default. <c>WorldGenerator</c> warns about each one.
+    /// them return the Default. <c>ProceduralGenerationConfig.GetWarnings</c> lists each one.
     /// </summary>
     public IReadOnlyList<string> UnknownIds { get; }
 

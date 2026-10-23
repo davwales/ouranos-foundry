@@ -1,6 +1,9 @@
 #nullable enable
 
+using System.Collections.Generic;
+using System.Linq;
 using Godot;
+using Ouranos.Foundry.Features.ProceduralGeneration.Utils;
 
 namespace Ouranos.Foundry.Features.ProceduralGeneration.Resources;
 
@@ -26,6 +29,16 @@ public partial class CitySizeDefinition : Resource
     /// </summary>
     [Export]
     public Godot.Collections.Dictionary<string, Variant> CustomData { get; set; } = [];
+
+    /// <summary>
+    /// Returns a message for each invalid value. Empty when the definition is valid.
+    /// </summary>
+    public virtual IEnumerable<string> Validate()
+    {
+        var owner = $"{nameof(CitySizeDefinition)} '{Id}'";
+        string?[] messages = [ConfigValidation.AtLeast(owner, nameof(Radius), Radius, 0)];
+        return messages.OfType<string>();
+    }
 
     public static readonly CitySizeDefinition Default = new()
     {

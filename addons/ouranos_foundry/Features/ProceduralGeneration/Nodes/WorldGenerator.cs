@@ -85,6 +85,9 @@ public partial class WorldGenerator : Node
     private readonly Dictionary<Vector2I, CancellationTokenSource> _inFlightChunks = [];
     private SemaphoreSlim _chunkJobSlots = new(1);
 
+    private const string MissingConfigMessage =
+        "Config is not set. Assign a ProceduralGenerationConfig in the inspector.";
+
     // Defaults when no ChunkConfig is assigned.
     private ChunkConfig ResolvedChunkConfig => Config?.ChunkConfig ?? new();
 
@@ -129,8 +132,10 @@ public partial class WorldGenerator : Node
     }
 
     /// <summary>
-    /// Runs the blueprint passes. On failure the partial blueprint is cleared,
-    /// <c>BlueprintFailed</c> is emitted and false is returned.
+    /// Validates the setup, then runs the blueprint passes. When <c>Validate()</c> reports
+    /// anything, no pass runs and <c>BlueprintFailed("WorldGenerator", messages)</c> is
+    /// emitted. When a pass fails, the partial blueprint is discarded and
+    /// <c>BlueprintFailed</c> is emitted. Either way it returns false.
     /// </summary>
     public bool GenerateBlueprint()
     {
@@ -139,23 +144,18 @@ public partial class WorldGenerator : Node
             return true;
         }
 
-        if (Config is null)
+        var errors = Validate();
+        if (Config is null || errors.Count > 0)
         {
-            return FailBlueprint(
-                nameof(WorldGenerator),
-                "Config is not set. Assign a ProceduralGenerationConfig in the inspector."
-            );
+            return FailBlueprint(nameof(WorldGenerator), string.Join("\n", errors));
         }
 
         Log("Generating world blueprint...", LogLevel.Basic);
 
-        ValidateConfig(Config);
         Definitions = new GenerationDefinitions(Config);
-        foreach (var id in Definitions.UnknownIds)
+        foreach (var warning in Config.GetWarnings(Definitions))
         {
-            GD.PushWarning(
-                $"WorldGenerator: the config refers to unknown {id}. Using the default."
-            );
+            GD.PushWarning($"WorldGenerator: {warning}");
         }
 
         WorldState.ChunkSizeTiles = ResolvedChunkConfig.ChunkSizeTiles;
@@ -172,6 +172,21 @@ public partial class WorldGenerator : Node
         Log("World blueprint complete.", LogLevel.Basic);
         EmitSignal(SignalName.BlueprintGenerated);
         return true;
+    }
+
+    /// <summary>
+    /// Returns a message for each problem that stops <c>GenerateBlueprint</c>: a missing
+    /// <c>Config</c>, or what <c>Config.Validate()</c> and <c>WorldState.Validate()</c>
+    /// report. Empty when generation can run. Override to add checks of your own.
+    /// </summary>
+    public virtual IReadOnlyList<string> Validate()
+    {
+        if (Config is null)
+        {
+            return [MissingConfigMessage];
+        }
+
+        return [.. Config.Validate(), .. WorldState.Validate()];
     }
 
     private bool FailBlueprint(string passName, string error, Exception? exception = null)
@@ -361,37 +376,6 @@ public partial class WorldGenerator : Node
     private void OnChunkUnloadRequested(Vector2I chunkCoords)
     {
         UnloadChunk(chunkCoords);
-    }
-
-    private static void ValidateConfig(ProceduralGenerationConfig config)
-    {
-        if (config.BiomeDefinitions.Count == 0)
-        {
-            GD.PrintErr(
-                "WorldGenerator: BiomeDefinitions is empty. Add biome definitions to the config."
-            );
-        }
-
-        if (config.CitySizeDefinitions.Count == 0)
-        {
-            GD.PrintErr(
-                "WorldGenerator: CitySizeDefinitions is empty. Add city size definitions to the config."
-            );
-        }
-
-        if (config.PoiTypeDefinitions.Count == 0)
-        {
-            GD.PrintErr(
-                "WorldGenerator: PoiTypeDefinitions is empty. Add POI type definitions to the config."
-            );
-        }
-
-        if (config.RoadTypeDefinitions.Count == 0)
-        {
-            GD.PrintErr(
-                "WorldGenerator: RoadTypeDefinitions is empty. Add road type definitions to the config."
-            );
-        }
     }
 
     private void Log(string message, LogLevel level)

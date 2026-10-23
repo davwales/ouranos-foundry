@@ -1,3 +1,4 @@
+using System;
 using GdUnit4;
 using Ouranos.Foundry.Core.Types;
 using Shouldly;
@@ -78,6 +79,33 @@ public class SeededRngTests
             var value = rng.Next(5, 15);
             value.ShouldBeInRange(5, 14);
         }
+    }
+
+    [TestCase(0)]
+    [TestCase(7)]
+    [TestCase(-3)]
+    public void Next_WhenMinEqualsMax_ReturnsMinWithoutAdvancing(int value)
+    {
+        // Arrange
+        var rng = new SeededRng(42);
+        var untouched = new SeededRng(42);
+
+        // Act
+        var result = rng.Next(value, value);
+
+        // Assert
+        result.ShouldBe(value);
+        rng.Next().ShouldBe(untouched.Next());
+    }
+
+    [TestCase]
+    public void Next_WhenMinExceedsMax_Throws()
+    {
+        // Arrange
+        var rng = new SeededRng(42);
+
+        // Act & Assert
+        Should.Throw<ArgumentOutOfRangeException>(() => rng.Next(5, 4));
     }
 
     [TestCase]
