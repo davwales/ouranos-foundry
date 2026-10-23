@@ -24,7 +24,7 @@ public static class StableId
     /// </summary>
     public static Guid Create(ulong seed, string kind, ulong index)
     {
-        var state = SeededRng.Mix(SeededRng.Mix(seed) ^ HashKind(kind));
+        var state = SeededRng.Mix(SeededRng.Mix(seed) ^ Hash(kind));
         return FromState(SeededRng.Mix(state ^ index));
     }
 
@@ -63,11 +63,14 @@ public static class StableId
         return SeededRng.Mix(SeededRng.Mix(low) ^ high);
     }
 
-    // FNV-1a: string.GetHashCode() is randomized per process, so it can't be used here.
-    private static ulong HashKind(string kind)
+    /// <summary>
+    /// Hashes a string with 64-bit FNV-1a. Unlike <c>string.GetHashCode()</c>, which is
+    /// randomized per process, the result is the same on every run and platform.
+    /// </summary>
+    public static ulong Hash(string value)
     {
         var hash = FnvOffsetBasis;
-        foreach (var c in kind)
+        foreach (var c in value)
         {
             hash = (hash ^ c) * FnvPrime;
         }

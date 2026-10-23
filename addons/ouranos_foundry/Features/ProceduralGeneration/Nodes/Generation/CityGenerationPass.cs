@@ -1,7 +1,7 @@
 #nullable enable
 
-using System;
 using Godot;
+using Ouranos.Foundry.Core.Attributes;
 using Ouranos.Foundry.Features.ProceduralGeneration.Resources;
 using Ouranos.Foundry.Features.ProceduralGeneration.Types;
 
@@ -9,44 +9,22 @@ namespace Ouranos.Foundry.Features.ProceduralGeneration.Nodes.Generation;
 
 /// <summary>
 /// Generates city tiles and structures within chunks that overlap with cities.
-/// Marks chunk type as City or Mixed when cities are present.
 /// </summary>
+[RequiresPasses(typeof(TerrainGenerationPass))]
 [GlobalClass]
 public partial class CityGenerationPass : GenerationPass
 {
-    [Export]
-    public ProceduralGenerationConfig? ProcGenConfig { get; private set; }
-
-    public override void RunPass(WorldBlueprint worldBlueprint, ChunkData chunk)
+    public override void RunPass(GenerationContext ctx, ChunkData chunk)
     {
-        if (worldBlueprint is not WorldState worldState)
-        {
-            throw new InvalidOperationException($"{GetType().Name} requires a WorldState.");
-        }
+        var (config, worldState) = (ctx.Config, ctx.World);
 
         if (!chunk.HasAnyCity)
         {
             return;
         }
 
-        if (ProcGenConfig is null)
-        {
-            throw new InvalidOperationException(
-                $"{GetType().Name}: ProceduralGenerationConfig is not assigned. Add it in the inspector."
-            );
-        }
-        var config = ProcGenConfig;
         var terrain = config.TerrainConfig ?? new TerrainConfig();
         var tileSize = chunk.Descriptor.ChunkSizeTiles;
-
-        if (chunk.HasAnyRoad)
-        {
-            chunk.Descriptor = chunk.Descriptor with { Type = ChunkType.Mixed };
-        }
-        else
-        {
-            chunk.Descriptor = chunk.Descriptor with { Type = ChunkType.City };
-        }
 
         foreach (var cityId in chunk.CityIds)
         {

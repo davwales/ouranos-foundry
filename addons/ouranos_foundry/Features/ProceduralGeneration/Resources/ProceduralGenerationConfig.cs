@@ -45,6 +45,12 @@ public partial class ProceduralGenerationConfig : Resource
     public string HubRoadTypeId { get; set; } = "highway";
 
     /// <summary>
+    /// Road type for the roads that connect cities within a region.
+    /// </summary>
+    [Export]
+    public string DefaultRoadTypeId { get; set; } = "dirt";
+
+    /// <summary>
     /// Looks up a BiomeDefinition by ID (case-insensitive).
     /// Falls back to Default on miss with a warning.
     /// </summary>

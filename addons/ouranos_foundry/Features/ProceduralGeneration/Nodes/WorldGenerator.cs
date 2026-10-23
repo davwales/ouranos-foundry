@@ -29,9 +29,6 @@ public partial class WorldGenerator : Node
     public WorldState WorldState { get; private set; } = new();
 
     [Export]
-    public ChunkData InitialChunkData { get; private set; } = new();
-
-    [Export]
     public ChunkManager? ChunkManager { get; private set; }
 
     [Export]
@@ -79,7 +76,6 @@ public partial class WorldGenerator : Node
     private readonly Dictionary<Vector2I, ChunkData> _generatedChunks = [];
     private readonly Dictionary<Vector2I, CancellationTokenSource> _inFlightChunks = [];
     private SemaphoreSlim _chunkJobSlots = new(1);
-    private List<GenerationPass> _cachedGenerationPasses = [];
 
     // Defaults when no ChunkConfig is assigned.
     private ChunkConfig ResolvedChunkConfig => Config?.ChunkConfig ?? new();
@@ -94,7 +90,6 @@ public partial class WorldGenerator : Node
         }
 
         _chunkJobSlots = new SemaphoreSlim(Math.Max(1, MaxConcurrentChunkJobs));
-        CacheGenerationPasses();
         GenerateBlueprint();
 
         if (ChunkManager is not null)
@@ -125,14 +120,6 @@ public partial class WorldGenerator : Node
         }
     }
 
-    private void CacheGenerationPasses()
-    {
-        if (GenerationPipeline is not null)
-        {
-            _cachedGenerationPasses = GenerationPipeline.GetPasses().ToList();
-        }
-    }
-
     /// <summary>
     /// Runs the blueprint passes. On failure the partial blueprint is cleared,
     /// <c>BlueprintFailed</c> is emitted and false is returned.
@@ -144,33 +131,24 @@ public partial class WorldGenerator : Node
             return true;
         }
 
+        if (Config is null)
+        {
+            return FailBlueprint(
+                nameof(WorldGenerator),
+                "Config is not set. Assign a ProceduralGenerationConfig in the inspector."
+            );
+        }
+
         Log("Generating world blueprint...", LogLevel.Basic);
 
-        ValidateConfig();
+        ValidateConfig(Config);
 
         WorldState.ChunkSizeTiles = ResolvedChunkConfig.ChunkSizeTiles;
 
-        if (BlueprintPipeline is not null)
+        if (BlueprintPipeline?.RunPasses(Config, WorldState, LogLevel) is { } failure)
         {
-            var failedPass = string.Empty;
-            var failure = string.Empty;
-            void OnPassFailed(string passName, string error)
-            {
-                failedPass = passName;
-                failure = error;
-            }
-
-            BlueprintPipeline.PassFailed += OnPassFailed;
-            var succeeded = BlueprintPipeline.RunPasses(WorldState);
-            BlueprintPipeline.PassFailed -= OnPassFailed;
-
-            if (!succeeded)
-            {
-                WorldState.Clear();
-                GD.PushError($"WorldGenerator: blueprint pass {failedPass} failed: {failure}");
-                EmitSignal(SignalName.BlueprintFailed, failedPass, failure);
-                return false;
-            }
+            WorldState.Clear();
+            return FailBlueprint(failure.PassName, failure.Error.Message, failure.Error);
         }
 
         WorldState.IsBlueprintGenerated = true;
@@ -179,6 +157,15 @@ public partial class WorldGenerator : Node
         Log("World blueprint complete.", LogLevel.Basic);
         EmitSignal(SignalName.BlueprintGenerated);
         return true;
+    }
+
+    private bool FailBlueprint(string passName, string error, Exception? exception = null)
+    {
+        GD.PushError(
+            $"WorldGenerator: blueprint pass {passName} failed: {exception?.ToString() ?? error}"
+        );
+        EmitSignal(SignalName.BlueprintFailed, passName, error);
+        return false;
     }
 
     /// <summary>
@@ -215,7 +202,8 @@ public partial class WorldGenerator : Node
     private async void OnChunkGenerationRequested(Vector2I chunkCoords)
     {
         if (
-            !WorldState.IsBlueprintGenerated
+            Config is null
+            || !WorldState.IsBlueprintGenerated
             || _generatedChunks.ContainsKey(chunkCoords)
             || _inFlightChunks.ContainsKey(chunkCoords)
         )
@@ -228,13 +216,13 @@ public partial class WorldGenerator : Node
 
         try
         {
-            var chunk = await GenerateChunkAsync(chunkCoords, job.Token);
+            var chunk = await GenerateChunkAsync(Config, chunkCoords, job.Token);
             if (IsCurrentJob(chunkCoords, job))
             {
                 _generatedChunks[chunkCoords] = chunk;
                 Log(
                     $"Chunk {chunkCoords} generated. Type: {chunk.Type}, "
-                        + $"Cities: {chunk.OverlappingCityIds.Count}, Roads: {chunk.OverlappingRoadIds.Count}",
+                        + $"Cities: {chunk.CityIds.Count}, Roads: {chunk.RoadIds.Count}",
                     LogLevel.Verbose
                 );
                 EmitSignal(SignalName.ChunkGenerated, chunkCoords, chunk);
@@ -271,27 +259,25 @@ public partial class WorldGenerator : Node
     }
 
     private async Task<ChunkData> GenerateChunkAsync(
+        ProceduralGenerationConfig config,
         Vector2I chunkCoords,
         CancellationToken cancellationToken
     )
     {
         var chunk = PrepareChunkData(chunkCoords);
-        var jobSlots = _chunkJobSlots;
+        var (pipeline, world, logLevel, jobSlots) = (
+            GenerationPipeline,
+            WorldState,
+            LogLevel,
+            _chunkJobSlots
+        );
 
         await jobSlots.WaitAsync(cancellationToken);
+        (string PassName, Exception Error)? failure;
         try
         {
-            await Task.Run(
-                () =>
-                {
-                    foreach (var pass in _cachedGenerationPasses)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        pass.RunPass(WorldState, chunk);
-                    }
-
-                    chunk.IsGenerated = true;
-                },
+            failure = await Task.Run(
+                () => pipeline?.RunPasses(config, world, logLevel, chunk, cancellationToken),
                 cancellationToken
             );
         }
@@ -300,15 +286,16 @@ public partial class WorldGenerator : Node
             jobSlots.Release();
         }
 
-        return chunk;
+        // Wraps the original exception so the log line keeps its stack trace.
+        return failure is { } f
+            ? throw new InvalidOperationException($"{f.PassName}: {f.Error.Message}", f.Error)
+            : chunk;
     }
 
     /// Must be called on the main thread since it reads from WorldState.
     private ChunkData PrepareChunkData(Vector2I chunkCoords)
     {
         var chunkSizeTiles = ResolvedChunkConfig.ChunkSizeTiles;
-        var chunk = InitialChunkData.Copy();
-
         var cityIds = WorldState.GetCitiesInChunk(chunkCoords);
         var roadIds = WorldState.GetRoadsInChunk(chunkCoords);
 
@@ -320,10 +307,11 @@ public partial class WorldGenerator : Node
             chunkSizeTiles
         );
 
-        chunk.Descriptor = descriptor;
-        chunk.TerrainData = new int[chunkSizeTiles * chunkSizeTiles];
-
-        return chunk;
+        return new ChunkData
+        {
+            Descriptor = descriptor,
+            TerrainData = new int[chunkSizeTiles * chunkSizeTiles],
+        };
     }
 
     private static ChunkType DetermineChunkType(bool hasCities, bool hasRoads)
@@ -342,36 +330,30 @@ public partial class WorldGenerator : Node
         UnloadChunk(chunkCoords);
     }
 
-    private void ValidateConfig()
+    private static void ValidateConfig(ProceduralGenerationConfig config)
     {
-        if (Config is null)
-        {
-            GD.PrintErr("WorldGenerator: ProceduralGenerationConfig is not set!");
-            return;
-        }
-
-        if (Config.BiomeDefinitions.Count == 0)
+        if (config.BiomeDefinitions.Count == 0)
         {
             GD.PrintErr(
                 "WorldGenerator: BiomeDefinitions is empty. Add biome definitions to the config."
             );
         }
 
-        if (Config.CitySizeDefinitions.Count == 0)
+        if (config.CitySizeDefinitions.Count == 0)
         {
             GD.PrintErr(
                 "WorldGenerator: CitySizeDefinitions is empty. Add city size definitions to the config."
             );
         }
 
-        if (Config.PoiTypeDefinitions.Count == 0)
+        if (config.PoiTypeDefinitions.Count == 0)
         {
             GD.PrintErr(
                 "WorldGenerator: PoiTypeDefinitions is empty. Add POI type definitions to the config."
             );
         }
 
-        if (Config.RoadTypeDefinitions.Count == 0)
+        if (config.RoadTypeDefinitions.Count == 0)
         {
             GD.PrintErr(
                 "WorldGenerator: RoadTypeDefinitions is empty. Add road type definitions to the config."

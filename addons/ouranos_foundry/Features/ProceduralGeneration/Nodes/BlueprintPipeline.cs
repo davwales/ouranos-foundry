@@ -1,11 +1,12 @@
 #nullable enable
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using Ouranos.Foundry.Core.Attributes;
+using Ouranos.Foundry.Core.Types;
 using Ouranos.Foundry.Features.ProceduralGeneration.Resources;
+using Ouranos.Foundry.Features.ProceduralGeneration.Types;
+using Ouranos.Foundry.Features.ProceduralGeneration.Utils;
 
 namespace Ouranos.Foundry.Features.ProceduralGeneration.Nodes;
 
@@ -22,7 +23,7 @@ public partial class BlueprintPipeline : Node
     [Signal]
     public delegate void PassFailedEventHandler(string passName, string error);
 
-    private List<BlueprintPass> _passes = [];
+    private PassSequence<BlueprintPass> _passes = new([]);
 
     public override void _Ready()
     {
@@ -31,7 +32,7 @@ public partial class BlueprintPipeline : Node
 
     private void CachePasses()
     {
-        _passes = [.. GetChildren().OfType<BlueprintPass>()];
+        _passes = new([.. GetChildren().OfType<BlueprintPass>()]);
     }
 
     /// <summary>
@@ -49,62 +50,36 @@ public partial class BlueprintPipeline : Node
     public void AddPass<T>()
         where T : BlueprintPass, new()
     {
-        var pass = new T();
-        AddChild(pass);
-        CachePasses();
-    }
-
-    /// <summary>
-    /// Validates that all passes declared via RequiresPassesAttribute have
-    /// already been visited in the pipeline order. Throws if a required
-    /// pass hasn't run yet.
-    /// </summary>
-    public void ValidateDependencies()
-    {
-        var violations = RequiresPassesValidator.FindViolations(_passes.Select(p => p.GetType()));
-        if (violations.Count > 0)
-        {
-            throw new InvalidOperationException(violations[0]);
-        }
+        AddPass(new T());
     }
 
     /// <summary>
     /// Runs the passes in child order. Stops at the first failure (a dependency
-    /// violation or a pass that throws), emits <c>PassFailed</c> and returns false.
+    /// violation or a pass that throws), emits <c>PassFailed</c> with the exception's
+    /// message and returns the failing pass and the exception. Returns null on success.
     /// </summary>
-    public bool RunPasses(WorldBlueprint worldBlueprint)
+    public (string PassName, Exception Error)? RunPasses(
+        ProceduralGenerationConfig config,
+        WorldState world,
+        LogLevel logLevel = LogLevel.Basic
+    )
     {
-        var violations = RequiresPassesValidator.FindViolations(_passes.Select(p => p.GetType()));
-        if (violations.Count > 0)
-        {
-            EmitSignal(SignalName.PassFailed, nameof(BlueprintPipeline), violations[0]);
-            return false;
-        }
-
-        foreach (var pass in _passes)
-        {
-            var passName = pass.GetType().Name;
-            try
+        var failure = _passes.Run(
+            nameof(BlueprintPipeline),
+            pass =>
             {
+                var passName = pass.GetType().Name;
                 EmitSignal(SignalName.PassStarted, passName);
-                pass.RunPass(worldBlueprint);
+                pass.RunPass(new GenerationContext(config, world, pass.RngSalt, logLevel));
                 EmitSignal(SignalName.PassCompleted, passName);
             }
-            catch (Exception e)
-            {
-                EmitSignal(SignalName.PassFailed, passName, e.Message);
-                return false;
-            }
+        );
+
+        if (failure is { } f)
+        {
+            EmitSignal(SignalName.PassFailed, f.PassName, f.Error.Message);
         }
 
-        return true;
-    }
-
-    /// <summary>
-    /// Convenience overload that accepts WorldState directly.
-    /// </summary>
-    public bool RunPasses(WorldState worldState)
-    {
-        return RunPasses((WorldBlueprint)worldState);
+        return failure;
     }
 }

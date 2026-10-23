@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using Ouranos.Foundry.Features.ProceduralGeneration.Nodes;
 using Ouranos.Foundry.Features.ProceduralGeneration.Resources;
+using Ouranos.Foundry.Features.ProceduralGeneration.Types;
 
 namespace Ouranos.Foundry.Tests.Features.ProceduralGeneration.Nodes;
 
@@ -26,7 +27,7 @@ public partial class GatedTestPass : GenerationPass
     /// <summary>The most RunPass calls that were ever in progress at once.</summary>
     public int MaxConcurrentRuns { get; private set; }
 
-    public override void RunPass(WorldBlueprint worldBlueprint, ChunkData chunk)
+    public override void RunPass(GenerationContext ctx, ChunkData chunk)
     {
         lock (_lock)
         {

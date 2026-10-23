@@ -13,7 +13,6 @@
 [ext_resource type="Script" uid="uid://3jqiqa8q10x" path="res://addons/ouranos_foundry/Features/ProceduralGeneration/Nodes/Generation/CityGenerationPass.cs" id="8_gen2"]
 [ext_resource type="Script" uid="uid://8ii5akq71n8" path="res://addons/ouranos_foundry/Features/ProceduralGeneration/Nodes/Generation/RoadGenerationPass.cs" id="9_gen3"]
 [ext_resource type="Script" uid="uid://bfno6cam80o" path="res://addons/ouranos_foundry/Features/ProceduralGeneration/Nodes/Generation/PoiPlacementPass.cs" id="10_gen4"]
-[ext_resource type="Script" uid="uid://cbdoqk8b3natw" path="res://addons/ouranos_foundry/Features/ProceduralGeneration/Resources/ChunkData.cs" id="13_cd"]
 [ext_resource type="Script" uid="uid://buweofm7g4xlh" path="res://addons/ouranos_foundry/Features/ProceduralGeneration/Nodes/Diagnostics/StainedGlassRegionDrawer.cs" id="14_sgrd"]
 [ext_resource type="Script" uid="uid://citan5efnv68v" path="res://addons/ouranos_foundry/Features/ProceduralGeneration/Nodes/Diagnostics/CityDrawer.cs" id="15_cd"]
 [ext_resource type="Script" uid="uid://blrnncw5ivqwj" path="res://addons/ouranos_foundry/Features/ProceduralGeneration/Nodes/Diagnostics/RoadDrawer.cs" id="16_rd"]
@@ -28,17 +27,12 @@
 script = ExtResource("2_7g5bu")
 metadata/_custom_type_script = "uid://dkoqcxnch05yv"
 
-[sub_resource type="Resource" id="Resource_chunk_data"]
-script = ExtResource("13_cd")
-metadata/_custom_type_script = "uid://cbdoqk8b3natw"
-
 [node name="ProceduralGeneration" type="Node2D" unique_id=196941994]
 
 [node name="WorldGenerator" type="Node" parent="." unique_id=1175649299 node_paths=PackedStringArray("ChunkManager", "BlueprintPipeline", "GenerationPipeline")]
 script = ExtResource("1_jo3p1")
 Config = ExtResource("2_config")
 WorldState = SubResource("Resource_ivusq")
-InitialChunkData = SubResource("Resource_chunk_data")
 ChunkManager = NodePath("ChunkManager")
 BlueprintPipeline = NodePath("BlueprintPipeline")
 GenerationPipeline = NodePath("GenerationPipeline")
@@ -55,17 +49,14 @@ metadata/_custom_type_script = "uid://cwmwh2inkbcac"
 
 [node name="RegionBlueprintPass" type="Node" parent="WorldGenerator/BlueprintPipeline" unique_id=1996154023]
 script = ExtResource("4_e71lk")
-ProcGenConfig = ExtResource("2_config")
 metadata/_custom_type_script = "uid://g02r12qwyqsb"
 
 [node name="CityBlueprintPass" type="Node" parent="WorldGenerator/BlueprintPipeline" unique_id=112221638]
 script = ExtResource("5_7g5bu")
-ProcGenConfig = ExtResource("2_config")
 metadata/_custom_type_script = "uid://bhox68oomyyab"
 
 [node name="RoadBlueprintPass" type="Node" parent="WorldGenerator/BlueprintPipeline" unique_id=718463856]
 script = ExtResource("6_ivusq")
-ProcGenConfig = ExtResource("2_config")
 metadata/_custom_type_script = "uid://coryyy0svksww"
 
 [node name="GenerationPipeline" type="Node" parent="WorldGenerator" unique_id=796323936]
@@ -74,24 +65,19 @@ metadata/_custom_type_script = "uid://d33g3d4fls82l"
 
 [node name="TerrainGenerationPass" type="Node" parent="WorldGenerator/GenerationPipeline" unique_id=660284835]
 script = ExtResource("7_gen1")
-ProcGenConfig = ExtResource("2_config")
 
 [node name="CityGenerationPass" type="Node" parent="WorldGenerator/GenerationPipeline" unique_id=1129597614]
 script = ExtResource("8_gen2")
-ProcGenConfig = ExtResource("2_config")
 
 [node name="RoadGenerationPass" type="Node" parent="WorldGenerator/GenerationPipeline" unique_id=1399979006]
 script = ExtResource("9_gen3")
-ProcGenConfig = ExtResource("2_config")
 
 [node name="PoiPlacementPass" type="Node" parent="WorldGenerator/GenerationPipeline" unique_id=706887272]
 script = ExtResource("10_gen4")
-ProcGenConfig = ExtResource("2_config")
 
 [node name="BlueprintDebugOverlay" type="Node2D" parent="." unique_id=554098366 node_paths=PackedStringArray("Generator")]
 script = ExtResource("16_vg7bs")
 Generator = NodePath("../WorldGenerator")
-ProcGenConfig = ExtResource("2_config")
 metadata/_custom_type_script = "uid://d4f8j2lam1n7p"
 
 [node name="StainedGlassRegionDrawer" type="Node" parent="BlueprintDebugOverlay" unique_id=1422071596]

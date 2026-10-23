@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using GdUnit4;
+using Ouranos.Foundry.Core.Types;
 using Ouranos.Foundry.Features.ProceduralGeneration.Nodes;
 using Ouranos.Foundry.Features.ProceduralGeneration.Nodes.Blueprints;
 using Ouranos.Foundry.Features.ProceduralGeneration.Resources;
@@ -27,22 +28,14 @@ public class BlueprintDeterminismTests
 
     private static WorldState GenerateBlueprint(ulong seed)
     {
-        var config = MakeConfig();
         var world = new WorldState { Seed = seed };
-        BlueprintPass[] passes =
-        [
-            new RegionBlueprintPass(),
-            new CityBlueprintPass(),
-            new RoadBlueprintPass(),
-        ];
+        var pipeline = new BlueprintPipeline();
+        pipeline.AddPass<RegionBlueprintPass>();
+        pipeline.AddPass<CityBlueprintPass>();
+        pipeline.AddPass<RoadBlueprintPass>();
 
-        foreach (var pass in passes)
-        {
-            // ProcGenConfig has a private setter (inspector-wired), so assign it reflectively.
-            pass.GetType().GetProperty("ProcGenConfig")!.SetValue(pass, config);
-            pass.RunPass(world);
-            pass.Free();
-        }
+        pipeline.RunPasses(MakeConfig(), world, LogLevel.None).ShouldBeNull();
+        pipeline.Free();
 
         return world;
     }
@@ -73,7 +66,7 @@ public class BlueprintDeterminismTests
     }
 
     // Records holding List<T> compare lists by reference, so flatten everything to strings.
-    private static List<string> Describe(WorldState world)
+    internal static List<string> Describe(WorldState world)
     {
         var lines = new List<string>();
 

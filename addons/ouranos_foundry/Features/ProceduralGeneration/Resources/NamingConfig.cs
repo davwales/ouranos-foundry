@@ -5,8 +5,8 @@ using Godot;
 namespace Ouranos.Foundry.Features.ProceduralGeneration.Resources;
 
 /// <summary>
-/// Configurable name generation data for procedural entities. Set as an export
-/// on blueprint passes so game-specific names can be configured in the editor.
+/// Configurable name generation data for procedural entities. Set it on
+/// <c>ProceduralGenerationConfig.NamingConfig</c>; without one the defaults below apply.
 /// </summary>
 [GlobalClass]
 public partial class NamingConfig : Resource

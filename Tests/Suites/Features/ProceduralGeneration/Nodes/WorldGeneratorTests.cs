@@ -5,6 +5,7 @@ using GdUnit4;
 using Godot;
 using Ouranos.Foundry.Features.ProceduralGeneration.Nodes;
 using Ouranos.Foundry.Features.ProceduralGeneration.Nodes.Blueprints;
+using Ouranos.Foundry.Features.ProceduralGeneration.Nodes.Generation;
 using Ouranos.Foundry.Features.ProceduralGeneration.Resources;
 using Ouranos.Foundry.Features.ProceduralGeneration.Types;
 using Shouldly;
@@ -78,31 +79,13 @@ public class WorldGeneratorTests
         return pipeline;
     }
 
-    private static BlueprintPipeline MakeRealBlueprintPipeline(ProceduralGenerationConfig config)
+    private static BlueprintPipeline MakeRealBlueprintPipeline()
     {
         var pipeline = new BlueprintPipeline();
-        pipeline.AddPass(
-            new RegionBlueprintPass().With(RegionBlueprintPass.PropertyName.ProcGenConfig, config)
-        );
-        pipeline.AddPass(
-            new CityBlueprintPass().With(CityBlueprintPass.PropertyName.ProcGenConfig, config)
-        );
-        pipeline.AddPass(
-            new RoadBlueprintPass().With(RoadBlueprintPass.PropertyName.ProcGenConfig, config)
-        );
+        pipeline.AddPass<RegionBlueprintPass>();
+        pipeline.AddPass<CityBlueprintPass>();
+        pipeline.AddPass<RoadBlueprintPass>();
         return pipeline;
-    }
-
-    /// <summary>Awaits process frames until the condition holds, failing after a timeout.</summary>
-    private static async Task WaitUntil(Func<bool> condition)
-    {
-        var tree = (SceneTree)Engine.GetMainLoop();
-        var deadline = DateTime.UtcNow + WaitTimeout;
-        while (!condition())
-        {
-            DateTime.UtcNow.ShouldBeLessThan(deadline, "Timed out waiting for the condition.");
-            await tree.ToSignal(tree, SceneTree.SignalName.ProcessFrame);
-        }
     }
 
     [TestCase]
@@ -133,7 +116,7 @@ public class WorldGeneratorTests
 
         manager._Process(0);
         // Not ToSignal: its continuation runs inside the emit, and freeing the emitter there errors.
-        await WaitUntil(() => generator.IsChunkReady(new Vector2I(-1, 2)));
+        await TestWait.Until(() => generator.IsChunkReady(new Vector2I(-1, 2)));
 
         // Assert
         generator.WorldState.ChunkSizeTiles.ShouldBe(32);
@@ -186,7 +169,7 @@ public class WorldGeneratorTests
         // With one job slot, chunk (1, 0) only starts once the unloaded job has finished.
         manager.Player!.Position = new Vector2(16, 0);
         manager._Process(0);
-        await WaitUntil(() => generated.Count > 0);
+        await TestWait.Until(() => generated.Count > 0);
 
         // Assert
         generated.ShouldBe(new List<Vector2I> { new(1, 0) });
@@ -224,7 +207,7 @@ public class WorldGeneratorTests
         gate.Entered.Wait(WaitTimeout).ShouldBeTrue();
         var enteredWhileGated = gate.EnteredCount;
         gate.Release.Set();
-        await WaitUntil(() => generated.Count == 9);
+        await TestWait.Until(() => generated.Count == 9);
 
         // Assert
         enteredWhileGated.ShouldBe(1);
@@ -243,7 +226,7 @@ public class WorldGeneratorTests
         var (root, generator, manager) = CreateGenerator(
             chunkConfig,
             Vector2.Zero,
-            blueprintPipeline: MakeRealBlueprintPipeline(MakeConfig(chunkConfig))
+            blueprintPipeline: MakeRealBlueprintPipeline()
         );
         var generated = new List<Vector2I>();
         var unloaded = new List<Vector2I>();
@@ -263,14 +246,14 @@ public class WorldGeneratorTests
         var world = generator.WorldState;
         var counts = (world.Regions.Count, world.Cities.Count, world.Roads.Count);
         manager._Process(0);
-        await WaitUntil(() => generated.Count == 1);
+        await TestWait.Until(() => generated.Count == 1);
 
         // Act
         generator.ResetBlueprint();
         var resetState = (generator.IsBlueprintGenerated, world.Cities.Count);
         var regenerated = generator.GenerateBlueprint();
         manager._Process(0);
-        await WaitUntil(() => generated.Count == 2);
+        await TestWait.Until(() => generated.Count == 2);
 
         // Assert
         counts.Item2.ShouldBeGreaterThan(0);
@@ -333,14 +316,9 @@ public class WorldGeneratorTests
     public void GenerateBlueprint_WhenPassesAreMisordered_ReturnsFalseWithoutThrowing()
     {
         // Arrange
-        var config = MakeConfig(new ChunkConfig());
         var pipeline = new BlueprintPipeline();
-        pipeline.AddPass(
-            new CityBlueprintPass().With(CityBlueprintPass.PropertyName.ProcGenConfig, config)
-        );
-        pipeline.AddPass(
-            new RegionBlueprintPass().With(RegionBlueprintPass.PropertyName.ProcGenConfig, config)
-        );
+        pipeline.AddPass<CityBlueprintPass>();
+        pipeline.AddPass<RegionBlueprintPass>();
         var (root, generator, _) = CreateGenerator(
             new ChunkConfig(),
             Vector2.Zero,
@@ -373,6 +351,104 @@ public class WorldGeneratorTests
 
         pipeline.PassFailed -= OnPassFailed;
         generator.BlueprintFailed -= OnBlueprintFailed;
+        root.Free();
+    }
+
+    [TestCase]
+    public void GenerateBlueprint_WhenConfigIsMissing_ReportsFailure()
+    {
+        // Arrange
+        var generator = new WorldGenerator();
+        var failures = new List<string>();
+        void OnFailed(string passName, string error)
+        {
+            failures.Add(passName);
+        }
+
+        generator.BlueprintFailed += OnFailed;
+
+        // Act
+        var result = generator.GenerateBlueprint();
+
+        // Assert
+        result.ShouldBeFalse();
+        failures.ShouldBe([nameof(WorldGenerator)]);
+        generator.IsBlueprintGenerated.ShouldBeFalse();
+
+        generator.BlueprintFailed -= OnFailed;
+        generator.Free();
+    }
+
+    [TestCase]
+    public async Task ChunkGeneration_WhenAPassMissesItsDependency_FailsWithoutGenerating()
+    {
+        // Arrange
+        var first = new GatedTestPass();
+        first.Release.Set();
+        var (root, generator, manager) = CreateGenerator(
+            new ChunkConfig { ViewDistance = 0 },
+            Vector2.Zero,
+            generationPipeline: MakeGenerationPipeline(first, new CityGenerationPass())
+        );
+        var generated = new List<Vector2I>();
+        var failures = new List<string>();
+        void OnGenerated(Vector2I coords, ChunkData chunk)
+        {
+            generated.Add(coords);
+        }
+
+        void OnFailed(Vector2I coords, string error)
+        {
+            failures.Add(error);
+        }
+
+        generator.ChunkGenerated += OnGenerated;
+        generator.GenerationFailed += OnFailed;
+        generator._Ready();
+
+        // Act
+        manager._Process(0);
+        await TestWait.Until(() => failures.Count > 0);
+
+        // Assert
+        failures.Count.ShouldBe(1);
+        failures[0].ShouldStartWith($"{nameof(GenerationPipeline)}: ");
+        failures[0].ShouldContain("CityGenerationPass requires TerrainGenerationPass");
+        generated.ShouldBeEmpty();
+        generator.IsChunkReady(Vector2I.Zero).ShouldBeFalse();
+        first.EnteredCount.ShouldBe(0);
+
+        generator.ChunkGenerated -= OnGenerated;
+        generator.GenerationFailed -= OnFailed;
+        root.Free();
+    }
+
+    [TestCase]
+    public async Task ChunkGeneration_WhenAPassThrows_ReportsThePassNameAndMessage()
+    {
+        // Arrange
+        var (root, generator, manager) = CreateGenerator(
+            new ChunkConfig { ViewDistance = 0 },
+            Vector2.Zero,
+            generationPipeline: MakeGenerationPipeline(new ThrowingGenerationPass())
+        );
+        var failures = new List<string>();
+        void OnFailed(Vector2I coords, string error)
+        {
+            failures.Add(error);
+        }
+
+        generator.GenerationFailed += OnFailed;
+        generator._Ready();
+
+        // Act
+        manager._Process(0);
+        await TestWait.Until(() => failures.Count > 0);
+
+        // Assert
+        failures.ShouldBe([$"{nameof(ThrowingGenerationPass)}: {ThrowingGenerationPass.Message}"]);
+
+        generator.GenerationFailed -= OnFailed;
         root.Free();
     }
 }

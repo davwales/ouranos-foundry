@@ -18,9 +18,6 @@ public partial class BlueprintDebugOverlay : Node2D
     [Export]
     public WorldGenerator? Generator { get; private set; }
 
-    [Export]
-    public ProceduralGenerationConfig? ProcGenConfig { get; private set; }
-
     private WorldState? _cachedWorldState;
     private bool _dirty = true;
 
@@ -60,7 +57,7 @@ public partial class BlueprintDebugOverlay : Node2D
         var world = Generator.WorldState;
         foreach (var drawer in GetChildren().OfType<DebugDrawer>())
         {
-            drawer.Draw(this, world, ProcGenConfig);
+            drawer.Draw(this, world, Generator.Config);
         }
     }
 }
