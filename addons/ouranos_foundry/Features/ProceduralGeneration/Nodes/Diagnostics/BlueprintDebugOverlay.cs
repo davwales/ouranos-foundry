@@ -19,6 +19,7 @@ public partial class BlueprintDebugOverlay : Node2D
     public WorldGenerator? Generator { get; private set; }
 
     private WorldState? _cachedWorldState;
+    private bool _cachedIsGenerated;
     private bool _dirty = true;
 
     public void MarkDirty()
@@ -34,9 +35,14 @@ public partial class BlueprintDebugOverlay : Node2D
         }
 
         var current = Generator.WorldState;
-        if (current != _cachedWorldState || _dirty)
+        if (
+            current != _cachedWorldState
+            || current.IsBlueprintGenerated != _cachedIsGenerated
+            || _dirty
+        )
         {
             _cachedWorldState = current;
+            _cachedIsGenerated = current.IsBlueprintGenerated;
             _dirty = false;
             foreach (var drawer in GetChildren().OfType<DebugDrawer>())
             {
@@ -57,7 +63,7 @@ public partial class BlueprintDebugOverlay : Node2D
         var world = Generator.WorldState;
         foreach (var drawer in GetChildren().OfType<DebugDrawer>())
         {
-            drawer.Draw(this, world, Generator.Config);
+            drawer.Draw(this, world, Generator.Definitions);
         }
     }
 }

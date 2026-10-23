@@ -31,22 +31,28 @@ public partial class GenerationPipeline : Node
     }
 
     /// <summary>
-    /// Runs the passes on <paramref name="chunk"/> in child order. Safe on a worker thread.
+    /// Runs the passes on <paramref name="chunk"/> in child order. Safe on a worker thread:
+    /// it touches no Godot API, and passes log through <paramref name="log"/>.
     /// Returns the first failure (a dependency violation, reported as this pipeline, or
     /// a pass that throws) with the original exception, or null.
     /// </summary>
     public (string PassName, Exception Error)? RunPasses(
         ProceduralGenerationConfig config,
+        GenerationDefinitions definitions,
         WorldState world,
+        ChunkBuffer chunk,
         LogLevel logLevel,
-        ChunkData chunk,
+        Action<string> log,
         CancellationToken cancellationToken = default
     )
     {
         return _passes.Run(
             nameof(GenerationPipeline),
             pass =>
-                pass.RunPass(new GenerationContext(config, world, pass.RngSalt, logLevel), chunk),
+                pass.RunPass(
+                    new GenerationContext(config, definitions, world, pass.RngSalt, logLevel, log),
+                    chunk
+                ),
             cancellationToken
         );
     }

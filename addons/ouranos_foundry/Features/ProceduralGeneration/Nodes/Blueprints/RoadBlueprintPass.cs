@@ -33,9 +33,10 @@ public partial class RoadBlueprintPass : BlueprintPass
             );
         }
 
-        var genConfig = config.GenerationConfig ?? new GenerationConfig();
+        var genConfig = ctx.Definitions.Generation;
         var roadCount = ConnectIntraRegionRoads(worldState, rng, config, genConfig);
-        roadCount += ConnectInterRegionRoads(worldState, rng, config, genConfig);
+        var hubRoadTypeId = ctx.Definitions.GetRoadType(config.HubRoadTypeId).Id;
+        roadCount += ConnectInterRegionRoads(worldState, rng, hubRoadTypeId, genConfig);
 
         worldState.RebuildLookups();
         worldState.RebuildSpatialIndex();
@@ -91,12 +92,12 @@ public partial class RoadBlueprintPass : BlueprintPass
     private static int ConnectInterRegionRoads(
         WorldState worldState,
         SeededRng rng,
-        ProceduralGenerationConfig config,
+        string hubRoadTypeId,
         GenerationConfig genConfig
     )
     {
         var roadCount = 0;
-        var hubRoads = ConnectRegionalHubs(worldState, rng, config, genConfig);
+        var hubRoads = ConnectRegionalHubs(worldState, rng, hubRoadTypeId, genConfig);
         foreach (var road in hubRoads)
         {
             worldState.Roads.Add(road);
@@ -180,12 +181,11 @@ public partial class RoadBlueprintPass : BlueprintPass
     private static List<Road> ConnectRegionalHubs(
         WorldState world,
         SeededRng rng,
-        ProceduralGenerationConfig config,
+        string hubRoadTypeId,
         GenerationConfig genConfig
     )
     {
         var roads = new List<Road>();
-        var hubRoadDef = config.GetRoadTypeDefinition(config.HubRoadTypeId);
 
         var hubs = CollectRegionalHubs(world, rng);
 
@@ -203,7 +203,7 @@ public partial class RoadBlueprintPass : BlueprintPass
             hubs.Count,
             (from, to) =>
             {
-                var road = CreateRoad(rng, hubs[from], hubs[to], genConfig, hubRoadDef.Id);
+                var road = CreateRoad(rng, hubs[from], hubs[to], genConfig, hubRoadTypeId);
                 roads.Add(road);
 
                 if (world.CityById.TryGetValue(hubs[from].Id, out var sourceCity))

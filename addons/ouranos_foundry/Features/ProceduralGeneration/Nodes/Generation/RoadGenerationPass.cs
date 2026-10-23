@@ -3,7 +3,6 @@
 using Godot;
 using Ouranos.Foundry.Core.Attributes;
 using Ouranos.Foundry.Core.Utils;
-using Ouranos.Foundry.Features.ProceduralGeneration.Resources;
 using Ouranos.Foundry.Features.ProceduralGeneration.Types;
 
 namespace Ouranos.Foundry.Features.ProceduralGeneration.Nodes.Generation;
@@ -16,9 +15,9 @@ namespace Ouranos.Foundry.Features.ProceduralGeneration.Nodes.Generation;
 [GlobalClass]
 public partial class RoadGenerationPass : GenerationPass
 {
-    public override void RunPass(GenerationContext ctx, ChunkData chunk)
+    public override void RunPass(GenerationContext ctx, ChunkBuffer chunk)
     {
-        var (config, worldState) = (ctx.Config, ctx.World);
+        var (definitions, worldState) = (ctx.Definitions, ctx.World);
 
         if (!chunk.HasAnyRoad)
         {
@@ -34,25 +33,20 @@ public partial class RoadGenerationPass : GenerationPass
                 continue;
             }
 
-            OverlayRoadOnChunk(chunk, road, config, tileSize);
+            OverlayRoadOnChunk(chunk, road, definitions, tileSize);
         }
     }
 
     private static void OverlayRoadOnChunk(
-        ChunkData chunk,
+        ChunkBuffer chunk,
         Road road,
-        ProceduralGenerationConfig config,
+        GenerationDefinitions definitions,
         int tileSize
     )
     {
-        if (chunk.TerrainData is null || chunk.TerrainData.Length == 0)
-        {
-            return;
-        }
-
         var chunkWorldX = chunk.Descriptor.Coordinates.X * tileSize;
         var chunkWorldY = chunk.Descriptor.Coordinates.Y * tileSize;
-        var roadDef = config.GetRoadTypeDefinition(road.RoadTypeId);
+        var roadDef = definitions.GetRoadType(road.RoadTypeId);
 
         for (var i = 0; i < road.PathPoints.Count - 1; i++)
         {
@@ -63,7 +57,7 @@ public partial class RoadGenerationPass : GenerationPass
     }
 
     private static void DrawRoadSegment(
-        ChunkData chunk,
+        ChunkBuffer chunk,
         Vector2I from,
         Vector2I to,
         int chunkWorldX,
@@ -79,11 +73,7 @@ public partial class RoadGenerationPass : GenerationPass
 
             if (localX >= 0 && localX < tileSize && localY >= 0 && localY < tileSize)
             {
-                var idx = localY * tileSize + localX;
-                if (idx >= 0 && idx < chunk.TerrainData.Length)
-                {
-                    chunk.TerrainData[idx] = terrainId;
-                }
+                chunk.SetTile(localX, localY, terrainId);
             }
         }
     }

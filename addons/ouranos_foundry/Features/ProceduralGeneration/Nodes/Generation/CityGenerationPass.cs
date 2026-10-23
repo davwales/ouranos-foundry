@@ -14,16 +14,16 @@ namespace Ouranos.Foundry.Features.ProceduralGeneration.Nodes.Generation;
 [GlobalClass]
 public partial class CityGenerationPass : GenerationPass
 {
-    public override void RunPass(GenerationContext ctx, ChunkData chunk)
+    public override void RunPass(GenerationContext ctx, ChunkBuffer chunk)
     {
-        var (config, worldState) = (ctx.Config, ctx.World);
+        var worldState = ctx.World;
 
         if (!chunk.HasAnyCity)
         {
             return;
         }
 
-        var terrain = config.TerrainConfig ?? new TerrainConfig();
+        var terrain = ctx.Definitions.Terrain;
         var tileSize = chunk.Descriptor.ChunkSizeTiles;
 
         foreach (var cityId in chunk.CityIds)
@@ -38,17 +38,12 @@ public partial class CityGenerationPass : GenerationPass
     }
 
     private static void OverlayCityOnChunk(
-        ChunkData chunk,
+        ChunkBuffer chunk,
         City city,
         TerrainConfig terrain,
         int tileSize
     )
     {
-        if (chunk.TerrainData is null || chunk.TerrainData.Length == 0)
-        {
-            return;
-        }
-
         var chunkWorldX = chunk.Descriptor.Coordinates.X * tileSize;
         var chunkWorldY = chunk.Descriptor.Coordinates.Y * tileSize;
 
@@ -61,11 +56,6 @@ public partial class CityGenerationPass : GenerationPass
                 var tileWorld = new Vector2I(worldX, worldY);
                 var dist = tileWorld.DistanceTo(city.Position);
                 var idx = y * tileSize + x;
-
-                if (idx >= chunk.TerrainData.Length)
-                {
-                    continue;
-                }
 
                 if (dist <= city.Radius)
                 {

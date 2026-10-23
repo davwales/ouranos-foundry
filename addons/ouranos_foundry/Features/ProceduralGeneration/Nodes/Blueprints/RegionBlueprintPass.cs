@@ -21,9 +21,9 @@ public partial class RegionBlueprintPass : BlueprintPass
 
     public override void RunPass(GenerationContext ctx)
     {
-        var (config, worldState, rng) = (ctx.Config, ctx.World, ctx.Rng);
-        var naming = config.NamingConfig ?? new NamingConfig();
-        var genConfig = config.GenerationConfig ?? new GenerationConfig();
+        var (definitions, worldState, rng) = (ctx.Definitions, ctx.World, ctx.Rng);
+        var naming = definitions.Naming;
+        var genConfig = definitions.Generation;
 
         var worldSize = worldState.Size;
         var regionCenters = GenerateRegionCenters(rng, worldSize, genConfig);
@@ -31,7 +31,7 @@ public partial class RegionBlueprintPass : BlueprintPass
         for (var i = 0; i < regionCenters.Count; i++)
         {
             var center = regionCenters[i];
-            var biomeDef = rng.NextElement(config.BiomeDefinitions);
+            var biomeDef = rng.NextElement(definitions.Biomes);
             var name = GenerateName(rng, naming);
 
             var region = new Region(

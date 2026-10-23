@@ -8,6 +8,7 @@ using Ouranos.Foundry.Features.ProceduralGeneration.Nodes.Blueprints;
 using Ouranos.Foundry.Features.ProceduralGeneration.Nodes.Generation;
 using Ouranos.Foundry.Features.ProceduralGeneration.Resources;
 using Ouranos.Foundry.Features.ProceduralGeneration.Types;
+using Ouranos.Foundry.Tests.Features.ProceduralGeneration.Resources;
 using Shouldly;
 
 namespace Ouranos.Foundry.Tests.Features.ProceduralGeneration.Nodes;
@@ -250,8 +251,9 @@ public class WorldGeneratorTests
 
         // Act
         generator.ResetBlueprint();
-        var resetState = (generator.IsBlueprintGenerated, world.Cities.Count);
+        var resetState = (generator.IsBlueprintGenerated, generator.WorldState.Cities.Count);
         var regenerated = generator.GenerateBlueprint();
+        var newWorld = generator.WorldState;
         manager._Process(0);
         await TestWait.Until(() => generated.Count == 2);
 
@@ -260,12 +262,125 @@ public class WorldGeneratorTests
         unloaded.ShouldBe(new List<Vector2I> { Vector2I.Zero });
         resetState.ShouldBe((false, 0));
         regenerated.ShouldBeTrue();
-        (world.Regions.Count, world.Cities.Count, world.Roads.Count).ShouldBe(counts);
-        world.CityById.Count.ShouldBe(counts.Item2);
+        newWorld.ShouldNotBeSameAs(world);
+        (newWorld.Regions.Count, newWorld.Cities.Count, newWorld.Roads.Count).ShouldBe(counts);
+        newWorld.CityById.Count.ShouldBe(counts.Item2);
         generated.ShouldBe(new List<Vector2I> { Vector2I.Zero, Vector2I.Zero });
 
         generator.ChunkGenerated -= OnGenerated;
         generator.ChunkUnloaded -= OnUnloaded;
+        root.Free();
+    }
+
+    [TestCase]
+    public void ResetBlueprint_WithAWorldStateSubclass_KeepsItsTypeAndExportsAndStartsEmpty()
+    {
+        // Arrange
+        var (root, generator, _) = CreateGenerator(
+            new ChunkConfig(),
+            Vector2.Zero,
+            blueprintPipeline: MakeRealBlueprintPipeline()
+        );
+        generator.With(
+            WorldGenerator.PropertyName.WorldState,
+            new TaggedWorldState
+            {
+                Seed = 42,
+                Size = 600,
+                Tag = "custom",
+            }
+        );
+        generator.GenerateBlueprint().ShouldBeTrue();
+        var oldWorld = generator.WorldState;
+        var cityCount = oldWorld.Cities.Count;
+
+        // Act
+        generator.ResetBlueprint();
+        var reset = generator.WorldState;
+        var regenerated = generator.GenerateBlueprint();
+
+        // Assert
+        cityCount.ShouldBeGreaterThan(0);
+        reset.ShouldNotBeSameAs(oldWorld);
+        var tagged = reset.ShouldBeOfType<TaggedWorldState>();
+        (tagged.Seed, tagged.Size, tagged.Tag).ShouldBe((42ul, 600, "custom"));
+        reset.Cities.ShouldNotBeSameAs(oldWorld.Cities);
+        oldWorld.Cities.Count.ShouldBe(cityCount);
+        regenerated.ShouldBeTrue();
+        generator.WorldState.ShouldBeSameAs(reset);
+        reset.Cities.Count.ShouldBe(cityCount);
+
+        root.Free();
+    }
+
+    [TestCase]
+    public void ResetBlueprint_WithAWorldStateSubclass_StartsWithAnEmptyBlueprint()
+    {
+        // Arrange
+        var (root, generator, _) = CreateGenerator(
+            new ChunkConfig(),
+            Vector2.Zero,
+            blueprintPipeline: MakeRealBlueprintPipeline()
+        );
+        generator.With(WorldGenerator.PropertyName.WorldState, new TaggedWorldState());
+        generator.GenerateBlueprint().ShouldBeTrue();
+
+        // Act
+        generator.ResetBlueprint();
+
+        // Assert
+        var reset = generator.WorldState;
+        reset.IsBlueprintGenerated.ShouldBeFalse();
+        (reset.Regions.Count, reset.Cities.Count, reset.Roads.Count).ShouldBe((0, 0, 0));
+        (reset.CityById.Count, reset.RoadById.Count).ShouldBe((0, 0));
+        (reset.ChunkToCityIds.Count, reset.ChunkToRoadIds.Count).ShouldBe((0, 0));
+
+        root.Free();
+    }
+
+    [TestCase]
+    public async Task ResetBlueprint_WhileAChunkIsGenerating_LeavesItsWorldUntouchedAndDropsIt()
+    {
+        // Arrange
+        var gate = new GatedTestPass();
+        var (root, generator, manager) = CreateGenerator(
+            new ChunkConfig { ViewDistance = 0 },
+            Vector2.Zero,
+            blueprintPipeline: MakeRealBlueprintPipeline(),
+            generationPipeline: MakeGenerationPipeline(gate),
+            maxConcurrentChunkJobs: 1
+        );
+        var generated = new List<Vector2I>();
+        void OnGenerated(Vector2I coords, ChunkData chunk)
+        {
+            generated.Add(coords);
+        }
+
+        generator.ChunkGenerated += OnGenerated;
+        generator._Ready();
+        var oldWorld = generator.WorldState;
+        var oldCityCount = oldWorld.Cities.Count;
+        manager._Process(0);
+        gate.Entered.Wait(WaitTimeout).ShouldBeTrue();
+
+        // Act
+        generator.ResetBlueprint();
+        generator.GenerateBlueprint();
+        manager._Process(0);
+        gate.Release.Set();
+        // With one job slot, the second job starts only once the first has been handled.
+        await TestWait.Until(() => generated.Count > 0);
+
+        // Assert
+        oldCityCount.ShouldBeGreaterThan(0);
+        gate.Runs.Count.ShouldBe(2);
+        gate.Runs[0].ShouldBe((oldWorld, oldCityCount, oldCityCount));
+        oldWorld.Cities.Count.ShouldBe(oldCityCount);
+        generator.WorldState.ShouldNotBeSameAs(oldWorld);
+        gate.Runs[1].World.ShouldBeSameAs(generator.WorldState);
+        generated.ShouldBe(new List<Vector2I> { Vector2I.Zero });
+
+        generator.ChunkGenerated -= OnGenerated;
         root.Free();
     }
 

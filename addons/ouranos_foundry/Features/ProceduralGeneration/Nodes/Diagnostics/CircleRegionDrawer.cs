@@ -61,17 +61,17 @@ public sealed partial class CircleRegionDrawer : DebugDrawer
     public override void Draw(
         CanvasItem canvas,
         WorldState world,
-        ProceduralGenerationConfig? config
+        GenerationDefinitions? definitions
     )
     {
-        if (!Visible || config is null)
+        if (!Visible || definitions is null)
         {
             return;
         }
 
         foreach (var region in world.Regions)
         {
-            var biomeDef = config.GetBiomeDefinition(region.BiomeId);
+            var biomeDef = definitions.GetBiome(region.BiomeId);
             var color = biomeDef.DebugColor;
 
             var radius = GetRegionDisplayRadius(region);

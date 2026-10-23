@@ -2,25 +2,23 @@
 
 using Godot;
 using Ouranos.Foundry.Core.Types;
-using Ouranos.Foundry.Features.ProceduralGeneration.Resources;
 using Ouranos.Foundry.Features.ProceduralGeneration.Types;
 
 namespace Ouranos.Foundry.Features.ProceduralGeneration.Nodes.Generation;
 
 /// <summary>
 /// Generates base terrain for a chunk based on its region's biome.
-/// This is a pure-data pass that populates ChunkData.TerrainData without
+/// This is a pure-data pass that populates ChunkBuffer.TerrainData without
 /// touching the scene tree, making it safe for off-thread execution.
 /// </summary>
 [GlobalClass]
 public partial class TerrainGenerationPass : GenerationPass
 {
-    public override void RunPass(GenerationContext ctx, ChunkData chunk)
+    public override void RunPass(GenerationContext ctx, ChunkBuffer chunk)
     {
-        var (config, worldState) = (ctx.Config, ctx.World);
-        var terrain = config.TerrainConfig ?? new TerrainConfig();
+        var (definitions, worldState) = (ctx.Definitions, ctx.World);
+        var terrain = definitions.Terrain;
         var tileSize = chunk.Descriptor.ChunkSizeTiles;
-        chunk.TerrainData = new int[tileSize * tileSize];
 
         // A stream per chunk rather than ctx.Rng, which is the same for every chunk.
         var rng = new SeededRng(
@@ -41,7 +39,7 @@ public partial class TerrainGenerationPass : GenerationPass
 
         if (region is not null)
         {
-            var biomeDef = config.GetBiomeDefinition(region.BiomeId);
+            var biomeDef = definitions.GetBiome(region.BiomeId);
             baseTerrain = biomeDef.TerrainId;
             variantCount = biomeDef.TerrainVariantCount;
         }

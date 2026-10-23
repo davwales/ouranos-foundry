@@ -34,7 +34,8 @@ public class BlueprintDeterminismTests
         pipeline.AddPass<CityBlueprintPass>();
         pipeline.AddPass<RoadBlueprintPass>();
 
-        pipeline.RunPasses(MakeConfig(), world, LogLevel.None).ShouldBeNull();
+        var config = MakeConfig();
+        pipeline.RunPasses(config, new(config), world, LogLevel.None).ShouldBeNull();
         pipeline.Free();
 
         return world;

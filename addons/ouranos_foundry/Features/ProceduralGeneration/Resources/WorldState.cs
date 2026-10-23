@@ -9,6 +9,11 @@ using Ouranos.Foundry.Features.ProceduralGeneration.Utils;
 
 namespace Ouranos.Foundry.Features.ProceduralGeneration.Resources;
 
+/// <summary>
+/// The world blueprint. Blueprint passes fill it on the main thread; once
+/// <c>IsBlueprintGenerated</c> is set it is never changed, so chunk passes may read it from
+/// worker threads. <c>WorldGenerator</c> replaces the instance instead of clearing it.
+/// </summary>
 [GlobalClass]
 public partial class WorldState : Resource
 {
@@ -53,22 +58,6 @@ public partial class WorldState : Resource
     /// Fast lookup from road ID to road data.
     /// </summary>
     public Dictionary<Guid, Road> RoadById { get; private set; } = [];
-
-    /// <summary>
-    /// Removes all blueprint data and resets <c>IsBlueprintGenerated</c>, so the
-    /// blueprint can be generated again without duplicating anything.
-    /// </summary>
-    public void Clear()
-    {
-        Regions.Clear();
-        Cities.Clear();
-        Roads.Clear();
-        CityById.Clear();
-        RoadById.Clear();
-        ChunkToCityIds.Clear();
-        ChunkToRoadIds.Clear();
-        IsBlueprintGenerated = false;
-    }
 
     /// <summary>
     /// Rebuilds lookup dictionaries after modifying Regions, Cities, or Roads lists.

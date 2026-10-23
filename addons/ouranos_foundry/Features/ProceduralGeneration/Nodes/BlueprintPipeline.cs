@@ -60,6 +60,7 @@ public partial class BlueprintPipeline : Node
     /// </summary>
     public (string PassName, Exception Error)? RunPasses(
         ProceduralGenerationConfig config,
+        GenerationDefinitions definitions,
         WorldState world,
         LogLevel logLevel = LogLevel.Basic
     )
@@ -70,7 +71,16 @@ public partial class BlueprintPipeline : Node
             {
                 var passName = pass.GetType().Name;
                 EmitSignal(SignalName.PassStarted, passName);
-                pass.RunPass(new GenerationContext(config, world, pass.RngSalt, logLevel));
+                pass.RunPass(
+                    new GenerationContext(
+                        config,
+                        definitions,
+                        world,
+                        pass.RngSalt,
+                        logLevel,
+                        GD.Print
+                    )
+                );
                 EmitSignal(SignalName.PassCompleted, passName);
             }
         );
