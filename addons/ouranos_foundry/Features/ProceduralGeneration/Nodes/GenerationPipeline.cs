@@ -49,10 +49,14 @@ public partial class GenerationPipeline : Node
         return _passes.Run(
             nameof(GenerationPipeline),
             pass =>
+            {
+                var coords = chunk.Coordinates;
+                var rng = SeededRng.ForCoords(world.Seed, coords.X, coords.Y, pass.RngSalt);
                 pass.RunPass(
-                    new GenerationContext(config, definitions, world, pass.RngSalt, logLevel, log),
+                    new GenerationContext(config, definitions, world, rng, logLevel, log),
                     chunk
-                ),
+                );
+            },
             cancellationToken
         );
     }

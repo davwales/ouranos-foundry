@@ -581,6 +581,58 @@ public class WorldGeneratorTests
     }
 
     [TestCase]
+    public async Task ChunkGenerated_WithCityPois_ListsExactlyThePoisInsideTheChunk()
+    {
+        // Arrange: no generation passes, so the list doesn't depend on any pass.
+        var (root, generator, manager) = CreateGenerator(
+            new ChunkConfig { ViewDistance = 0 },
+            Vector2.Zero
+        );
+        generator._Ready();
+        var cityId = Guid.NewGuid();
+        PointOfInterest[] inside =
+        [
+            MakePoi(cityId, 0, 0),
+            MakePoi(cityId, 15, 15),
+            MakePoi(cityId, 7, 3),
+        ];
+        PointOfInterest[] outside =
+        [
+            MakePoi(cityId, 16, 0),
+            MakePoi(cityId, -1, 5),
+            MakePoi(cityId, 4, 16),
+        ];
+        var city = new City(
+            cityId,
+            "Test",
+            new(8, 8),
+            "town",
+            Guid.Empty,
+            [.. inside, .. outside],
+            [],
+            10
+        );
+        generator.WorldState.Cities.Add(city);
+        generator.WorldState.RebuildLookups();
+        generator.WorldState.RebuildSpatialIndex();
+
+        // Act
+        manager._Process(0);
+        await TestWait.Until(() => generator.IsChunkReady(Vector2I.Zero));
+
+        // Assert
+        var chunk = generator.GetChunk(Vector2I.Zero).ShouldNotBeNull();
+        chunk.PointsOfInterest.ShouldBe(inside, ignoreOrder: true);
+
+        root.Free();
+    }
+
+    private static PointOfInterest MakePoi(Guid cityId, int x, int y)
+    {
+        return new PointOfInterest(Guid.NewGuid(), $"poi {x},{y}", "default", new(x, y), cityId);
+    }
+
+    [TestCase]
     public async Task ChunkGeneration_WhenAPassThrows_ReportsThePassNameAndMessage()
     {
         // Arrange

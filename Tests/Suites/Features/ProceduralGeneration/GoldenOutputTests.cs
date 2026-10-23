@@ -26,7 +26,7 @@ public class GoldenOutputTests
 {
     private const ulong Seed = 1234;
     private const string ExpectedDigest =
-        "c82dc73c89b81dd6d407085ac3bb2c7bcfd3e6c910c0ba8cc903e95c6dc9f471";
+        "4082f42684ebd58cd7539acd8967ad5a38f45a576cf059bf959590407eda5cf0";
 
     [TestCase]
     public async Task Generate_WithFixedSeed_MatchesGoldenDigest()

@@ -31,6 +31,9 @@ public partial class ChunkData : Resource
     public IReadOnlySet<Guid> CityIds => _buffer.CityIds;
     public IReadOnlySet<Guid> RoadIds => _buffer.RoadIds;
 
+    /// <inheritdoc cref="ChunkBuffer.PointsOfInterest"/>
+    public IReadOnlyList<PointOfInterest> PointsOfInterest => _buffer.PointsOfInterest;
+
     /// <inheritdoc cref="ChunkBuffer.TerrainData"/>
     public int[] TerrainData => _buffer.TerrainData;
 

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using GdUnit4;
 using Ouranos.Foundry.Core.Types;
 using Shouldly;
@@ -166,5 +167,68 @@ public class SeededRngTests
             var element = rng.NextElement(array);
             array.ShouldContain(element);
         }
+    }
+
+    [TestCase]
+    public void ForCoords_OverASampleGrid_GivesEveryCoordinateADistinctStream()
+    {
+        // Arrange
+        var firstValues = new HashSet<double>();
+        var count = 0;
+
+        // Act
+        for (var x = -32; x < 32; x++)
+        {
+            for (var y = -32; y < 32; y++)
+            {
+                firstValues.Add(SeededRng.ForCoords(1234, x, y, 7).NextDouble());
+                count++;
+            }
+        }
+
+        foreach (var (x, y) in new[] { (int.MinValue, 0), (int.MaxValue, 0), (0, int.MinValue) })
+        {
+            firstValues.Add(SeededRng.ForCoords(1234, x, y, 7).NextDouble());
+            count++;
+        }
+
+        // Assert
+        firstValues.Count.ShouldBe(count);
+    }
+
+    [TestCase]
+    public void ForCoords_WithSameInputs_ProducesSameSequence()
+    {
+        // Arrange
+        var a = SeededRng.ForCoords(42, -3, 5, 100);
+        var b = SeededRng.ForCoords(42, -3, 5, 100);
+
+        // Act & Assert
+        for (var i = 0; i < 100; i++)
+        {
+            b.Next().ShouldBe(a.Next());
+        }
+    }
+
+    [TestCase]
+    public void ForCoords_WithDifferentSaltOrSeed_ProducesDifferentStreams()
+    {
+        // Arrange
+        var baseline = First(SeededRng.ForCoords(42, 2, 3, 100));
+
+        // Act
+        var otherSalt = First(SeededRng.ForCoords(42, 2, 3, 101));
+        var otherSeed = First(SeededRng.ForCoords(43, 2, 3, 100));
+        var swappedCoords = First(SeededRng.ForCoords(42, 3, 2, 100));
+
+        // Assert
+        otherSalt.ShouldNotBe(baseline);
+        otherSeed.ShouldNotBe(baseline);
+        swappedCoords.ShouldNotBe(baseline);
+    }
+
+    private static int[] First(SeededRng rng)
+    {
+        return [rng.Next(), rng.Next(), rng.Next(), rng.Next()];
     }
 }

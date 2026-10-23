@@ -48,10 +48,13 @@ public partial class WorldState : Resource
     public List<Road> Roads { get; private set; } = [];
 
     /// <summary>
-    /// Spatial index mapping chunk coordinates to city IDs that overlap that chunk.
-    /// Built during blueprint generation and used by generation passes.
+    /// Spatial index mapping chunk coordinates to city IDs whose footprint overlaps that
+    /// chunk. Built during blueprint generation and used by generation passes.
     /// </summary>
     public Dictionary<Vector2I, HashSet<Guid>> ChunkToCityIds { get; private set; } = [];
+
+    // Each POI under the chunk holding its position, wherever its city is.
+    private readonly Dictionary<Vector2I, List<PointOfInterest>> _chunkToPois = [];
 
     /// <summary>
     /// Spatial index mapping chunk coordinates to road IDs that overlap that chunk.
@@ -96,6 +99,7 @@ public partial class WorldState : Resource
     {
         ChunkToCityIds.Clear();
         ChunkToRoadIds.Clear();
+        _chunkToPois.Clear();
 
         foreach (var city in Cities)
         {
@@ -116,6 +120,18 @@ public partial class WorldState : Resource
 
                     set.Add(city.Id);
                 }
+            }
+
+            foreach (var poi in city.PointsOfInterest)
+            {
+                var poiChunk = ChunkMath.WorldToChunk(poi.Position, ChunkSizeTiles);
+                if (!_chunkToPois.TryGetValue(poiChunk, out var pois))
+                {
+                    pois = [];
+                    _chunkToPois[poiChunk] = pois;
+                }
+
+                pois.Add(poi);
             }
         }
 
@@ -147,6 +163,15 @@ public partial class WorldState : Resource
     public IReadOnlySet<Guid> GetCitiesInChunk(Vector2I chunkCoord)
     {
         return ChunkToCityIds.GetValueOrDefault(chunkCoord, []);
+    }
+
+    /// <summary>
+    /// Returns the points of interest whose position lies inside the given chunk, even
+    /// outside their city's footprint. Needs <c>RebuildSpatialIndex</c>.
+    /// </summary>
+    public IReadOnlyList<PointOfInterest> GetPointsOfInterestInChunk(Vector2I chunkCoord)
+    {
+        return _chunkToPois.GetValueOrDefault(chunkCoord) ?? [];
     }
 
     /// <summary>

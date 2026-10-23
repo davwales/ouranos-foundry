@@ -59,4 +59,27 @@ public class WorldStateTests
         );
         world.GetRoadsInChunk(new Vector2I(-2, -1)).ShouldContain(road.Id);
     }
+
+    [TestCase]
+    public void GetPointsOfInterestInChunk_PoiOutsideCityRadius_ListsItWithoutIndexingTheCity()
+    {
+        // Arrange: the footprint covers chunk (0, 0) only; the far POI is in chunk (-3, 2).
+        var world = new WorldState { ChunkSizeTiles = 16 };
+        var city = MakeCity(new Vector2I(8, 8), 3);
+        var near = new PointOfInterest(Guid.NewGuid(), "Near", "inn", new(9, 9), city.Id);
+        var far = new PointOfInterest(Guid.NewGuid(), "Far", "inn", new(-40, 33), city.Id);
+        city.PointsOfInterest.AddRange([near, far]);
+        world.Cities.Add(city);
+        world.RebuildLookups();
+
+        // Act
+        world.RebuildSpatialIndex();
+
+        // Assert
+        world.GetCitiesInChunk(new Vector2I(-3, 2)).ShouldBeEmpty();
+        world.ChunkToCityIds.Keys.ShouldBe([Vector2I.Zero]);
+        world.GetPointsOfInterestInChunk(new Vector2I(-3, 2)).ShouldBe([far]);
+        world.GetPointsOfInterestInChunk(Vector2I.Zero).ShouldBe([near]);
+        world.GetPointsOfInterestInChunk(new Vector2I(1, 0)).ShouldBeEmpty();
+    }
 }

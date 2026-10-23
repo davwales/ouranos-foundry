@@ -71,15 +71,9 @@ public partial class BlueprintPipeline : Node
             {
                 var passName = pass.GetType().Name;
                 EmitSignal(SignalName.PassStarted, passName);
+                var rng = new SeededRng(world.Seed, pass.RngSalt);
                 pass.RunPass(
-                    new GenerationContext(
-                        config,
-                        definitions,
-                        world,
-                        pass.RngSalt,
-                        logLevel,
-                        GD.Print
-                    )
+                    new GenerationContext(config, definitions, world, rng, logLevel, GD.Print)
                 );
                 EmitSignal(SignalName.PassCompleted, passName);
             }

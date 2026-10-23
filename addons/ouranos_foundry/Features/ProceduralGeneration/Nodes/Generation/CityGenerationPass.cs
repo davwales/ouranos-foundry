@@ -63,7 +63,7 @@ public partial class CityGenerationPass : GenerationPass
                     {
                         chunk.TerrainData[idx] = terrain.BuildingTerrainId;
                     }
-                    else if (IsStreetTile(x, y, terrain.StreetGridSpacing))
+                    else if (IsStreetTile(worldX, worldY, terrain.StreetGridSpacing))
                     {
                         chunk.TerrainData[idx] = terrain.StreetTerrainId;
                     }
@@ -76,8 +76,10 @@ public partial class CityGenerationPass : GenerationPass
         }
     }
 
-    private static bool IsStreetTile(int x, int y, int gridSpacing)
+    // World tile coordinates, so the grid lines up across chunk borders. A multiple of the
+    // spacing has remainder 0 for negatives too.
+    private static bool IsStreetTile(int worldX, int worldY, int gridSpacing)
     {
-        return x % gridSpacing == 0 || y % gridSpacing == 0;
+        return worldX % gridSpacing == 0 || worldY % gridSpacing == 0;
     }
 }
