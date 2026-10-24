@@ -12,7 +12,7 @@ Weighted, deterministic loot rolling authored as Godot resources.
 | `SubTableLootEntry` | Resource | Rolls another table; optional `MinRollsOverride`/`MaxRollsOverride` (`-1` = use the sub-table's own). |
 | `EmptyLootEntry` | Resource | Explicit "nothing" outcome. Produces no `LootResult`; `LootTableRoller` emits `EmptyDropSelected` instead. |
 | `LootResult` | Resource | One result: `Item` + `Quantity`. |
-| `LootTableRoller` | Node | Scene-friendly wrapper; emits `TableRolled`, and `EmptyDropSelected` with the (sub-)table that picked an empty entry. Swap tables at runtime with `SetTable()`. |
+| `LootTableRoller` | Node | Scene-friendly wrapper; emits `TableRolled`, and `EmptyDropSelected` with the (sub-)table that picked an empty entry. Swap tables at runtime with `SetTable()`. Owns a seeded stream for `Roll()` (`Seed`, `AutoSeed`, `SetSeed()`, `ActiveSeed`). |
 
 ## API
 
@@ -22,7 +22,16 @@ var three   = table.Roll(new SeededRng(seed), rollsOverride: 3);
 var odds    = table.GetProbabilities();                    // per-entry probability
 ```
 
-Rolling is deterministic for a given seed. Each roll and each sub-table uses `rng.Derive()`.
+Rolling is deterministic for a given seed. Each roll and each sub-table uses `rng.Derive()`. Entries are picked with `Core.Utils.WeightedRandom`.
+
+From a scene or GDScript, let `LootTableRoller` own the stream:
+
+```gdscript
+var results: Array[LootResult] = $LootTableRoller.roll()   # uses Seed, or a fresh seed with AutoSeed
+$LootTableRoller.set_seed(1234)                             # reproducible from here on
+```
+
+`AutoSeed` is on by default, so every session rolls differently; `ActiveSeed` reports the seed in use so you can reproduce a session. Successive `Roll()` calls continue the same stream.
 
 ## Extending
 

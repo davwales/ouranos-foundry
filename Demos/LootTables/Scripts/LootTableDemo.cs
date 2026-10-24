@@ -1,6 +1,5 @@
 using System.Text;
 using Godot;
-using Ouranos.Foundry.Core.Types;
 using Ouranos.Foundry.Features.LootTables.Nodes;
 using Ouranos.Foundry.Features.LootTables.Resources;
 
@@ -71,12 +70,10 @@ public partial class LootTableDemo : Control
         }
 
         _roller.SetTable(table);
-        var seed = Time.GetTicksMsec();
-        var rng = new SeededRng(seed);
         _emptyDropCount = 0;
-        var results = _roller.Roll(rng);
+        var results = _roller.Roll();
 
-        DisplayResults(table, results, seed);
+        DisplayResults(table, results, _roller.ActiveSeed);
         DisplayProbabilities(table);
     }
 
@@ -97,8 +94,8 @@ public partial class LootTableDemo : Control
 
     private void DisplayResults(
         LootTableData table,
-        System.Collections.Generic.IReadOnlyList<LootResult> results,
-        ulong seed
+        Godot.Collections.Array<LootResult> results,
+        long seed
     )
     {
         if (_resultsLabel == null)

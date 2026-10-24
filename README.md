@@ -57,7 +57,7 @@ Releases are automatic. Every push to `main` runs CI. If anything under `addons/
 ```
 addons/ouranos_foundry/ # The addon: everything consumers get
   Features/<Name>/      # Self-contained vertical slice: Nodes/, Resources/, Types/, Utils/, README.md
-  Core/                 # Shared across features: Attributes/, Types/, Utils/
+  Core/                 # Shared across features: Attributes/, Resources/, Types/, Utils/
   Assets/               # Editor icons
 Demos/<Name>/           # Runnable demo scenes (not library code, not shipped to consumers)
 Templates/Feature/      # Starting point for new features (not shipped)

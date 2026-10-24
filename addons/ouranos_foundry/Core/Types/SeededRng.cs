@@ -24,6 +24,7 @@ public sealed class SeededRng(ulong seed, ulong salt = 0)
     private const int NextOutputShift = 33;
     private const int DoubleOutputShift = 11;
     private const double DoubleNormalizationFactor = 1.1102230246251565e-16;
+    private const float FloatBelowOne = 0.99999994f;
 
     /// <summary>
     /// Returns a non-negative random integer.
@@ -34,7 +35,7 @@ public sealed class SeededRng(ulong seed, ulong salt = 0)
     }
 
     /// <summary>
-    /// Returns a non-negative random integer less than maxValue using rejection sampling.
+    /// Returns a non-negative random integer less than maxValue, without modulo bias.
     /// </summary>
     public int Next(int maxValue)
     {
@@ -46,12 +47,13 @@ public sealed class SeededRng(ulong seed, ulong salt = 0)
             );
         }
 
-        return (int)(SplitMix64Next(ref _state) % (ulong)maxValue);
+        return (int)NextBelow((ulong)maxValue);
     }
 
     /// <summary>
-    /// Returns a random integer in [minValue, maxValue). Like <c>System.Random</c>, returns
-    /// <paramref name="minValue"/> when the range is empty (<c>minValue == maxValue</c>),
+    /// Returns a random integer in [minValue, maxValue), without modulo bias. Any range is
+    /// supported, including <c>int.MinValue..int.MaxValue</c>. Like <c>System.Random</c>,
+    /// returns <paramref name="minValue"/> when the range is empty (<c>minValue == maxValue</c>),
     /// without advancing the stream, and throws when <c>minValue &gt; maxValue</c>.
     /// </summary>
     public int Next(int minValue, int maxValue)
@@ -69,9 +71,34 @@ public sealed class SeededRng(ulong seed, ulong salt = 0)
             return minValue;
         }
 
-        var range = (ulong)(maxValue - minValue);
-        var result = SplitMix64Next(ref _state) % range;
-        return minValue + (int)result;
+        var range = (ulong)((long)maxValue - minValue);
+        return (int)(minValue + (long)NextBelow(range));
+    }
+
+    /// <summary>
+    /// Returns a random integer in [minValue, maxValue], both ends inclusive, without
+    /// modulo bias. Any range is supported, including <c>int.MinValue..int.MaxValue</c>.
+    /// </summary>
+    public int NextInclusive(int minValue, int maxValue)
+    {
+        if (minValue > maxValue)
+        {
+            throw new System.ArgumentOutOfRangeException(
+                nameof(maxValue),
+                "maxValue must be greater than or equal to minValue."
+            );
+        }
+
+        var range = (ulong)((long)maxValue - minValue) + 1;
+        return (int)(minValue + (long)NextBelow(range));
+    }
+
+    /// <summary>
+    /// Returns true or false with equal probability.
+    /// </summary>
+    public bool NextBool()
+    {
+        return (SplitMix64Next(ref _state) >> 63) != 0;
     }
 
     /// <summary>
@@ -87,7 +114,25 @@ public sealed class SeededRng(ulong seed, ulong salt = 0)
     /// </summary>
     public float NextFloat()
     {
-        return (float)NextDouble();
+        // Narrowing can round values just below 1.0 up to 1.0f, so clamp to keep [0, 1).
+        return System.MathF.Min((float)NextDouble(), FloatBelowOne);
+    }
+
+    /// <summary>
+    /// Returns a random float in [minValue, maxValue).
+    /// </summary>
+    public float NextFloat(float minValue, float maxValue)
+    {
+        if (!(minValue < maxValue) || float.IsInfinity(maxValue - minValue))
+        {
+            throw new System.ArgumentOutOfRangeException(
+                nameof(maxValue),
+                "maxValue must be greater than minValue, and the range must be finite."
+            );
+        }
+
+        var value = (float)(minValue + NextDouble() * ((double)maxValue - minValue));
+        return value < maxValue ? value : System.MathF.BitDecrement(maxValue);
     }
 
     /// <summary>
@@ -127,6 +172,18 @@ public sealed class SeededRng(ulong seed, ulong salt = 0)
     }
 
     /// <summary>
+    /// Shuffles the list in place (Fisher-Yates).
+    /// </summary>
+    public void Shuffle<T>(IList<T> list)
+    {
+        for (var i = list.Count - 1; i > 0; i--)
+        {
+            var j = Next(i + 1);
+            (list[i], list[j]) = (list[j], list[i]);
+        }
+    }
+
+    /// <summary>
     /// Creates a derived RNG for a specific generation pass or entity.
     /// Uses the current RNG to produce a new seed, ensuring determinism
     /// while allowing independent RNG streams per pass.
@@ -156,6 +213,26 @@ public sealed class SeededRng(ulong seed, ulong salt = 0)
     internal static ulong Mix(ulong value)
     {
         return SplitMix64Next(ref value);
+    }
+
+    /// <summary>
+    /// Lemire's nearly divisionless method: returns a uniform value in [0, range).
+    /// Multiplies a 64-bit draw by the range and keeps the high word, rejecting the
+    /// few low words that would bias the result.
+    /// </summary>
+    private ulong NextBelow(ulong range)
+    {
+        var high = System.Math.BigMul(SplitMix64Next(ref _state), range, out var low);
+        if (low < range)
+        {
+            var threshold = (0 - range) % range;
+            while (low < threshold)
+            {
+                high = System.Math.BigMul(SplitMix64Next(ref _state), range, out low);
+            }
+        }
+
+        return high;
     }
 
     private static ulong SplitMix64Next(ref ulong state)
