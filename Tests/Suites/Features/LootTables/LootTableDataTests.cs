@@ -389,6 +389,60 @@ public class LootTableDataTests
     }
 
     [TestCase]
+    public void Roll_WhenAllWeightsAreZero_ShouldReturnEmpty()
+    {
+        // Arrange
+        var table = MakeTable(entries: [MakeItemEntry("a", 0f), MakeItemEntry("b", 0f)]);
+
+        // Act
+        var results = table.Roll(new SeededRng(42), rollsOverride: 5);
+
+        // Assert
+        results.ShouldBeEmpty();
+    }
+
+    [TestCase]
+    public void Roll_WhenEntryHasNegativeWeight_ShouldNeverSelectIt()
+    {
+        // Arrange
+        var negative = new Resource();
+        var positive = new Resource();
+        var table = MakeTable(
+            entries:
+            [
+                MakeItemEntry("negative", -1f, negative),
+                MakeItemEntry("positive", 1f, positive),
+            ]
+        );
+
+        // Act
+        var results = table.Roll(new SeededRng(42), rollsOverride: 200);
+
+        // Assert
+        results.Count.ShouldBe(200);
+        results.ShouldAllBe(r => r.Item == positive);
+    }
+
+    [TestCase]
+    public void Roll_WhenWeighted_ShouldSelectEntriesInProportionToWeight()
+    {
+        // Arrange
+        var common = new Resource();
+        var rare = new Resource();
+        var table = MakeTable(
+            entries: [MakeItemEntry("common", 3f, common), MakeItemEntry("rare", 1f, rare)]
+        );
+        const int rolls = 20_000;
+
+        // Act
+        var results = table.Roll(new SeededRng(42), rollsOverride: rolls);
+
+        // Assert
+        var rareShare = results.Count(r => r.Item == rare) / (double)rolls;
+        rareShare.ShouldBe(0.25, 0.015);
+    }
+
+    [TestCase]
     public void GetProbabilities_WhenEqualWeights_ShouldReturnEqualProbabilities()
     {
         // Arrange

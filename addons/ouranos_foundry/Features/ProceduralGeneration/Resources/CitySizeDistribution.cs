@@ -2,6 +2,7 @@
 
 using Godot;
 using Ouranos.Foundry.Core.Types;
+using Ouranos.Foundry.Core.Utils;
 
 namespace Ouranos.Foundry.Features.ProceduralGeneration.Resources;
 
@@ -18,6 +19,7 @@ public partial class CitySizeDistribution : Resource
     /// <summary>
     /// Samples a city size ID from this distribution using the provided RNG.
     /// Returns the SizeId of the selected entry, or null if no entries exist.
+    /// If no entry has a positive weight, the first entry is returned.
     /// </summary>
     public string? Sample(SeededRng rng)
     {
@@ -26,28 +28,7 @@ public partial class CitySizeDistribution : Resource
             return null;
         }
 
-        var total = 0f;
-        foreach (var entry in Entries)
-        {
-            total += entry.Weight;
-        }
-
-        if (total <= 0f)
-        {
-            return Entries[0].SizeId;
-        }
-
-        var roll = rng.NextFloat() * total;
-        var cumulative = 0f;
-        foreach (var entry in Entries)
-        {
-            cumulative += entry.Weight;
-            if (roll < cumulative)
-            {
-                return entry.SizeId;
-            }
-        }
-
-        return Entries[^1].SizeId;
+        var index = WeightedRandom.PickIndex(Entries, entry => entry.Weight, rng);
+        return Entries[index < 0 ? 0 : index].SizeId;
     }
 }

@@ -4,8 +4,8 @@ using System;
 using System.Collections.Generic;
 using Godot;
 using Ouranos.Foundry.Core.Types;
+using Ouranos.Foundry.Core.Utils;
 using Ouranos.Foundry.Features.LootTables.Types;
-using Ouranos.Foundry.Features.LootTables.Utils;
 
 namespace Ouranos.Foundry.Features.LootTables.Resources;
 
@@ -77,8 +77,8 @@ public partial class LootTableData : Resource
         for (var i = 0; i < rollCount; i++)
         {
             var derivedRng = rng.Derive();
-            var eligible = GetEligibleEntries(AllowDuplicates, consumedEntries);
-            var entry = WeightedSelection.Select(eligible, derivedRng, context);
+            var eligible = GetEligibleEntries(context, consumedEntries);
+            var entry = WeightedRandom.Pick(eligible, e => e.EffectiveWeight, derivedRng);
 
             if (entry is null)
             {
@@ -142,19 +142,14 @@ public partial class LootTableData : Resource
     }
 
     private List<LootTableEntry> GetEligibleEntries(
-        bool allowDuplicates,
+        RollContext context,
         HashSet<LootTableEntry> consumedEntries
     )
     {
-        if (allowDuplicates)
-        {
-            return [.. Entries];
-        }
-
         var eligible = new List<LootTableEntry>(Entries.Count);
         foreach (var entry in Entries)
         {
-            if (!consumedEntries.Contains(entry))
+            if (!consumedEntries.Contains(entry) && entry.IsEligible(context))
             {
                 eligible.Add(entry);
             }

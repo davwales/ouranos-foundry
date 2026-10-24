@@ -46,8 +46,9 @@ addons/ouranos_foundry/   Shipped addon (keep this path: icons are referenced by
     Types/        Plain C# types: records, enums, structs (no Godot base class)
     Utils/        Static helpers and plain helper classes
     README.md     Pieces, usage, extension points
-  Core/           Shared, feature-agnostic code (e.g. SeededRng, LogLevel, Bresenham, StableId)
+  Core/           Shared, feature-agnostic code (e.g. SeededRng, WeightedRandom, FoundryRandom, LogLevel, Bresenham, StableId)
     Attributes/
+    Resources/
     Types/
     Utils/
   Assets/icons/
@@ -181,6 +182,8 @@ To check the packaged addon locally: `GODOT_BIN=… Automation/consumer-smoke.sh
 - Use `new SeededRng(seed, salt)` (`Core/Types/SeededRng.cs`) for all randomness, with a named salt, not a magic number. Procgen passes override `public virtual ulong RngSalt` (`public override ulong RngSalt => 2000;`) and use `ctx.Rng`.
 - Use `SeededRng.ForCoords(seed, x, y, salt)` for a stream keyed by coordinates (e.g. per chunk).
 - Call `rng.Derive()` to create independent sub-streams for nested or parallel work.
+- For weighted picks use `Core.Utils.WeightedRandom` (`Pick`/`PickIndex`), not a hand-rolled cumulative loop.
+- To expose randomness to the inspector or GDScript, export a `FoundryRandom` resource (seed + salt) or a `long Seed` (`SeededRng` isn't a Variant type, so APIs that take one are C#-only).
 - Never use `System.Random`, `GD.Randi()`/`GD.Randf()` or `RandomNumberGenerator` in features. Demos may seed from the clock.
 
 ### Per-feature

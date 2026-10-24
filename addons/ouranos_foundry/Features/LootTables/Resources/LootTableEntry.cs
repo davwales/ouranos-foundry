@@ -25,9 +25,9 @@ public abstract partial class LootTableEntry : Resource
     public float Weight { get; set; } = 1f;
 
     /// <summary>
-    /// The weight used for selection; negative weights count as zero.
+    /// The weight used for selection; negative, NaN and infinite weights count as zero.
     /// </summary>
-    internal float EffectiveWeight => Weight > 0f ? Weight : 0f;
+    internal float EffectiveWeight => Weight > 0f && float.IsFinite(Weight) ? Weight : 0f;
 
     public virtual bool IsEligible(RollContext context)
     {
