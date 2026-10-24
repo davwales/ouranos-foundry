@@ -7,6 +7,7 @@ Reusable game features for Godot 4 C#: genre- and perspective-agnostic, and they
 | [Health](Features/Health/README.md) | Health component with HUD bar, hearts, floating and grouped UI monitors |
 | [LootTables](Features/LootTables/README.md) | Weighted, deterministic, nestable loot tables as Godot resources |
 | [ProceduralGeneration](Features/ProceduralGeneration/README.md) | Seeded world blueprint and on-demand chunk generation pipeline |
+| [StateMachine](Core/README.md#state-machine) (Core) | `StateMachine`/`State` nodes, debug labels and a pure C# `StateMachine<TState>` |
 
 ## Requirements
 
