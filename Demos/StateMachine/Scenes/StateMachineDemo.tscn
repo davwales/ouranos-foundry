@@ -1,0 +1,59 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://addons/ouranos_foundry/Core/Nodes/StateMachine.cs" id="1_machine"]
+[ext_resource type="Script" path="res://Demos/StateMachine/Scripts/IdleState.cs" id="2_idle"]
+[ext_resource type="Script" path="res://Demos/StateMachine/Scripts/MoveState.cs" id="3_move"]
+[ext_resource type="Script" path="res://Demos/StateMachine/Scripts/DashState.cs" id="4_dash"]
+[ext_resource type="Script" path="res://addons/ouranos_foundry/Core/Nodes/StateDebugLabel.cs" id="5_label"]
+
+[node name="StateMachineDemo" type="Node2D"]
+
+[node name="Player" type="Node2D" parent="."]
+position = Vector2(576, 324)
+
+[node name="Body" type="ColorRect" parent="Player"]
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+color = Color(0.6, 0.6, 0.65, 1)
+
+[node name="StateMachine" type="Node" parent="Player" node_paths=PackedStringArray("InitialState")]
+script = ExtResource("1_machine")
+InitialState = NodePath("Idle")
+
+[node name="Idle" type="Node" parent="Player/StateMachine" node_paths=PackedStringArray("Player", "Body")]
+script = ExtResource("2_idle")
+Player = NodePath("../..")
+Body = NodePath("../../Body")
+Tint = Color(0.6, 0.6, 0.65, 1)
+
+[node name="Move" type="Node" parent="Player/StateMachine" node_paths=PackedStringArray("Player", "Body")]
+script = ExtResource("3_move")
+Player = NodePath("../..")
+Body = NodePath("../../Body")
+Tint = Color(0.3, 0.7, 1, 1)
+
+[node name="Dash" type="Node" parent="Player/StateMachine" node_paths=PackedStringArray("Move", "Player", "Body")]
+script = ExtResource("4_dash")
+Move = NodePath("../Move")
+Player = NodePath("../..")
+Body = NodePath("../../Body")
+Tint = Color(1, 0.6, 0.2, 1)
+
+[node name="StateLabel" type="Label" parent="Player" node_paths=PackedStringArray("Machine")]
+offset_left = -60.0
+offset_top = -52.0
+offset_right = 60.0
+offset_bottom = -29.0
+horizontal_alignment = 1
+script = ExtResource("5_label")
+Machine = NodePath("../StateMachine")
+
+[node name="Hint" type="Label" parent="."]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 520.0
+offset_bottom = 66.0
+text = "Arrow keys: move · Enter/Space while moving: dash
+States: Idle → Move → Dash (StateMachine + State nodes)"

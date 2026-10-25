@@ -46,10 +46,12 @@ addons/ouranos_foundry/   Shipped addon (keep this path: icons are referenced by
     Types/        Plain C# types: records, enums, structs (no Godot base class)
     Utils/        Static helpers and plain helper classes
     README.md     Pieces, usage, extension points
-  Core/           Shared, feature-agnostic code (e.g. SeededRng, LogLevel, Bresenham, StableId)
+  Core/           Shared, feature-agnostic code (e.g. SeededRng, StateMachine, Bresenham, StableId)
     Attributes/
+    Nodes/        Shared nodes (StateMachine, State)
     Types/
     Utils/
+    README.md     Core pieces and usage
   Assets/icons/
   LICENSE, README.md
 Demos/<Name>/{Scenes,Scripts,Resources}/

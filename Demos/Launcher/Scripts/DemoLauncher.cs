@@ -12,6 +12,7 @@ public partial class DemoLauncher : Control
             "Procedural Generation",
             "res://Demos/ProceduralGeneration/Scenes/ProceduralGeneration.tscn"
         ),
+        ("State Machine", "res://Demos/StateMachine/Scenes/StateMachineDemo.tscn"),
     ];
 
     [Export]
