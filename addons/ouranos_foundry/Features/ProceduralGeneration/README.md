@@ -82,6 +82,15 @@ Chunk jobs use `Task.Run` rather than Godot's `WorkerThreadPool`, because it wor
 - **Chunk coordinates floor:** convert with `ChunkMath.WorldToChunk` (tiles) or `ChunkMath.PixelToChunk` (world units), never `/`, which truncates toward zero. With 16-tile chunks, tiles -16..-1 are chunk -1 and 0..15 are chunk 0.
 - **Debug drawing:** `Nodes/Diagnostics/` contains a `BlueprintDebugOverlay` (Node2D) with `DebugDrawer` children, which draw from the `WorldState` and `WorldGenerator.Definitions`. Drawers call the protected `RequestRedraw()` to redraw their parent canvas. This is the one sanctioned child-to-parent call; see AGENTS.md.
 
+## Saving
+
+`WorldGenerator` is an `ISaveable` (see the Persistence README); add it to the `saveable` group or register it with a `SaveManager`.
+
+- **What is saved:** the blueprint (`WorldState.SaveBlueprint()`: `Seed`, `Size`, regions, cities with their POIs, roads) and every tile changed with `ChunkData.SetTile`, in loaded and unloaded chunks alike. Generated terrain isn't saved: chunks regenerate from the seed, then the edits are applied. Lookups and the spatial index are rebuilt on load.
+- **Edited tiles:** `ChunkData.EditedTiles` lists a chunk's changes (tile index `y * ChunkSizeTiles + x` to value). When a chunk unloads, `WorldGenerator` keeps its edits and applies them again when the chunk regenerates. `ResetBlueprint()` forgets them.
+- **Loading** (`WorldGenerator.Load`) resets the world like `ResetBlueprint()`, loads the saved blueprint into the fresh `WorldState` (the saved `Seed` replaces the exported one, so chunks generate as they did), restores the edits and emits `BlueprintGenerated`; `ChunkManager` then streams the chunks in again. The config isn't saved: the current one supplies the definitions and chunk size. If the saved chunk size differs from it, the edits are dropped with a warning. A malformed blueprint emits `BlueprintFailed` and throws.
+- **Custom data:** a `WorldState` subclass whose passes add data overrides `SaveBlueprint`/`LoadBlueprint`; a `WorldGenerator` subclass can override `Save`/`Load`. `Utils/BlueprintSerialization` converts the blueprint records.
+
 ## Signals (WorldGenerator)
 
 `BlueprintGenerated`, `BlueprintFailed(passName, error)`, `ChunkGenerated(coords, chunk)`, `ChunkUnloaded(coords)`, `GenerationFailed(coords, error)`.
