@@ -2,13 +2,20 @@
 
 using System;
 using Godot;
+using Ouranos.Foundry.Core.Types;
 
 namespace Ouranos.Foundry.Features.Health.Nodes;
 
 [GlobalClass]
 [Icon("res://addons/ouranos_foundry/Assets/icons/foundry_node.svg")]
-public partial class HealthComponent : Node
+public partial class HealthComponent : Node, ISaveable
 {
+    /// <summary>
+    /// The key a <c>SaveManager</c> stores this component under. Empty: its node path.
+    /// </summary>
+    [Export]
+    public string SaveKey { get; private set; } = "";
+
     [Export]
     public float BaseMaxHealth { get; private set; } = 100f;
 
@@ -182,7 +189,7 @@ public partial class HealthComponent : Node
         return effective;
     }
 
-    public Godot.Collections.Dictionary<string, Variant> Serialize()
+    public virtual Godot.Collections.Dictionary<string, Variant> Serialize()
     {
         return new Godot.Collections.Dictionary<string, Variant>
         {
@@ -191,7 +198,7 @@ public partial class HealthComponent : Node
         };
     }
 
-    public void Deserialize(Godot.Collections.Dictionary<string, Variant> data)
+    public virtual void Deserialize(Godot.Collections.Dictionary<string, Variant> data)
     {
         if (data.TryGetValue("current_health", out var currentVariant))
         {
@@ -203,5 +210,15 @@ public partial class HealthComponent : Node
         }
 
         EmitSignal(SignalName.HealthChanged, _currentHealth, MaxHealth);
+    }
+
+    Godot.Collections.Dictionary<string, Variant> ISaveable.Save()
+    {
+        return Serialize();
+    }
+
+    void ISaveable.Load(Godot.Collections.Dictionary<string, Variant> data)
+    {
+        Deserialize(data);
     }
 }
