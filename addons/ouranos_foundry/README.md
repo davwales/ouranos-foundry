@@ -6,6 +6,7 @@ Reusable game features for Godot 4 C#: genre- and perspective-agnostic, and they
 |---------|---------|
 | [Health](Features/Health/README.md) | Health component with HUD bar, hearts, floating and grouped UI monitors |
 | [LootTables](Features/LootTables/README.md) | Weighted, deterministic, nestable loot tables as Godot resources |
+| [Persistence](Features/Persistence/README.md) | Save slots for any `ISaveable`: atomic, versioned JSON files with migrations |
 | [ProceduralGeneration](Features/ProceduralGeneration/README.md) | Seeded world blueprint and on-demand chunk generation pipeline |
 
 ## Requirements
