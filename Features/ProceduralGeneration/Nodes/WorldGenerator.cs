@@ -19,11 +19,18 @@ namespace Ouranos.Foundry.Features.ProceduralGeneration.Nodes;
 /// <c>ChunkData</c>, logged and emitted back on the main thread. A <c>WorldState</c> is
 /// never changed once its blueprint is generated: a reset or failed run replaces it, so
 /// each chunk job reads the world and <c>Definitions</c> it was dispatched with.
+/// As an <c>ISaveable</c> it saves the blueprint and the tiles changed in its chunks.
 /// </summary>
 [GlobalClass]
 [Icon("res://addons/ouranos_foundry/Assets/icons/foundry_node.svg")]
-public partial class WorldGenerator : Node
+public partial class WorldGenerator : Node, ISaveable
 {
+    /// <summary>
+    /// The key a <c>SaveManager</c> stores the world under. Empty: this node's path.
+    /// </summary>
+    [Export]
+    public string SaveKey { get; private set; } = "";
+
     [Export]
     public ProceduralGenerationConfig? Config { get; private set; }
 
@@ -83,7 +90,14 @@ public partial class WorldGenerator : Node
 
     private readonly Dictionary<Vector2I, ChunkData> _generatedChunks = [];
     private readonly Dictionary<Vector2I, CancellationTokenSource> _inFlightChunks = [];
+
+    // EditedTiles of chunks that unloaded, applied again when they regenerate.
+    private readonly Dictionary<Vector2I, Dictionary<int, int>> _unloadedChunkEdits = [];
     private SemaphoreSlim _chunkJobSlots = new(1);
+
+    private const string BlueprintKey = "blueprint";
+    private const string ChunkSizeTilesKey = "chunk_size_tiles";
+    private const string ChunkEditsKey = "chunk_edits";
 
     private const string MissingConfigMessage =
         "Config is not set. Assign a ProceduralGenerationConfig in the inspector.";
@@ -144,13 +158,32 @@ public partial class WorldGenerator : Node
             return true;
         }
 
+        return BuildBlueprint(
+            "Generating world blueprint...",
+            (config, definitions) =>
+                BlueprintPipeline?.RunPasses(config, definitions, WorldState, LogLevel)
+        )
+            is null;
+    }
+
+    // Validates, snapshots the definitions and fills WorldState. Returns the error, or null
+    // once the blueprint is complete and BlueprintGenerated is emitted.
+    private string? BuildBlueprint(
+        string startMessage,
+        Func<
+            ProceduralGenerationConfig,
+            GenerationDefinitions,
+            (string PassName, Exception Error)?
+        > fill
+    )
+    {
         var errors = Validate();
         if (Config is null || errors.Count > 0)
         {
             return FailBlueprint(nameof(WorldGenerator), string.Join("\n", errors));
         }
 
-        Log("Generating world blueprint...", LogLevel.Basic);
+        Log(startMessage, LogLevel.Basic);
 
         Definitions = new GenerationDefinitions(Config);
         foreach (var warning in Config.GetWarnings(Definitions))
@@ -160,7 +193,7 @@ public partial class WorldGenerator : Node
 
         WorldState.ChunkSizeTiles = ResolvedChunkConfig.ChunkSizeTiles;
 
-        if (BlueprintPipeline?.RunPasses(Config, Definitions, WorldState, LogLevel) is { } failure)
+        if (fill(Config, Definitions) is { } failure)
         {
             ReplaceWorldState();
             return FailBlueprint(failure.PassName, failure.Error.Message, failure.Error);
@@ -171,7 +204,7 @@ public partial class WorldGenerator : Node
 
         Log("World blueprint complete.", LogLevel.Basic);
         EmitSignal(SignalName.BlueprintGenerated);
-        return true;
+        return null;
     }
 
     /// <summary>
@@ -189,19 +222,20 @@ public partial class WorldGenerator : Node
         return [.. Config.Validate(), .. WorldState.Validate()];
     }
 
-    private bool FailBlueprint(string passName, string error, Exception? exception = null)
+    private string FailBlueprint(string passName, string error, Exception? exception = null)
     {
         GD.PushError(
             $"WorldGenerator: blueprint pass {passName} failed: {exception?.ToString() ?? error}"
         );
         EmitSignal(SignalName.BlueprintFailed, passName, error);
-        return false;
+        return error;
     }
 
     /// <summary>
     /// Cancels in-flight chunk jobs, unloads every generated chunk (emitting
-    /// <c>ChunkUnloaded</c>) and replaces <c>WorldState</c> with an empty one (same seed,
-    /// size and chunk size) so the blueprint can be generated again.
+    /// <c>ChunkUnloaded</c>), forgets every chunk's edited tiles and replaces
+    /// <c>WorldState</c> with an empty one (same seed, size and chunk size) so the blueprint
+    /// can be generated again.
     /// </summary>
     public void ResetBlueprint()
     {
@@ -210,7 +244,134 @@ public partial class WorldGenerator : Node
             UnloadChunk(coords);
         }
 
+        _unloadedChunkEdits.Clear();
         ReplaceWorldState();
+    }
+
+    /// <summary>
+    /// Saves the blueprint and the tiles changed with <c>ChunkData.SetTile</c>, in loaded
+    /// and unloaded chunks alike. Generated terrain isn't saved: it regenerates from the
+    /// seed. Override it, together with <c>Load</c>, to save more.
+    /// </summary>
+    public virtual Godot.Collections.Dictionary<string, Variant> Save()
+    {
+        var data = new Godot.Collections.Dictionary<string, Variant>
+        {
+            [ChunkSizeTilesKey] = ResolvedChunkConfig.ChunkSizeTiles,
+            [ChunkEditsKey] = SaveChunkEdits(),
+        };
+
+        if (WorldState.IsBlueprintGenerated)
+        {
+            data[BlueprintKey] = WorldState.SaveBlueprint();
+        }
+
+        return data;
+    }
+
+    /// <summary>
+    /// Replaces the world with a saved one: resets it (see <c>ResetBlueprint</c>), loads the
+    /// saved blueprint, or generates one when the save has none, then restores the edited
+    /// tiles. Emits <c>BlueprintGenerated</c>, after which <c>ChunkManager</c> streams the
+    /// chunks in again. On failure it emits <c>BlueprintFailed</c> and throws.
+    /// </summary>
+    public virtual void Load(Godot.Collections.Dictionary<string, Variant> data)
+    {
+        // Read the edits first, so malformed data throws before the world is reset.
+        var edits = LoadChunkEdits(data);
+        ResetBlueprint();
+        if (!data.TryGetValue(BlueprintKey, out var blueprint))
+        {
+            if (!GenerateBlueprint())
+            {
+                throw new InvalidOperationException("The blueprint failed to generate.");
+            }
+        }
+        else if (
+            BuildBlueprint("Loading world blueprint...", (_, _) => LoadBlueprint(blueprint)) is
+            { } error
+        )
+        {
+            throw new InvalidOperationException(error);
+        }
+
+        foreach (var (coords, tiles) in edits)
+        {
+            _unloadedChunkEdits[coords] = tiles;
+        }
+    }
+
+    private Dictionary<Vector2I, Dictionary<int, int>> LoadChunkEdits(
+        Godot.Collections.Dictionary<string, Variant> data
+    )
+    {
+        var savedSize = data[ChunkSizeTilesKey].AsInt32();
+        if (savedSize != ResolvedChunkConfig.ChunkSizeTiles)
+        {
+            GD.PushWarning(
+                $"WorldGenerator: the save's chunks are {savedSize} tiles wide, not "
+                    + $"{ResolvedChunkConfig.ChunkSizeTiles}; its edited tiles are dropped."
+            );
+            return [];
+        }
+
+        var edits = new Dictionary<Vector2I, Dictionary<int, int>>();
+        foreach (var chunk in data[ChunkEditsKey].AsGodotArray())
+        {
+            var edit = chunk.AsGodotDictionary();
+            edits[edit["coords"].AsVector2I()] = edit["tiles"]
+                .AsInt32Array()
+                .Chunk(2)
+                .Where(pair => pair.Length == 2)
+                .ToDictionary(pair => pair[0], pair => pair[1]);
+        }
+
+        return edits;
+    }
+
+    private (string PassName, Exception Error)? LoadBlueprint(Variant blueprint)
+    {
+        try
+        {
+            WorldState.LoadBlueprint(blueprint.AsGodotDictionary<string, Variant>());
+            return null;
+        }
+        catch (Exception e)
+        {
+            return (nameof(WorldGenerator), e);
+        }
+    }
+
+    // One entry per chunk with edits, sorted by coordinates so equal worlds save equally.
+    private Godot.Collections.Array SaveChunkEdits()
+    {
+        var edits = _generatedChunks
+            .Select(pair => (Coords: pair.Key, Tiles: pair.Value.EditedTiles))
+            .Concat(
+                _unloadedChunkEdits.Select(pair =>
+                    (Coords: pair.Key, Tiles: (IReadOnlyDictionary<int, int>)pair.Value)
+                )
+            )
+            .Where(edit => edit.Tiles.Count > 0)
+            .OrderBy(edit => edit.Coords.X)
+            .ThenBy(edit => edit.Coords.Y);
+
+        var array = new Godot.Collections.Array();
+        foreach (var (coords, tiles) in edits)
+        {
+            array.Add(
+                new Godot.Collections.Dictionary<string, Variant>
+                {
+                    ["coords"] = coords,
+                    ["tiles"] = tiles
+                        .OrderBy(tile => tile.Key)
+                        .SelectMany(tile => new[] { tile.Key, tile.Value })
+                        .ToArray(),
+                }
+            );
+        }
+
+        return array;
     }
 
     // A cancelled job may still be reading the old instance, so never clear it in place.
@@ -230,8 +391,13 @@ public partial class WorldGenerator : Node
             job.Cancel();
         }
 
-        if (_generatedChunks.Remove(coords))
+        if (_generatedChunks.Remove(coords, out var chunk))
         {
+            if (chunk.EditedTiles.Count > 0)
+            {
+                _unloadedChunkEdits[coords] = new(chunk.EditedTiles);
+            }
+
             Log($"Chunk {coords} unloaded.", LogLevel.Verbose);
             EmitSignal(SignalName.ChunkUnloaded, coords);
         }
@@ -255,9 +421,11 @@ public partial class WorldGenerator : Node
 
         try
         {
-            var chunk = await GenerateChunkAsync(Config, Definitions, chunkCoords, job.Token);
+            var buffer = await GenerateChunkAsync(Config, Definitions, chunkCoords, job.Token);
             if (IsCurrentJob(chunkCoords, job))
             {
+                _unloadedChunkEdits.Remove(chunkCoords, out var edits);
+                var chunk = new ChunkData(buffer, edits);
                 _generatedChunks[chunkCoords] = chunk;
                 Log(
                     $"Chunk {chunkCoords} generated. Type: {chunk.Type}, "
@@ -299,7 +467,7 @@ public partial class WorldGenerator : Node
 
     // The worker lambda only calls plain C#: passes write to a ChunkBuffer and log into a
     // list that is printed here, back on the main thread.
-    private async Task<ChunkData> GenerateChunkAsync(
+    private async Task<ChunkBuffer> GenerateChunkAsync(
         ProceduralGenerationConfig config,
         GenerationDefinitions definitions,
         Vector2I chunkCoords,
@@ -342,7 +510,7 @@ public partial class WorldGenerator : Node
         // Wraps the original exception so the log line keeps its stack trace.
         return failure is { } f
             ? throw new InvalidOperationException($"{f.PassName}: {f.Error.Message}", f.Error)
-            : new ChunkData(chunk);
+            : chunk;
     }
 
     private ChunkBuffer PrepareChunk(WorldState world, Vector2I chunkCoords)

@@ -158,6 +158,53 @@ public partial class WorldState : Resource
     }
 
     /// <summary>
+    /// The blueprint as save data: <c>Seed</c>, <c>Size</c> and the regions, cities and
+    /// roads. Lookups and spatial indexes are rebuilt on load, so they aren't saved. Override
+    /// it, together with <c>LoadBlueprint</c>, to save what a subclass adds.
+    /// </summary>
+    public virtual Godot.Collections.Dictionary<string, Variant> SaveBlueprint()
+    {
+        return new()
+        {
+            ["seed"] = Seed,
+            ["size"] = Size,
+            ["regions"] = new Godot.Collections.Array(
+                Regions.Select(r => (Variant)BlueprintSerialization.ToData(r))
+            ),
+            ["cities"] = new Godot.Collections.Array(
+                Cities.Select(c => (Variant)BlueprintSerialization.ToData(c))
+            ),
+            ["roads"] = new Godot.Collections.Array(
+                Roads.Select(r => (Variant)BlueprintSerialization.ToData(r))
+            ),
+        };
+    }
+
+    /// <summary>
+    /// Fills this empty world from <c>SaveBlueprint</c> data and rebuilds its lookups and
+    /// spatial index with the current <c>ChunkSizeTiles</c>. It doesn't set
+    /// <c>IsBlueprintGenerated</c>; <c>WorldGenerator.Load</c> does. Throws when the data is
+    /// malformed, or when the blueprint is already generated, since chunk jobs may be reading it.
+    /// </summary>
+    public virtual void LoadBlueprint(Godot.Collections.Dictionary<string, Variant> data)
+    {
+        if (IsBlueprintGenerated)
+        {
+            throw new InvalidOperationException(
+                "Can't load into a generated blueprint. Load into a fresh WorldState."
+            );
+        }
+
+        Seed = data["seed"].AsUInt64();
+        Size = data["size"].AsInt32();
+        Regions = [.. data["regions"].AsGodotArray().Select(BlueprintSerialization.ToRegion)];
+        Cities = [.. data["cities"].AsGodotArray().Select(BlueprintSerialization.ToCity)];
+        Roads = [.. data["roads"].AsGodotArray().Select(BlueprintSerialization.ToRoad)];
+        RebuildLookups();
+        RebuildSpatialIndex();
+    }
+
+    /// <summary>
     /// Returns all city IDs whose footprint overlaps the given chunk coordinate.
     /// </summary>
     public IReadOnlySet<Guid> GetCitiesInChunk(Vector2I chunkCoord)
