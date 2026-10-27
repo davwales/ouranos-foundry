@@ -197,6 +197,7 @@ Write every issue and PR from the templates in [`docs/templates/`](docs/template
 - **Loot tables:** `Features/LootTables/README.md`. Covers the entry hierarchy, `IsEligible`/`Resolve` overrides, and the depth and cycle limits.
 - **Procedural generation:** `Features/ProceduralGeneration/README.md`. Covers the two pass types, `[RequiresPasses]`, and threading.
 - **Health:** `Features/Health/README.md`. Covers the component, UI monitors, `MaxHealthProvider` and serialization.
+- **Status effects:** `Features/StatusEffects/README.md`. Covers stacking policies, tick timing, `UpdateMode` and the definition hooks.
 
 ## Build & Dependencies
 

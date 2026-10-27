@@ -1,0 +1,92 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Demos/StatusEffects/Scripts/StatusEffectsDemo.cs" id="1_demo"]
+[ext_resource type="Script" path="res://addons/ouranos_foundry/Features/Health/Nodes/HealthComponent.cs" id="2_health"]
+[ext_resource type="Script" path="res://addons/ouranos_foundry/Features/StatusEffects/Nodes/StatusEffectComponent.cs" id="3_effects"]
+[ext_resource type="Script" path="res://addons/ouranos_foundry/Features/Health/Nodes/PlayerHealthBar.cs" id="4_health_bar"]
+[ext_resource type="Script" path="res://addons/ouranos_foundry/Features/StatusEffects/Nodes/StatusEffectBar.cs" id="5_effect_bar"]
+[ext_resource type="Resource" path="res://Demos/StatusEffects/Resources/rage.tres" id="6_rage"]
+[ext_resource type="Resource" path="res://Demos/StatusEffects/Resources/poison.tres" id="7_poison"]
+[ext_resource type="Resource" path="res://Demos/StatusEffects/Resources/regeneration.tres" id="8_regeneration"]
+[ext_resource type="Resource" path="res://Demos/StatusEffects/Resources/blessing.tres" id="9_blessing"]
+[ext_resource type="Resource" path="res://Demos/StatusEffects/Resources/potion.tres" id="10_potion"]
+
+[node name="StatusEffectsDemo" type="Control" node_paths=PackedStringArray("Health", "StatusEffects", "EffectButtons", "ActionButtons", "HealthLabel", "EventLog")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_demo")
+Health = NodePath("Player/Health")
+StatusEffects = NodePath("Player/StatusEffects")
+Effects = [ExtResource("6_rage"), ExtResource("7_poison"), ExtResource("8_regeneration"), ExtResource("9_blessing"), ExtResource("10_potion")]
+EffectButtons = NodePath("Layout/EffectButtons")
+ActionButtons = NodePath("Layout/ActionButtons")
+HealthLabel = NodePath("Layout/HealthLabel")
+EventLog = NodePath("Layout/EventLog")
+
+[node name="Player" type="Node" parent="."]
+
+[node name="Health" type="Node" parent="Player"]
+script = ExtResource("2_health")
+StartingHealth = 70.0
+
+[node name="StatusEffects" type="Node" parent="Player"]
+script = ExtResource("3_effects")
+
+[node name="Layout" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="Layout"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Status Effects Demo"
+horizontal_alignment = 1
+
+[node name="Hint" type="Label" parent="Layout"]
+layout_mode = 2
+text = "Apply effects, then hover an icon for its description. Rage doubles your attacks, poison stacks, regeneration extends, blessing lasts until cleansed and the potion is instant."
+autowrap_mode = 3
+
+[node name="HealthLabel" type="Label" parent="Layout"]
+layout_mode = 2
+text = "HP -- / --"
+
+[node name="PlayerHealthBar" type="Control" parent="Layout" node_paths=PackedStringArray("Target")]
+layout_mode = 2
+script = ExtResource("4_health_bar")
+Target = NodePath("../../Player/Health")
+
+[node name="StatusEffectBar" type="HBoxContainer" parent="Layout" node_paths=PackedStringArray("Target")]
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+theme_override_constants/separation = 8
+script = ExtResource("5_effect_bar")
+Target = NodePath("../../Player/StatusEffects")
+
+[node name="EffectButtons" type="HFlowContainer" parent="Layout"]
+layout_mode = 2
+
+[node name="ActionButtons" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+
+[node name="LogLabel" type="Label" parent="Layout"]
+layout_mode = 2
+text = "Event Log:"
+
+[node name="EventLog" type="RichTextLabel" parent="Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+scroll_following = true
