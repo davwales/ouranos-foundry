@@ -16,6 +16,7 @@ Shared Godot C# library for building games. Features are self-contained vertical
 |---------|---------|
 | [Health](addons/ouranos_foundry/Features/Health/README.md) | Health component with HUD bar, hearts, floating and grouped UI monitors |
 | [LootTables](addons/ouranos_foundry/Features/LootTables/README.md) | Weighted, deterministic, nestable loot tables as Godot resources |
+| [Persistence](addons/ouranos_foundry/Features/Persistence/README.md) | Save slots for any `ISaveable`: atomic, versioned JSON files with migrations |
 | [ProceduralGeneration](addons/ouranos_foundry/Features/ProceduralGeneration/README.md) | Seeded world blueprint and on-demand chunk generation pipeline |
 | [StateMachine](addons/ouranos_foundry/Core/README.md#state-machine) (Core) | `StateMachine`/`State` nodes, debug labels and a pure C# `StateMachine<TState>` |
 
