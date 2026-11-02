@@ -1,0 +1,25 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="Script" path="res://addons/ouranos_foundry/Features/StatusEffects/Resources/StatusEffectDefinition.cs" id="1_script"]
+
+[sub_resource type="Gradient" id="Gradient_icon"]
+colors = PackedColorArray(0.6, 1, 0.3, 1, 0.1, 0.4, 0.05, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_icon"]
+gradient = SubResource("Gradient_icon")
+width = 32
+height = 32
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[resource]
+script = ExtResource("1_script")
+Id = &"poison"
+DisplayName = "Poison"
+Description = "Deals 2 damage per stack every second. Stacks up to 5; each stack restarts the timer."
+Icon = SubResource("GradientTexture2D_icon")
+Duration = 6.0
+TickInterval = 1.0
+Stacking = 1
+MaxStacks = 5

@@ -8,6 +8,8 @@ Reusable game features for Godot 4 C#: genre- and perspective-agnostic, and they
 | [LootTables](Features/LootTables/README.md) | Weighted, deterministic, nestable loot tables as Godot resources |
 | [Persistence](Features/Persistence/README.md) | Save slots for any `ISaveable`: atomic, versioned JSON files with migrations |
 | [ProceduralGeneration](Features/ProceduralGeneration/README.md) | Seeded world blueprint and on-demand chunk generation pipeline |
+| [StatusEffects](Features/StatusEffects/README.md) | Timed, ticking and stacking buffs and debuffs with a buff bar |
+| [StateMachine](Core/README.md#state-machine) (Core) | `StateMachine`/`State` nodes, debug labels and a pure C# `StateMachine<TState>` |
 
 ## Requirements
 
