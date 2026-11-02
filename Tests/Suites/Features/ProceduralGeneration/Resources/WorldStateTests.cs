@@ -82,4 +82,50 @@ public class WorldStateTests
         world.GetPointsOfInterestInChunk(Vector2I.Zero).ShouldBe([near]);
         world.GetPointsOfInterestInChunk(new Vector2I(1, 0)).ShouldBeEmpty();
     }
+
+    [TestCase]
+    public void LoadBlueprint_FromSaveBlueprint_RestoresTheSameBlueprint()
+    {
+        // Arrange
+        var source = new WorldState { Size = 500, Seed = ulong.MaxValue - 1 };
+        var cityId = Guid.NewGuid();
+        var poi = new PointOfInterest(Guid.NewGuid(), "Inn", "tavern", new(-4, 5), cityId);
+        var road = MakeRoad(new(0, 0), new(-3, 9), new(40, 2));
+        source.Regions.Add(
+            new Region(Guid.NewGuid(), "North", new(1, 2), "forest", [cityId], [road.Id])
+        );
+        source.Cities.Add(
+            new City(cityId, "Port", new(-2, 3), "town", source.Regions[0].Id, [poi], [road.Id], 6)
+        );
+        source.Roads.Add(road);
+        var world = new WorldState();
+
+        // Act
+        world.LoadBlueprint(source.SaveBlueprint());
+
+        // Assert
+        world.Seed.ShouldBe(source.Seed);
+        world.Size.ShouldBe(500);
+        BlueprintDeterminismTests
+            .Describe(world)
+            .ShouldBe(BlueprintDeterminismTests.Describe(source));
+        world.CityById[cityId].Name.ShouldBe("Port");
+        world.GetPointsOfInterestInChunk(new Vector2I(-1, 0)).ShouldBe([poi]);
+        world.GetRoadsInChunk(new Vector2I(2, 0)).ShouldContain(road.Id);
+        world.IsBlueprintGenerated.ShouldBeFalse();
+    }
+
+    [TestCase]
+    public void LoadBlueprint_IntoAGeneratedBlueprint_Throws()
+    {
+        // Arrange
+        var world = new WorldState { IsBlueprintGenerated = true };
+        var data = new WorldState().SaveBlueprint();
+
+        // Act
+        var load = () => world.LoadBlueprint(data);
+
+        // Assert
+        load.ShouldThrow<InvalidOperationException>();
+    }
 }

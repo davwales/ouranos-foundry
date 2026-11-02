@@ -660,4 +660,158 @@ public class WorldGeneratorTests
         generator.GenerationFailed -= OnFailed;
         root.Free();
     }
+
+    [TestCase]
+    public async Task UnloadChunk_ThenRegenerate_KeepsTheEditedTiles()
+    {
+        // Arrange
+        var (root, generator, manager) = CreateGenerator(
+            new ChunkConfig { ViewDistance = 0 },
+            Vector2.Zero
+        );
+        generator._Ready();
+        manager._Process(0);
+        await TestWait.Until(() => generator.IsChunkReady(Vector2I.Zero));
+        generator.GetChunk(Vector2I.Zero)!.SetTile(3, 2, 42);
+
+        // Act
+        generator.UnloadChunk(Vector2I.Zero);
+        manager.ResetTracking();
+        manager._Process(0);
+        await TestWait.Until(() => generator.IsChunkReady(Vector2I.Zero));
+
+        // Assert
+        var chunk = generator.GetChunk(Vector2I.Zero).ShouldNotBeNull();
+        chunk.GetTile(3, 2).ShouldBe(42);
+        chunk.EditedTiles.ShouldBe(new Dictionary<int, int> { [2 * 16 + 3] = 42 });
+
+        root.Free();
+    }
+
+    [TestCase]
+    public async Task Load_IntoAnotherGenerator_RestoresTheBlueprintAndEditedTiles()
+    {
+        // Arrange: edit a loaded chunk and a chunk that is unloaded by save time.
+        var (sourceRoot, source, sourceManager) = CreateGenerator(
+            new ChunkConfig { ViewDistance = 0 },
+            Vector2.Zero,
+            blueprintPipeline: MakeRealBlueprintPipeline()
+        );
+        source.WorldState.Seed = 1234;
+        source._Ready();
+        sourceManager._Process(0);
+        await TestWait.Until(() => source.IsChunkReady(Vector2I.Zero));
+        source.GetChunk(Vector2I.Zero)!.SetTile(1, 1, 7);
+        source.UnloadChunk(Vector2I.Zero);
+        sourceManager.ResetTracking();
+        ((Node2D)sourceManager.Player!).Position = new Vector2(20, 0);
+        sourceManager._Process(0);
+        await TestWait.Until(() => source.IsChunkReady(new Vector2I(1, 0)));
+        source.GetChunk(new Vector2I(1, 0))!.SetTile(0, 15, 9);
+        var saved = source.Save();
+        var expected = BlueprintDeterminismTests.Describe(source.WorldState);
+
+        var (root, generator, manager) = CreateGenerator(
+            new ChunkConfig { ViewDistance = 0 },
+            Vector2.Zero,
+            blueprintPipeline: MakeRealBlueprintPipeline()
+        );
+        generator.WorldState.Seed = 99;
+        generator._Ready();
+        var regenerated = 0;
+        void OnBlueprintGenerated()
+        {
+            regenerated++;
+        }
+
+        generator.BlueprintGenerated += OnBlueprintGenerated;
+
+        // Act
+        generator.Load(saved);
+        manager._Process(0);
+        await TestWait.Until(() => generator.IsChunkReady(Vector2I.Zero));
+        var originTile = generator.GetChunk(Vector2I.Zero)!.GetTile(1, 1);
+        ((Node2D)manager.Player!).Position = new Vector2(20, 0);
+        manager._Process(0);
+        await TestWait.Until(() => generator.IsChunkReady(new Vector2I(1, 0)));
+
+        // Assert
+        regenerated.ShouldBe(1);
+        generator.IsBlueprintGenerated.ShouldBeTrue();
+        generator.WorldState.Seed.ShouldBe(1234UL);
+        BlueprintDeterminismTests.Describe(generator.WorldState).ShouldBe(expected);
+        generator.WorldState.CityById.Count.ShouldBe(generator.WorldState.Cities.Count);
+        originTile.ShouldBe(7);
+        generator.GetChunk(new Vector2I(1, 0))!.GetTile(0, 15).ShouldBe(9);
+        ToJson(generator.Save()).ShouldBe(ToJson(saved));
+
+        generator.BlueprintGenerated -= OnBlueprintGenerated;
+        sourceRoot.Free();
+        root.Free();
+    }
+
+    private static string ToJson(Godot.Collections.Dictionary<string, Variant> data)
+    {
+        return Json.Stringify(Json.FromNative(data));
+    }
+
+    [TestCase]
+    public void Load_WithAMalformedBlueprint_ReportsFailureAndThrows()
+    {
+        // Arrange
+        var (root, generator, _) = CreateGenerator(new ChunkConfig(), Vector2.Zero);
+        generator._Ready();
+        var data = generator.Save();
+        data["blueprint"] = new Godot.Collections.Dictionary<string, Variant> { ["seed"] = 1 };
+        var failures = new List<string>();
+        void OnFailed(string passName, string error)
+        {
+            failures.Add(passName);
+        }
+
+        generator.BlueprintFailed += OnFailed;
+
+        // Act
+        var load = () => generator.Load(data);
+
+        // Assert
+        load.ShouldThrow<InvalidOperationException>();
+        failures.ShouldBe([nameof(WorldGenerator)]);
+        generator.IsBlueprintGenerated.ShouldBeFalse();
+
+        generator.BlueprintFailed -= OnFailed;
+        root.Free();
+    }
+
+    [TestCase]
+    public void Load_WithUntypedDictionaries_LoadsTheBlueprint()
+    {
+        // Arrange: a migration may rebuild entries as untyped dictionaries.
+        var (sourceRoot, source, _) = CreateGenerator(
+            new ChunkConfig(),
+            Vector2.Zero,
+            blueprintPipeline: MakeRealBlueprintPipeline()
+        );
+        source._Ready();
+        var saved = source.Save();
+        var untypedBlueprint = new Godot.Collections.Dictionary();
+        foreach (var (key, value) in saved["blueprint"].AsGodotDictionary())
+        {
+            untypedBlueprint[key] = value;
+        }
+
+        saved["blueprint"] = untypedBlueprint;
+        var expected = BlueprintDeterminismTests.Describe(source.WorldState);
+        var (root, generator, _) = CreateGenerator(new ChunkConfig(), Vector2.Zero);
+        generator._Ready();
+
+        // Act
+        generator.Load(saved);
+
+        // Assert
+        BlueprintDeterminismTests.Describe(generator.WorldState).ShouldBe(expected);
+
+        sourceRoot.Free();
+        root.Free();
+    }
 }

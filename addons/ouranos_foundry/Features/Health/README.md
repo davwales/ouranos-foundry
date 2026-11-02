@@ -29,4 +29,4 @@ Assign a monitor's `Target` export in the inspector, or call `MonitorHealthCompo
 
 - **Dynamic max health** (buffs, level scaling): set `MaxHealthProvider = () => ...`, then call `RefreshMaxHealth()` when the inputs change.
 - **Custom UI:** subscribe to the component's signals in your own Control. Use the existing monitors as reference.
-- **Saving:** `Serialize()` returns a Godot `Dictionary` (`current_health`, `max_health`), and `Deserialize(dict)` restores it.
+- **Saving:** `Serialize()` returns a Godot `Dictionary` (`current_health`, `max_health`), and `Deserialize(dict)` restores it. Both are virtual, so a subclass can save more. The component is an `ISaveable`: add it to the `saveable` group and a Persistence `SaveManager` saves it, keyed by `SaveKey` or, when that is empty, its node path.
