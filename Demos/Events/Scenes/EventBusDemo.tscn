@@ -1,0 +1,75 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Demos/Events/Scripts/EventBusDemo.cs" id="1_demo"]
+[ext_resource type="Script" path="res://Demos/Events/Scripts/AchievementTracker.cs" id="2_achievements"]
+[ext_resource type="Script" path="res://Demos/Events/Scripts/gold_counter.gd" id="3_gold"]
+[ext_resource type="Script" path="res://addons/ouranos_foundry/Core/Nodes/EventBusBridge.cs" id="4_bridge"]
+
+[node name="EventBusDemo" type="Control" node_paths=PackedStringArray("ActionButtons", "Achievements", "Bridge", "SubscriberLabel", "EventLog")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_demo")
+ActionButtons = NodePath("Layout/ActionButtons")
+Achievements = NodePath("Layout/Achievements")
+Bridge = NodePath("Layout/GoldCounter/ChestBridge")
+SubscriberLabel = NodePath("Layout/SubscriberLabel")
+EventLog = NodePath("Layout/EventLog")
+
+[node name="Layout" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="Layout"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Event Bus Demo"
+horizontal_alignment = 1
+
+[node name="Hint" type="Label" parent="Layout"]
+layout_mode = 2
+text = "The buttons publish events. The log, the achievement tracker and the GDScript gold counter each subscribe on their own, without references to the buttons or each other. Remove the tracker and the bus forgets it."
+autowrap_mode = 3
+
+[node name="ActionButtons" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+
+[node name="Achievements" type="Label" parent="Layout"]
+layout_mode = 2
+script = ExtResource("2_achievements")
+
+[node name="GoldCounter" type="Label" parent="Layout"]
+layout_mode = 2
+text = "Gold (GDScript): 0"
+script = ExtResource("3_gold")
+
+[node name="ChestBridge" type="Node" parent="Layout/GoldCounter"]
+script = ExtResource("4_bridge")
+EventName = &"chest_opened"
+
+[node name="SubscriberLabel" type="Label" parent="Layout"]
+layout_mode = 2
+modulate = Color(1, 1, 1, 0.6)
+
+[node name="LogLabel" type="Label" parent="Layout"]
+layout_mode = 2
+text = "Event Log:"
+
+[node name="EventLog" type="RichTextLabel" parent="Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+scroll_following = true
+
+[connection signal="EventReceived" from="Layout/GoldCounter/ChestBridge" to="Layout/GoldCounter" method="_on_chest_opened"]
