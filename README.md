@@ -20,6 +20,7 @@ Shared Godot C# library for building games. Features are self-contained vertical
 | [ProceduralGeneration](addons/ouranos_foundry/Features/ProceduralGeneration/README.md) | Seeded world blueprint and on-demand chunk generation pipeline |
 | [StatusEffects](addons/ouranos_foundry/Features/StatusEffects/README.md) | Timed, ticking and stacking buffs and debuffs with a buff bar |
 | [StateMachine](addons/ouranos_foundry/Core/README.md#state-machine) (Core) | `StateMachine`/`State` nodes, debug labels and a pure C# `StateMachine<TState>` |
+| [Stats](addons/ouranos_foundry/Core/README.md#stats) (Core) | `StatBlock` with base values, ordered add/percent/multiply/override modifiers by source, and clamping |
 
 ## Using Foundry in your game
 

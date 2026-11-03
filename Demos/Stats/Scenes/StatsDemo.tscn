@@ -1,0 +1,96 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Demos/Stats/Scripts/StatsDemo.cs" id="1_demo"]
+[ext_resource type="Script" path="res://addons/ouranos_foundry/Core/Nodes/StatBlock.cs" id="2_stats"]
+[ext_resource type="Script" path="res://addons/ouranos_foundry/Features/Health/Nodes/HealthComponent.cs" id="3_health"]
+[ext_resource type="Script" path="res://addons/ouranos_foundry/Features/Health/Nodes/PlayerHealthBar.cs" id="4_health_bar"]
+[ext_resource type="Script" path="res://addons/ouranos_foundry/Core/Resources/StatDefinition.cs" id="5_stat_definition"]
+[ext_resource type="Script" path="res://Demos/Stats/Scripts/ModifierSet.cs" id="6_modifier_set"]
+[ext_resource type="Resource" path="res://Demos/Stats/Resources/strength.tres" id="7_strength"]
+[ext_resource type="Resource" path="res://Demos/Stats/Resources/max_health.tres" id="8_max_health"]
+[ext_resource type="Resource" path="res://Demos/Stats/Resources/move_speed.tres" id="9_move_speed"]
+[ext_resource type="Resource" path="res://Demos/Stats/Resources/iron_sword.tres" id="10_iron_sword"]
+[ext_resource type="Resource" path="res://Demos/Stats/Resources/ring_of_might.tres" id="11_ring_of_might"]
+[ext_resource type="Resource" path="res://Demos/Stats/Resources/berserk.tres" id="12_berserk"]
+[ext_resource type="Resource" path="res://Demos/Stats/Resources/boots_of_haste.tres" id="13_boots_of_haste"]
+[ext_resource type="Resource" path="res://Demos/Stats/Resources/frozen.tres" id="14_frozen"]
+
+[node name="StatsDemo" type="Control" node_paths=PackedStringArray("Stats", "Health", "StatGrid", "ModifierButtons", "ActionButtons", "HealthLabel", "EventLog")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_demo")
+Stats = NodePath("Hero/Stats")
+Health = NodePath("Hero/Health")
+ModifierSets = Array[ExtResource("6_modifier_set")]([ExtResource("10_iron_sword"), ExtResource("11_ring_of_might"), ExtResource("12_berserk"), ExtResource("13_boots_of_haste"), ExtResource("14_frozen")])
+StatGrid = NodePath("Layout/StatGrid")
+ModifierButtons = NodePath("Layout/ModifierButtons")
+ActionButtons = NodePath("Layout/ActionButtons")
+HealthLabel = NodePath("Layout/HealthLabel")
+EventLog = NodePath("Layout/EventLog")
+
+[node name="Hero" type="Node" parent="."]
+
+[node name="Stats" type="Node" parent="Hero"]
+script = ExtResource("2_stats")
+Stats = Array[ExtResource("5_stat_definition")]([ExtResource("7_strength"), ExtResource("8_max_health"), ExtResource("9_move_speed")])
+
+[node name="Health" type="Node" parent="Hero"]
+script = ExtResource("3_health")
+
+[node name="Layout" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="Layout"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Stats Demo"
+horizontal_alignment = 1
+
+[node name="Hint" type="Label" parent="Layout"]
+layout_mode = 2
+text = "Toggle gear and buffs to add or remove their modifiers. Final = (base + flat) × (1 + percent) × multipliers, unless an override applies. Max health feeds the health bar."
+autowrap_mode = 3
+
+[node name="StatGrid" type="GridContainer" parent="Layout"]
+layout_mode = 2
+theme_override_constants/h_separation = 32
+columns = 4
+
+[node name="HealthLabel" type="Label" parent="Layout"]
+layout_mode = 2
+text = "HP -- / --"
+
+[node name="PlayerHealthBar" type="Control" parent="Layout" node_paths=PackedStringArray("Target")]
+layout_mode = 2
+script = ExtResource("4_health_bar")
+Target = NodePath("../../Hero/Health")
+
+[node name="ModifierButtons" type="VBoxContainer" parent="Layout"]
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="ActionButtons" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+
+[node name="LogLabel" type="Label" parent="Layout"]
+layout_mode = 2
+text = "Event Log:"
+
+[node name="EventLog" type="RichTextLabel" parent="Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+scroll_following = true
