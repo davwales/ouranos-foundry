@@ -99,6 +99,7 @@ Tests/                    GdUnit4 test project (own project.godot)
 - **Signal up, call down.** Parents call methods on their children, and children communicate upward only through signals.
   - The one sanctioned exception: a `DebugDrawer` subclass may ask its parent canvas to redraw through the protected `RequestRedraw()` helper.
   - Reading `GetParent().Name` for display is fine.
+- **Game-wide events** that unrelated systems react to (achievements, audio) go through `EventBus` (`Core/README.md#event-bus`), not node lookups. Features expose signals and don't publish to the bus themselves.
 - **Editor tools.** Don't add `[Tool]` unless the runtime logic is guarded with `Engine.IsEditorHint()`.
 
 ### Scene, resource & UID files
