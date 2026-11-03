@@ -10,6 +10,7 @@ Reusable game features for Godot 4 C#: genre- and perspective-agnostic, and they
 | [ProceduralGeneration](Features/ProceduralGeneration/README.md) | Seeded world blueprint and on-demand chunk generation pipeline |
 | [StatusEffects](Features/StatusEffects/README.md) | Timed, ticking and stacking buffs and debuffs with a buff bar |
 | [StateMachine](Core/README.md#state-machine) (Core) | `StateMachine`/`State` nodes, debug labels and a pure C# `StateMachine<TState>` |
+| [EventBus](Core/README.md#event-bus) (Core) | Typed, global publish/subscribe with node-owned subscriptions and a GDScript signal bridge |
 
 ## Requirements
 
