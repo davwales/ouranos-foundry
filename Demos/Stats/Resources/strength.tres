@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="StatDefinition" format=3]
+
+[ext_resource type="Script" path="res://addons/ouranos_foundry/Core/Resources/StatDefinition.cs" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+Id = &"strength"
+DisplayName = "Strength"
+BaseValue = 10.0
+MinValue = 0.0

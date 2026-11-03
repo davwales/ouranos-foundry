@@ -1,0 +1,21 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="Script" path="res://Demos/Stats/Scripts/ModifierSet.cs" id="1_set"]
+[ext_resource type="Script" path="res://addons/ouranos_foundry/Core/Resources/StatModifier.cs" id="2_modifier"]
+
+[sub_resource type="Resource" id="StatModifier_1"]
+script = ExtResource("2_modifier")
+StatId = &"strength"
+Operation = 2
+Value = 1.5
+
+[sub_resource type="Resource" id="StatModifier_2"]
+script = ExtResource("2_modifier")
+StatId = &"max_health"
+Operation = 2
+Value = 0.5
+
+[resource]
+script = ExtResource("1_set")
+DisplayName = "Berserk (×1.5 strength, ×0.5 max health)"
+Modifiers = Array[ExtResource("2_modifier")]([SubResource("StatModifier_1"), SubResource("StatModifier_2")])

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="Script" path="res://Demos/Stats/Scripts/ModifierSet.cs" id="1_set"]
+[ext_resource type="Script" path="res://addons/ouranos_foundry/Core/Resources/StatModifier.cs" id="2_modifier"]
+
+[sub_resource type="Resource" id="StatModifier_1"]
+script = ExtResource("2_modifier")
+StatId = &"move_speed"
+Operation = 3
+Value = 0.0
+
+[resource]
+script = ExtResource("1_set")
+DisplayName = "Frozen (move speed = 0)"
+Modifiers = Array[ExtResource("2_modifier")]([SubResource("StatModifier_1")])
