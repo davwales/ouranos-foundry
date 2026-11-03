@@ -8,10 +8,13 @@ public partial class DemoLauncher : Control
     [
         ("Health", "res://Demos/Health/Scenes/HealthDemo.tscn"),
         ("Loot Tables", "res://Demos/LootTables/Scenes/LootTableDemo.tscn"),
+        ("Persistence", "res://Demos/Persistence/Scenes/PersistenceDemo.tscn"),
         (
             "Procedural Generation",
             "res://Demos/ProceduralGeneration/Scenes/ProceduralGeneration.tscn"
         ),
+        ("State Machine", "res://Demos/StateMachine/Scenes/StateMachineDemo.tscn"),
+        ("Status Effects", "res://Demos/StatusEffects/Scenes/StatusEffectsDemo.tscn"),
     ];
 
     [Export]

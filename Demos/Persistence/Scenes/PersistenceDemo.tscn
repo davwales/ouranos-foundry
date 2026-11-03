@@ -1,0 +1,79 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Demos/Persistence/Scripts/PersistenceDemo.cs" id="1_xns8g"]
+[ext_resource type="Script" path="res://addons/ouranos_foundry/Features/Persistence/Nodes/SaveManager.cs" id="2_c4o7h"]
+[ext_resource type="PackedScene" path="res://Demos/ProceduralGeneration/Scenes/ProceduralGeneration.tscn" id="3_qscsg"]
+[ext_resource type="Script" path="res://Demos/Persistence/Scripts/TilePainter.cs" id="4_gk37u"]
+[ext_resource type="Script" path="res://Demos/Persistence/Scripts/SavedPosition.cs" id="5_8s2s3"]
+
+[node name="PersistenceDemo" type="Node2D" unique_id=874965581 node_paths=PackedStringArray("SaveManager", "Generator", "Player", "StatusLabel", "SaveButton", "LoadButton", "NewWorldButton", "DeleteButton", "QuitButton")]
+script = ExtResource("1_xns8g")
+SaveManager = NodePath("SaveManager")
+Generator = NodePath("World/WorldGenerator")
+Player = NodePath("World/DemoPlayer")
+StatusLabel = NodePath("PersistenceHud/Panel/Status")
+SaveButton = NodePath("PersistenceHud/Panel/Buttons/SaveButton")
+LoadButton = NodePath("PersistenceHud/Panel/Buttons/LoadButton")
+NewWorldButton = NodePath("PersistenceHud/Panel/Buttons/NewWorldButton")
+DeleteButton = NodePath("PersistenceHud/Panel/Buttons/DeleteSaveButton")
+QuitButton = NodePath("PersistenceHud/Panel/Buttons/QuitButton")
+
+[node name="SaveManager" type="Node" parent="." unique_id=826408698]
+script = ExtResource("2_c4o7h")
+SaveDirectory = "user://saves/persistence_demo"
+
+[node name="World" type="Node2D" parent="." unique_id=196941994 instance=ExtResource("3_qscsg")]
+
+[node name="TilePainter" type="Node2D" parent="." unique_id=200709902 node_paths=PackedStringArray("Generator")]
+script = ExtResource("4_gk37u")
+Generator = NodePath("../World/WorldGenerator")
+
+[node name="PlayerPosition" type="Node" parent="." unique_id=609286826 node_paths=PackedStringArray("Target") groups=["saveable"]]
+script = ExtResource("5_8s2s3")
+Target = NodePath("../World/DemoPlayer")
+
+[node name="PersistenceHud" type="CanvasLayer" parent="." unique_id=848711511]
+
+[node name="Panel" type="VBoxContainer" parent="PersistenceHud" unique_id=542023329]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -16.0
+offset_bottom = -16.0
+grow_vertical = 0
+
+[node name="Hint" type="Label" parent="PersistenceHud/Panel" unique_id=2009040154]
+layout_mode = 2
+text = "Left mouse: paint · Right mouse: erase · Paint, save, quit, then run the demo again"
+
+[node name="Status" type="Label" parent="PersistenceHud/Panel" unique_id=1222051171]
+layout_mode = 2
+
+[node name="Buttons" type="HBoxContainer" parent="PersistenceHud/Panel" unique_id=319628743]
+layout_mode = 2
+
+[node name="SaveButton" type="Button" parent="PersistenceHud/Panel/Buttons" unique_id=479151767]
+layout_mode = 2
+focus_mode = 0
+text = "Save"
+
+[node name="LoadButton" type="Button" parent="PersistenceHud/Panel/Buttons" unique_id=1288528209]
+layout_mode = 2
+focus_mode = 0
+text = "Load"
+
+[node name="NewWorldButton" type="Button" parent="PersistenceHud/Panel/Buttons" unique_id=2042253446]
+layout_mode = 2
+focus_mode = 0
+text = "New World"
+
+[node name="DeleteSaveButton" type="Button" parent="PersistenceHud/Panel/Buttons" unique_id=816578619]
+layout_mode = 2
+focus_mode = 0
+text = "Delete Save"
+
+[node name="QuitButton" type="Button" parent="PersistenceHud/Panel/Buttons" unique_id=721645670]
+layout_mode = 2
+focus_mode = 0
+text = "Quit"

@@ -5,7 +5,7 @@
   addons/ is symlinked from the repo root before evaluation so library sources compile
   into this assembly and res://addons/ouranos_foundry/ paths match the main project.
 -->
-<Project Sdk="Godot.NET.Sdk/4.6.3" InitialTargets="CreateSourceSymlinks">
+<Project Sdk="Godot.NET.Sdk/4.6.1" InitialTargets="CreateSourceSymlinks">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>

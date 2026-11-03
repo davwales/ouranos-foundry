@@ -1,0 +1,25 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="Script" path="res://Demos/StatusEffects/Scripts/HealOverTimeEffect.cs" id="1_script"]
+
+[sub_resource type="Gradient" id="Gradient_icon"]
+colors = PackedColorArray(0.5, 1, 0.9, 1, 0.05, 0.35, 0.4, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_icon"]
+gradient = SubResource("Gradient_icon")
+width = 32
+height = 32
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[resource]
+script = ExtResource("1_script")
+Id = &"regeneration"
+DisplayName = "Regeneration"
+Description = "Heals 3 health every second. Re-applying adds 5 more seconds."
+Icon = SubResource("GradientTexture2D_icon")
+Duration = 5.0
+TickInterval = 1.0
+Stacking = 2
+HealPerTick = 3.0

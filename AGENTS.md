@@ -46,11 +46,13 @@ addons/ouranos_foundry/   Shipped addon (keep this path: icons are referenced by
     Types/        Plain C# types: records, enums, structs (no Godot base class)
     Utils/        Static helpers and plain helper classes
     README.md     Pieces, usage, extension points
-  Core/           Shared, feature-agnostic code (e.g. SeededRng, WeightedRandom, FoundryRandom, LogLevel, Bresenham, StableId)
+  Core/           Shared, feature-agnostic code (e.g. SeededRng, WeightedRandom, FoundryRandom, StateMachine, LogLevel, Bresenham, StableId)
     Attributes/
-    Resources/
+    Nodes/        Shared nodes (StateMachine, State)
+    Resources/    Shared resources (FoundryRandom)
     Types/
     Utils/
+    README.md     Core pieces and usage
   Assets/icons/
   LICENSE, README.md
 Demos/<Name>/{Scenes,Scripts,Resources}/
@@ -73,7 +75,7 @@ Tests/                    GdUnit4 test project (own project.godot)
   - Nodes: `*Component`, `*Manager`, `*Bar`, `*Container`, `*Drawer`, `*Generator`.
   - Pipelines: `*Pass` and `*Pipeline`.
   - Resources: `*Definition`/`*Config` for configuration, `*Data` for data containers (`LootTableData`, `ChunkData`).
-  - Static utilities: name them by what they do (`Bresenham`, `WeightedSelection`).
+  - Static utilities: name them by what they do (`Bresenham`, `WeightedRandom`).
 - **Godot global class names must be unique across the assembly.** Godot's registry is flat.
 - **Records are immutable DTOs:** `public sealed record City(Guid Id, string Name, …)`. Expose collections as `IReadOnlyList<T>`.
 
@@ -153,7 +155,7 @@ There is one test project: `Tests/OuranosFoundry.Tests.csproj`, using GdUnit4Net
 
 ## Git, Hooks & CI
 
-- **Branches:** `feat/…`, `fix/…`, `refactor/…`, `ci/…`. PRs target `main` on GitHub (`gh`).
+- **Branches:** `feat/…`, `fix/…`, `refactor/…`, `ci/…`, `docs/…`. PRs target `main` on GitHub (`gh`).
 - **Commits:** Conventional Commits (`feat:`, `fix:`, `refactor:`, `ci:`, `test:`, `docs:`).
 - **Never bypass hooks** with `--no-verify`.
 
@@ -165,6 +167,14 @@ There is one test project: `Tests/OuranosFoundry.Tests.csproj`, using GdUnit4Net
 | Release (`.github/workflows/release.yml`, on every push to `main`) | CI → if the addon or Godot version changed: `Automation/next-version.sh` → tag `v…`, push the `addon` branch (`git subtree split`) and `addon-v…` tag → GitHub release with generated notes and the addon zip |
 
 To check the packaged addon locally: `GODOT_BIN=… Automation/consumer-smoke.sh zip <zip>`, or `… submodule <repo> [branch]` (needs `git subtree` to create the branch).
+
+### Issues and Pull Requests
+
+Write every issue and PR from the templates in [`docs/templates/`](docs/templates/README.md): `issues/feature.md`, `issues/bug.md`, `issues/tech-debt.md` and `pull-request.md`.
+
+- **Issue titles:** `<Area> | <Title>` (`Core`, a feature name such as `Health`, or `Tooling`), plus the area label, the type label (`bug` / `enhancement` / `refactor`) and a priority.
+- **PR titles:** Conventional Commits, `<type>[!]: <summary>` (see [Versioning & releases](#versioning--releases)).
+- **Keep them minimal:** a few bullets per section, nothing the diff already shows. Older issues and PRs are too verbose to use as examples.
 
 ### Versioning & releases
 
@@ -190,6 +200,8 @@ To check the packaged addon locally: `GODOT_BIN=… Automation/consumer-smoke.sh
 - **Loot tables:** `Features/LootTables/README.md`. Covers the entry hierarchy, `IsEligible`/`Resolve` overrides, and the depth and cycle limits.
 - **Procedural generation:** `Features/ProceduralGeneration/README.md`. Covers the two pass types, `[RequiresPasses]`, and threading.
 - **Health:** `Features/Health/README.md`. Covers the component, UI monitors, `MaxHealthProvider` and serialization.
+- **Status effects:** `Features/StatusEffects/README.md`. Covers stacking policies, tick timing, `UpdateMode` and the definition hooks.
+- **Persistence:** `Features/Persistence/README.md`. Covers `ISaveable` (in Core, so any feature can implement it), `SaveManager` slots, the file format and migrations.
 
 ## Build & Dependencies
 
