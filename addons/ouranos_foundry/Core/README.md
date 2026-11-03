@@ -2,6 +2,17 @@
 
 Shared, feature-agnostic building blocks. Features may depend on Core; Core never depends on a feature.
 
+## Randomness
+
+| Type | Kind | Role |
+|------|------|------|
+| `SeededRng` | C# class | Deterministic, unbiased stream keyed by a seed and a salt. `Next`, `NextInclusive`, `NextBool`, `NextFloat`, `NextElement`, `Shuffle`; `Derive()` for independent sub-streams and `ForCoords` for coordinate-keyed streams. |
+| `WeightedRandom` | Static utility | `Pick` / `PickIndex` by weight, one draw per pick. Zero, negative, NaN and infinite weights count as zero. |
+| `FoundryRandom` | Resource | Seed + salt authored in the inspector, with a `RandomNumberGenerator`-shaped API (`Randf`, `RandiRange`, `RandWeighted`, `Shuffle`, `Reset`) callable from GDScript. C# reaches the stream through `.Rng`. |
+
+- Use a named salt per consumer so streams that share a seed stay independent.
+- `FoundryRandom` is stateful: one shared `.tres` is one shared sequence. Enable `resource_local_to_scene` or duplicate it for independent streams.
+
 ## State machine
 
 A generic state machine for movement profiles, AI, menus, game flow and so on. It comes as scene nodes, plus a pure C# variant for code that doesn't live in the scene tree.

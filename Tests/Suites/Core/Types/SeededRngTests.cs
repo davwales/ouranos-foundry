@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using GdUnit4;
 using Ouranos.Foundry.Core.Types;
 using Shouldly;
@@ -230,5 +231,231 @@ public class SeededRngTests
     private static int[] First(SeededRng rng)
     {
         return [rng.Next(), rng.Next(), rng.Next(), rng.Next()];
+    }
+
+    [TestCase]
+    public void Next_WithMaxValue_IsUniformAcrossBuckets()
+    {
+        // Arrange
+        var rng = new SeededRng(42);
+        const int buckets = 7;
+        const int samples = 140_000;
+        var counts = new int[buckets];
+
+        // Act
+        for (var i = 0; i < samples; i++)
+        {
+            counts[rng.Next(buckets)]++;
+        }
+
+        // Assert
+        AssertUniform(counts, samples);
+    }
+
+    [TestCase]
+    public void Next_WithFullIntRange_IsBalancedAroundZero()
+    {
+        // Arrange: max - min overflowed int here before, which skewed or broke the results.
+        var rng = new SeededRng(42);
+        const int samples = 100_000;
+        var lowerHalf = 0;
+
+        // Act
+        for (var i = 0; i < samples; i++)
+        {
+            if (rng.Next(int.MinValue, int.MaxValue) < 0)
+            {
+                lowerHalf++;
+            }
+        }
+
+        // Assert
+        (lowerHalf / (double)samples).ShouldBe(0.5, 0.01);
+    }
+
+    [TestCase]
+    public void Next_WithFullIntRange_DoesNotOverflow()
+    {
+        // Arrange
+        var rng = new SeededRng(42);
+        var sawNegative = false;
+        var sawPositive = false;
+
+        // Act
+        for (var i = 0; i < 1000; i++)
+        {
+            var value = rng.Next(int.MinValue, int.MaxValue);
+            value.ShouldBeLessThan(int.MaxValue);
+            sawNegative |= value < 0;
+            sawPositive |= value > 0;
+        }
+
+        // Assert
+        sawNegative.ShouldBeTrue();
+        sawPositive.ShouldBeTrue();
+    }
+
+    [TestCase]
+    public void Next_WithNegativeRange_ReturnsValuesInRange()
+    {
+        // Arrange
+        var rng = new SeededRng(42);
+
+        // Act & Assert
+        for (var i = 0; i < 1000; i++)
+        {
+            rng.Next(-10, -5).ShouldBeInRange(-10, -6);
+        }
+    }
+
+    [TestCase]
+    public void Next_WhenMaxValueIsNotPositive_Throws()
+    {
+        // Arrange
+        var rng = new SeededRng(42);
+
+        // Act & Assert
+        Should.Throw<ArgumentOutOfRangeException>(() => rng.Next(0));
+    }
+
+    [TestCase]
+    public void NextInclusive_ReturnsBothEndpoints()
+    {
+        // Arrange
+        var rng = new SeededRng(42);
+        var seen = new HashSet<int>();
+
+        // Act
+        for (var i = 0; i < 200; i++)
+        {
+            seen.Add(rng.NextInclusive(1, 3));
+        }
+
+        // Assert
+        seen.OrderBy(v => v).ShouldBe([1, 2, 3]);
+    }
+
+    [TestCase]
+    public void NextInclusive_WithFullIntRange_DoesNotOverflow()
+    {
+        // Arrange
+        var rng = new SeededRng(42);
+
+        // Act & Assert
+        Should.NotThrow(() =>
+        {
+            for (var i = 0; i < 1000; i++)
+            {
+                rng.NextInclusive(int.MinValue, int.MaxValue);
+            }
+        });
+        rng.NextInclusive(7, 7).ShouldBe(7);
+    }
+
+    [TestCase]
+    public void NextBool_IsBalanced()
+    {
+        // Arrange
+        var rng = new SeededRng(42);
+        const int samples = 100_000;
+
+        // Act
+        var trues = Enumerable.Range(0, samples).Count(_ => rng.NextBool());
+
+        // Assert
+        (trues / (double)samples).ShouldBe(0.5, 0.01);
+    }
+
+    [TestCase]
+    public void NextFloat_WithRange_ReturnsValuesInRange()
+    {
+        // Arrange
+        var rng = new SeededRng(42);
+
+        // Act & Assert
+        for (var i = 0; i < 1000; i++)
+        {
+            var value = rng.NextFloat(-2.5f, 4f);
+            value.ShouldBeGreaterThanOrEqualTo(-2.5f);
+            value.ShouldBeLessThan(4f);
+        }
+    }
+
+    [TestCase]
+    public void NextFloat_WhenRangeIsEmptyOrInvalid_Throws()
+    {
+        // Arrange
+        var rng = new SeededRng(42);
+
+        // Act & Assert
+        Should.Throw<ArgumentOutOfRangeException>(() => rng.NextFloat(1f, 1f));
+        Should.Throw<ArgumentOutOfRangeException>(() => rng.NextFloat(2f, 1f));
+        Should.Throw<ArgumentOutOfRangeException>(() => rng.NextFloat(float.NaN, 1f));
+        Should.Throw<ArgumentOutOfRangeException>(() =>
+            rng.NextFloat(float.MinValue, float.MaxValue)
+        );
+    }
+
+    [TestCase]
+    public void Shuffle_ProducesAPermutation()
+    {
+        // Arrange
+        var rng = new SeededRng(42);
+        var list = Enumerable.Range(0, 50).ToList();
+
+        // Act
+        rng.Shuffle(list);
+
+        // Assert
+        list.OrderBy(v => v).ShouldBe(Enumerable.Range(0, 50));
+        list.ShouldNotBe(Enumerable.Range(0, 50));
+    }
+
+    [TestCase]
+    public void Shuffle_IsDeterministic()
+    {
+        // Arrange
+        var a = Enumerable.Range(0, 20).ToList();
+        var b = Enumerable.Range(0, 20).ToList();
+
+        // Act
+        new SeededRng(7).Shuffle(a);
+        new SeededRng(7).Shuffle(b);
+
+        // Assert
+        a.ShouldBe(b);
+    }
+
+    [TestCase]
+    public void Shuffle_ProducesEveryPermutationEquallyOften()
+    {
+        // Arrange
+        var rng = new SeededRng(42);
+        const int samples = 60_000;
+        var counts = new Dictionary<string, int>();
+
+        // Act
+        for (var i = 0; i < samples; i++)
+        {
+            var list = new[] { 'a', 'b', 'c' };
+            rng.Shuffle(list);
+            var key = new string(list);
+            counts[key] = counts.GetValueOrDefault(key) + 1;
+        }
+
+        // Assert
+        counts.Count.ShouldBe(6);
+        AssertUniform([.. counts.Values], samples);
+    }
+
+    private static void AssertUniform(int[] counts, int samples)
+    {
+        var expected = samples / (double)counts.Length;
+        foreach (var count in counts)
+        {
+            // ±5% of the expected count is ~10 standard deviations at these sample sizes,
+            // yet far tighter than the skew a biased reduction of a small range would show.
+            count.ShouldBeInRange((int)(expected * 0.95), (int)(expected * 1.05));
+        }
     }
 }
