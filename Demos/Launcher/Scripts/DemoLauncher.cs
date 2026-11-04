@@ -6,6 +6,7 @@ public partial class DemoLauncher : Control
 {
     private static readonly (string Name, string ScenePath)[] Demos =
     [
+        ("Audio", "res://Demos/Audio/Scenes/AudioDemo.tscn"),
         ("Health", "res://Demos/Health/Scenes/HealthDemo.tscn"),
         ("Loot Tables", "res://Demos/LootTables/Scenes/LootTableDemo.tscn"),
         ("Persistence", "res://Demos/Persistence/Scenes/PersistenceDemo.tscn"),

@@ -1,0 +1,142 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Demos/Audio/Scripts/AudioDemo.cs" id="1_demo"]
+[ext_resource type="Script" path="res://addons/ouranos_foundry/Features/Audio/Nodes/AudioManager.cs" id="2_manager"]
+[ext_resource type="Script" path="res://addons/ouranos_foundry/Features/Audio/Nodes/SoundPool.cs" id="3_pool"]
+[ext_resource type="Script" path="res://addons/ouranos_foundry/Features/Audio/Nodes/MusicPlayer.cs" id="4_music"]
+[ext_resource type="Script" path="res://addons/ouranos_foundry/Features/Audio/Nodes/VolumeSlider.cs" id="5_slider"]
+[ext_resource type="Script" path="res://addons/ouranos_foundry/Features/Persistence/Nodes/SaveManager.cs" id="6_save"]
+[ext_resource type="Resource" path="res://Demos/Audio/Resources/blip.tres" id="7_blip"]
+[ext_resource type="Resource" path="res://Demos/Audio/Resources/zap.tres" id="8_zap"]
+[ext_resource type="Resource" path="res://Demos/Audio/Resources/playlist.tres" id="9_playlist"]
+[ext_resource type="AudioStream" path="res://Demos/Audio/Sounds/music_calm.wav" id="10_calm"]
+[ext_resource type="AudioStream" path="res://Demos/Audio/Sounds/music_tense.wav" id="11_tense"]
+[ext_resource type="AudioStream" path="res://Demos/Audio/Sounds/music_bright.wav" id="12_bright"]
+
+[node name="AudioDemo" type="Control" node_paths=PackedStringArray("Audio", "Settings", "SoundButtons", "MusicButtons", "VolumeControls", "MuteToggle", "VoicesLabel", "MusicLabel")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_demo")
+Audio = NodePath("AudioManager")
+Settings = NodePath("SettingsSaveManager")
+Blip = ExtResource("7_blip")
+Zap = ExtResource("8_zap")
+Tracks = [ExtResource("10_calm"), ExtResource("11_tense"), ExtResource("12_bright")]
+Playlist = ExtResource("9_playlist")
+SoundButtons = NodePath("Layout/SoundButtons")
+MusicButtons = NodePath("Layout/MusicButtons")
+VolumeControls = NodePath("Layout/VolumeControls")
+MuteToggle = NodePath("Layout/MuteToggle")
+VoicesLabel = NodePath("Layout/VoicesLabel")
+MusicLabel = NodePath("Layout/MusicLabel")
+
+[node name="AudioManager" type="Node" parent="."]
+script = ExtResource("2_manager")
+
+[node name="Sounds" type="Node" parent="AudioManager"]
+script = ExtResource("3_pool")
+MaxVoices = 12
+
+[node name="Music" type="Node" parent="AudioManager"]
+script = ExtResource("4_music")
+
+[node name="SettingsSaveManager" type="Node" parent="."]
+script = ExtResource("6_save")
+SaveDirectory = "user://audio_demo"
+
+[node name="Layout" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="Layout"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Audio Demo"
+horizontal_alignment = 1
+
+[node name="Hint" type="Label" parent="Layout"]
+layout_mode = 2
+text = "Spam blips to fill the 12-voice pool; zaps are capped at 3 at once. Switch tracks to hear the crossfade. Volumes are saved and restored next time."
+autowrap_mode = 3
+
+[node name="SoundsLabel" type="Label" parent="Layout"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Sound effects"
+
+[node name="SoundButtons" type="HFlowContainer" parent="Layout"]
+layout_mode = 2
+
+[node name="VoicesLabel" type="Label" parent="Layout"]
+layout_mode = 2
+text = "Voices playing: 0"
+
+[node name="MusicHeading" type="Label" parent="Layout"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Music"
+
+[node name="MusicButtons" type="HFlowContainer" parent="Layout"]
+layout_mode = 2
+
+[node name="MusicLabel" type="Label" parent="Layout"]
+layout_mode = 2
+text = "Now playing: nothing"
+
+[node name="VolumeHeading" type="Label" parent="Layout"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Volume"
+
+[node name="VolumeControls" type="GridContainer" parent="Layout"]
+layout_mode = 2
+columns = 2
+
+[node name="MasterLabel" type="Label" parent="Layout/VolumeControls"]
+layout_mode = 2
+text = "Master"
+
+[node name="MasterSlider" type="HSlider" parent="Layout/VolumeControls"]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+size_flags_vertical = 4
+script = ExtResource("5_slider")
+
+[node name="MusicVolumeLabel" type="Label" parent="Layout/VolumeControls"]
+layout_mode = 2
+text = "Music"
+
+[node name="MusicSlider" type="HSlider" parent="Layout/VolumeControls"]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+size_flags_vertical = 4
+script = ExtResource("5_slider")
+Bus = &"Music"
+
+[node name="SfxLabel" type="Label" parent="Layout/VolumeControls"]
+layout_mode = 2
+text = "SFX"
+
+[node name="SfxSlider" type="HSlider" parent="Layout/VolumeControls"]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+size_flags_vertical = 4
+script = ExtResource("5_slider")
+Bus = &"SFX"
+
+[node name="MuteToggle" type="CheckBox" parent="Layout"]
+layout_mode = 2
+text = "Mute all"

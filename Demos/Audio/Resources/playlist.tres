@@ -1,0 +1,11 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="Script" path="res://addons/ouranos_foundry/Features/Audio/Resources/MusicPlaylist.cs" id="1_script"]
+[ext_resource type="AudioStream" path="res://Demos/Audio/Sounds/music_calm.wav" id="2_calm"]
+[ext_resource type="AudioStream" path="res://Demos/Audio/Sounds/music_tense.wav" id="3_tense"]
+[ext_resource type="AudioStream" path="res://Demos/Audio/Sounds/music_bright.wav" id="4_bright"]
+
+[resource]
+script = ExtResource("1_script")
+Tracks = [ExtResource("2_calm"), ExtResource("3_tense"), ExtResource("4_bright")]
+Shuffle = true

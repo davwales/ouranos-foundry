@@ -1,0 +1,11 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="Script" path="res://addons/ouranos_foundry/Features/Audio/Resources/AudioCue.cs" id="1_script"]
+[ext_resource type="AudioStream" path="res://Demos/Audio/Sounds/zap.wav" id="2_zap"]
+
+[resource]
+script = ExtResource("1_script")
+Streams = [ExtResource("2_zap")]
+VolumeDb = -8.0
+PitchVariance = 0.15
+MaxPolyphony = 3
