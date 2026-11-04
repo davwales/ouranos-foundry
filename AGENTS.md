@@ -194,6 +194,7 @@ Write every issue and PR from the templates in [`docs/templates/`](docs/template
 - Never use `System.Random`, `GD.Randi()`/`GD.Randf()` or `RandomNumberGenerator` in features. Demos may seed from the clock.
 
 ### Per-feature
+- **Audio:** `Features/Audio/README.md`. Covers voice stealing, crossfades, playlists and saving volumes.
 - **Loot tables:** `Features/LootTables/README.md`. Covers the entry hierarchy, `IsEligible`/`Resolve` overrides, and the depth and cycle limits.
 - **Procedural generation:** `Features/ProceduralGeneration/README.md`. Covers the two pass types, `[RequiresPasses]`, and threading.
 - **Health:** `Features/Health/README.md`. Covers the component, UI monitors, `MaxHealthProvider` and serialization.

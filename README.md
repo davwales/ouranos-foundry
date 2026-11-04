@@ -14,6 +14,7 @@ Shared Godot C# library for building games. Features are self-contained vertical
 
 | Feature | Summary |
 |---------|---------|
+| [Audio](addons/ouranos_foundry/Features/Audio/README.md) | Pooled sound effects with polyphony limits, crossfading music and playlists, saved bus volumes |
 | [Health](addons/ouranos_foundry/Features/Health/README.md) | Health component with HUD bar, hearts, floating and grouped UI monitors |
 | [LootTables](addons/ouranos_foundry/Features/LootTables/README.md) | Weighted, deterministic, nestable loot tables as Godot resources |
 | [Persistence](addons/ouranos_foundry/Features/Persistence/README.md) | Save slots for any `ISaveable`: atomic, versioned JSON files with migrations |

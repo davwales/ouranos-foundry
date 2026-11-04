@@ -1,0 +1,13 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="Script" path="res://addons/ouranos_foundry/Features/Audio/Resources/AudioCue.cs" id="1_script"]
+[ext_resource type="AudioStream" path="res://Demos/Audio/Sounds/blip_1.wav" id="2_blip1"]
+[ext_resource type="AudioStream" path="res://Demos/Audio/Sounds/blip_2.wav" id="3_blip2"]
+[ext_resource type="AudioStream" path="res://Demos/Audio/Sounds/blip_3.wav" id="4_blip3"]
+
+[resource]
+script = ExtResource("1_script")
+Streams = [ExtResource("2_blip1"), ExtResource("3_blip2"), ExtResource("4_blip3")]
+VolumeDb = -6.0
+VolumeVarianceDb = 2.0
+PitchVariance = 0.08
